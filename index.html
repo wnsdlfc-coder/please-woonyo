@@ -7,370 +7,177 @@
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --rose: #E8748A;
-  --rose2: #F4A0B0;
-  --rose3: #FADADD;
-  --rose4: #FFF5F6;
-  --cream: #FDF8F0;
-  --peach: #F9E4D4;
-  --sage: #B5C9B7;
-  --text: #3D2C2C;
-  --text2: #7A5C5C;
-  --text3: #B89898;
-  --white: #FFFFFF;
-  --shadow: 0 4px 24px rgba(232,116,138,0.12);
-  --shadow2: 0 2px 12px rgba(232,116,138,0.08);
+  --rose: #E8748A; --rose2: #F4A0B0; --rose3: #FADADD; --rose4: #FFF5F6;
+  --cream: #FDF8F0; --peach: #F9E4D4; --text: #3D2C2C; --text2: #7A5C5C; --text3: #B89898;
+  --shadow: 0 4px 24px rgba(232,116,138,0.12); --shadow2: 0 2px 12px rgba(232,116,138,0.08);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family: 'Gowun Dodum', 'Noto Sans KR', sans-serif;
-  background: var(--cream);
-  min-height: 100vh;
-  color: var(--text);
-  font-size: 15px;
-}
+body { font-family:'Gowun Dodum','Noto Sans KR',sans-serif; background:var(--cream); min-height:100vh; color:var(--text); font-size:15px; }
 
-/* ── LOGIN ── */
-.login-screen {
-  min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(160deg, #FFF0F2 0%, #FDF8F0 60%, #F0F4FF 100%);
-}
-.login-card {
-  background: white;
-  border-radius: 28px;
-  padding: 52px 40px;
-  width: 90%; max-width: 380px;
-  box-shadow: 0 20px 60px rgba(232,116,138,0.15);
-  text-align: center;
-  animation: fadeUp 0.5s ease;
-}
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-.login-title {
-  font-family: 'Nanum Myeongjo', serif;
-  font-size: 30px; font-weight: 800;
-  color: var(--rose); margin-bottom: 6px; letter-spacing: -0.5px;
-}
-.login-sub { font-size: 14px; color: var(--text3); margin-bottom: 36px; line-height: 1.6; }
-.google-btn {
-  width: 100%; padding: 16px;
-  border-radius: 14px; border: 1.5px solid var(--rose3);
-  background: white; color: var(--text);
-  font-size: 15px; font-weight: 700; font-family: inherit;
-  cursor: pointer; transition: all 0.25s;
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  margin-bottom: 12px;
-}
-.google-btn:hover { background: var(--rose4); border-color: var(--rose); transform: translateY(-1px); box-shadow: var(--shadow); }
-.login-note { font-size: 13px; color: var(--text3); margin-top: 16px; }
+.screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(160deg,#FFF0F2 0%,#FDF8F0 60%,#F0F4FF 100%); }
+.auth-card { background:white; border-radius:28px; padding:52px 40px; width:90%; max-width:380px; box-shadow:0 20px 60px rgba(232,116,138,0.15); text-align:center; }
+.auth-title { font-family:'Nanum Myeongjo',serif; font-size:30px; font-weight:800; color:var(--rose); margin-bottom:6px; }
+.auth-sub { font-size:14px; color:var(--text3); margin-bottom:32px; line-height:1.7; }
+.google-btn { width:100%; padding:16px; border-radius:14px; border:1.5px solid var(--rose3); background:white; color:var(--text); font-size:15px; font-weight:700; font-family:inherit; cursor:pointer; transition:all 0.25s; display:flex; align-items:center; justify-content:center; gap:10px; }
+.google-btn:hover { background:var(--rose4); border-color:var(--rose); }
+.err-msg { font-size:13px; color:#C0392B; margin-top:10px; min-height:18px; }
+.auth-note { font-size:13px; color:var(--text3); margin-top:16px; }
 
-/* ── NICKNAME SETUP ── */
-.nickname-screen {
-  min-height: 100vh;
-  display: none; align-items: center; justify-content: center;
-  background: linear-gradient(160deg, #FFF0F2 0%, #FDF8F0 60%, #F0F4FF 100%);
-}
-.nickname-card {
-  background: white; border-radius: 28px; padding: 48px 36px;
-  width: 90%; max-width: 380px;
-  box-shadow: 0 20px 60px rgba(232,116,138,0.15);
-  text-align: center;
-}
-.nickname-title { font-family:'Nanum Myeongjo',serif; font-size:24px; font-weight:800; color:var(--rose); margin-bottom:8px; }
-.nickname-sub { font-size:14px; color:var(--text3); margin-bottom:28px; line-height:1.6; }
-
-/* ── APP ── */
-#app { display: none; }
-
-/* ── TOP NAV ── */
-.top-nav {
-  background: white; padding: 16px 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  box-shadow: 0 1px 12px rgba(0,0,0,0.06);
-  position: sticky; top: 0; z-index: 100;
-}
+#app { display:none; }
+.top-nav { background:white; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1px 12px rgba(0,0,0,0.06); position:sticky; top:0; z-index:100; }
 .app-title { font-family:'Nanum Myeongjo',serif; font-size:19px; font-weight:800; color:var(--rose); }
-.user-chip {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--rose4); border-radius: 20px; padding: 6px 14px;
-}
+.user-chip { display:flex; align-items:center; gap:8px; background:var(--rose4); border-radius:20px; padding:6px 14px; }
 .user-dot { width:8px; height:8px; border-radius:50%; background:var(--rose); }
 .user-chip-name { font-size:13px; font-weight:700; color:var(--text2); }
 .logout-btn { background:none; border:none; font-size:12px; color:var(--text3); cursor:pointer; margin-left:6px; }
 
-/* ── BOTTOM NAV ── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: white; padding: 10px 0 env(safe-area-inset-bottom);
-  box-shadow: 0 -1px 16px rgba(0,0,0,0.07);
-  display: flex; z-index: 100;
-}
-.nav-item {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 4px; padding: 6px 4px;
-  border: none; background: none; cursor: pointer;
-  transition: all 0.2s; font-family: inherit;
-}
-.nav-icon { font-size: 20px; line-height: 1; }
-.nav-label { font-size: 11px; font-weight: 700; color: var(--text3); transition: color 0.2s; }
-.nav-item.active .nav-label { color: var(--rose); }
-.nav-active-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rose); margin: 0 auto; opacity: 0; transition: opacity 0.2s; }
-.nav-item.active .nav-active-dot { opacity: 1; }
+.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:white; padding:10px 0 env(safe-area-inset-bottom); box-shadow:0 -1px 16px rgba(0,0,0,0.07); display:flex; z-index:100; }
+.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 4px; border:none; background:none; cursor:pointer; transition:all 0.2s; font-family:inherit; }
+.nav-icon { font-size:20px; line-height:1; }
+.nav-label { font-size:11px; font-weight:700; color:var(--text3); transition:color 0.2s; }
+.nav-item.active .nav-label { color:var(--rose); }
+.nav-dot { width:4px; height:4px; border-radius:50%; background:var(--rose); margin:0 auto; opacity:0; }
+.nav-item.active .nav-dot { opacity:1; }
 
-/* ── MAIN ── */
-main { max-width: 480px; margin: 0 auto; padding: 20px 16px 90px; }
+main { max-width:480px; margin:0 auto; padding:20px 16px 90px; }
+.page { display:none; animation:fadeUp 0.25s ease; }
+.page.active { display:block; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
-/* ── PAGES ── */
-.page { display: none; animation: fadeUp 0.25s ease; }
-.page.active { display: block; }
-
-/* ── PAGE TITLE ── */
-.page-title { font-family:'Nanum Myeongjo',serif; font-size:22px; font-weight:800; color:var(--text); margin-bottom:20px; }
+.page-title { font-family:'Nanum Myeongjo',serif; font-size:22px; font-weight:800; margin-bottom:20px; }
 .section-label { font-size:12px; font-weight:700; color:var(--text3); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:10px; margin-top:24px; }
+.card { background:white; border-radius:20px; padding:20px; margin-bottom:12px; box-shadow:var(--shadow2); }
 
-/* ── CARDS ── */
-.card {
-  background: white; border-radius: 20px;
-  padding: 20px; margin-bottom: 12px;
-  box-shadow: var(--shadow2);
-}
-
-/* ── FORM ── */
-.form-group { margin-bottom: 18px; }
+.form-group { margin-bottom:18px; }
 .form-label { font-size:13px; font-weight:700; color:var(--text2); margin-bottom:7px; display:block; }
-.form-input {
-  width: 100%; background: var(--rose4);
-  border: 1.5px solid transparent; color: var(--text);
-  padding: 12px 16px; border-radius: 12px;
-  font-size: 15px; font-family: inherit; outline: none; transition: all 0.2s;
-}
-.form-input:focus { border-color: var(--rose); background: white; }
-textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-input { width:100%; background:var(--rose4); border:1.5px solid transparent; color:var(--text); padding:12px 16px; border-radius:12px; font-size:15px; font-family:inherit; outline:none; transition:all 0.2s; }
+.form-input:focus { border-color:var(--rose); background:white; }
+textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-/* ── BUTTONS ── */
-.btn {
-  padding: 13px 24px; border-radius: 14px; border: none;
-  font-family: inherit; font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: all 0.25s;
-}
-.btn-rose { background: var(--rose); color: white; box-shadow: 0 4px 16px rgba(232,116,138,0.3); }
-.btn-rose:hover { background: #D4637A; transform: translateY(-1px); }
-.btn-outline { background: white; border: 1.5px solid var(--rose3); color: var(--rose); }
-.btn-outline:hover { background: var(--rose4); border-color: var(--rose); }
-.btn-sage { background: var(--sage); color: white; }
-.btn-full { width: 100%; }
-.btn-sm { padding: 7px 14px; font-size: 13px; border-radius: 10px; }
-.btn-xs { padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+.btn { padding:13px 24px; border-radius:14px; border:none; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.25s; }
+.btn-rose { background:var(--rose); color:white; box-shadow:0 4px 16px rgba(232,116,138,0.3); }
+.btn-rose:hover { background:#D4637A; transform:translateY(-1px); }
+.btn-outline { background:white; border:1.5px solid var(--rose3); color:var(--rose); }
+.btn-outline:hover { background:var(--rose4); border-color:var(--rose); }
+.btn-full { width:100%; }
+.btn-sm { padding:7px 14px; font-size:13px; border-radius:10px; }
 
-/* ── RECIPIENT SELECTOR ── */
-.recipient-grid { display: flex; gap: 10px; margin-bottom: 4px; }
-.recipient-chip {
-  flex: 1; padding: 14px 10px; border-radius: 14px;
-  border: 1.5px solid var(--rose3); background: white;
-  text-align: center; cursor: pointer; transition: all 0.2s; font-family: inherit;
-}
-.recipient-chip .r-name { font-size: 15px; font-weight: 700; color: var(--text2); }
-.recipient-chip .r-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.recipient-chip.selected { border-color: var(--rose); background: var(--rose4); }
-.recipient-chip.selected .r-name { color: var(--rose); }
+.theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.theme-chip { padding:12px 8px; border-radius:12px; border:1.5px solid var(--rose3); background:white; text-align:center; cursor:pointer; transition:all 0.2s; font-family:inherit; font-size:13px; font-weight:700; color:var(--text2); }
+.theme-chip.selected { border-color:var(--rose); background:var(--rose4); color:var(--rose); }
 
-/* ── THEME CHIPS ── */
-.theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.theme-chip {
-  padding: 12px 8px; border-radius: 12px; border: 1.5px solid var(--rose3);
-  background: white; text-align: center; cursor: pointer; transition: all 0.2s; font-family: inherit;
-}
-.theme-chip .chip-label { font-size: 13px; font-weight: 700; color: var(--text2); }
-.theme-chip.selected { border-color: var(--rose); background: var(--rose4); }
-.theme-chip.selected .chip-label { color: var(--rose); }
+.region-wrap { position:relative; }
+.region-btn { width:100%; padding:12px 16px; border-radius:12px; border:1.5px solid transparent; background:var(--rose4); color:var(--text); font-size:15px; font-family:inherit; text-align:left; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; }
+.region-btn.open, .region-btn:hover { border-color:var(--rose); background:white; }
+.region-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:white; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.12); z-index:50; max-height:260px; overflow-y:auto; padding:8px; }
+.region-dropdown.open { display:block; }
+.region-group-title { font-size:11px; font-weight:700; color:var(--text3); padding:8px 10px 4px; text-transform:uppercase; letter-spacing:0.5px; }
+.region-opt { padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px; color:var(--text); transition:background 0.15s; }
+.region-opt:hover { background:var(--rose4); }
+.region-opt.selected { background:var(--rose4); color:var(--rose); font-weight:700; }
 
-/* ── REGION ── */
-.region-wrap { position: relative; }
-.region-select-btn {
-  width: 100%; padding: 12px 16px; border-radius: 12px;
-  border: 1.5px solid transparent; background: var(--rose4);
-  color: var(--text); font-size: 15px; font-family: inherit;
-  text-align: left; cursor: pointer; transition: all 0.2s;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.region-select-btn:hover, .region-select-btn.open { border-color: var(--rose); background: white; }
-.region-dropdown {
-  display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-  background: white; border-radius: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-  z-index: 50; max-height: 260px; overflow-y: auto; padding: 8px;
-}
-.region-dropdown.open { display: block; }
-.region-group-title { font-size: 11px; font-weight: 700; color: var(--text3); padding: 8px 10px 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.region-option {
-  padding: 10px 14px; border-radius: 10px; cursor: pointer;
-  font-size: 14px; color: var(--text); transition: background 0.15s;
-}
-.region-option:hover { background: var(--rose4); }
-.region-option.selected { background: var(--rose4); color: var(--rose); font-weight: 700; }
+.check-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--rose4); border-radius:12px; margin-bottom:8px; }
+.check-text { flex:1; font-size:14px; }
+.check-text.imp { font-weight:700; color:var(--rose); }
+.star-btn { background:none; border:none; font-size:15px; cursor:pointer; color:var(--text3); }
+.star-btn.on { color:#F4A300; }
+.del-btn { background:none; border:none; font-size:16px; cursor:pointer; color:var(--text3); }
+.add-row { display:flex; gap:8px; }
 
-/* ── CHECKLIST ── */
-.checklist-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; background: var(--rose4); border-radius: 12px; margin-bottom: 8px;
-}
-.check-text { flex: 1; font-size: 14px; }
-.check-text.important { font-weight: 700; color: var(--rose); }
-.star-btn { background: none; border: none; font-size: 15px; cursor: pointer; color: var(--text3); transition: color 0.2s; }
-.star-btn.on { color: #F4A300; }
-.del-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: var(--text3); }
-.add-row { display: flex; gap: 8px; }
+.mission-box { background:linear-gradient(135deg,#FFF0D4,#FFE4E8); border-radius:16px; padding:20px; text-align:center; margin-bottom:8px; font-size:15px; font-weight:700; color:var(--text); line-height:1.6; }
 
-/* ── MISSION ── */
-.mission-box {
-  background: linear-gradient(135deg, #FFF0D4, #FFE4E8);
-  border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 8px;
-}
-.mission-box-text { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.6; }
-
-/* ── REQUEST CARD ── */
-.req-card {
-  background: white; border-radius: 20px; padding: 20px;
-  margin-bottom: 12px; box-shadow: var(--shadow2);
-  border-left: 3px solid var(--rose);
-}
-.req-from { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
-.req-date-big { font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:700; margin-bottom:3px; }
-.req-info { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
-.req-actions { display: flex; gap: 8px; }
-.status-badge {
-  display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
-}
-.s-pending  { background: #FEF3C7; color: #92400E; }
-.s-accepted { background: #D1FAE5; color: #065F46; }
-.s-rejected { background: #FFE4E6; color: #9F1239; }
-
-/* ── HERO ── */
-.hero {
-  background: linear-gradient(135deg, var(--rose) 0%, #C86B85 100%);
-  border-radius: 24px; padding: 28px 24px; margin-bottom: 20px; color: white;
-}
-.hero-greeting { font-size: 14px; opacity: 0.85; margin-bottom: 4px; }
+.hero { background:linear-gradient(135deg,var(--rose) 0%,#C86B85 100%); border-radius:24px; padding:28px 24px; margin-bottom:20px; color:white; }
+.hero-greeting { font-size:14px; opacity:0.85; margin-bottom:4px; }
 .hero-name { font-family:'Nanum Myeongjo',serif; font-size:26px; font-weight:800; margin-bottom:16px; }
-.hero-stats { display: flex; gap: 20px; }
+.hero-stats { display:flex; gap:20px; }
 .h-val { font-family:'Nanum Myeongjo',serif; font-size:30px; font-weight:800; line-height:1; }
-.h-label { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.h-label { font-size:12px; opacity:0.8; margin-top:2px; }
 
-/* ── MY PAGE ── */
-.tab-nav { display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 2px; }
-.tab-btn {
-  padding: 8px 18px; border-radius: 20px; border: 1.5px solid var(--rose3);
-  background: white; color: var(--text2); font-size: 13px; font-weight: 700;
-  cursor: pointer; white-space: nowrap; transition: all 0.2s; font-family: inherit;
-}
-.tab-btn.active { background: var(--rose); color: white; border-color: var(--rose); }
+.req-card { background:white; border-radius:20px; padding:20px; margin-bottom:12px; box-shadow:var(--shadow2); border-left:3px solid var(--rose); }
+.req-from { font-size:12px; color:var(--text3); margin-bottom:4px; }
+.req-date-big { font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:700; margin-bottom:3px; }
+.req-info { font-size:13px; color:var(--text2); margin-bottom:12px; }
+.req-actions { display:flex; gap:8px; }
+.sbadge { display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+.s-pending { background:#FEF3C7; color:#92400E; }
+.s-accepted { background:#D1FAE5; color:#065F46; }
+.s-rejected { background:#FFE4E6; color:#9F1239; }
 
-/* ── DATE LIST ── */
-.date-card {
-  background: white; border-radius: 20px; padding: 20px;
-  margin-bottom: 10px; box-shadow: var(--shadow2);
-}
-.date-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.date-card { background:white; border-radius:20px; padding:20px; margin-bottom:10px; box-shadow:var(--shadow2); }
 .date-card-date { font-family:'Nanum Myeongjo',serif; font-size:17px; font-weight:700; }
-.date-card-info { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
-.checklist-mini { margin-bottom: 10px; }
-.checklist-mini-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; background: var(--rose4); border-radius: 8px; margin-bottom: 6px;
-  cursor: pointer;
-}
-.mini-check { width:18px; height:18px; border-radius:6px; border:1.5px solid var(--rose3); background:white; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; }
-.mini-check.done { background:var(--rose); border-color:var(--rose); color:white; }
-.mini-text { font-size:13px; flex:1; }
-.mini-text.done { text-decoration:line-through; color:var(--text3); }
-.important-star { font-size: 12px; color: #F4A300; }
+.date-card-info { font-size:13px; color:var(--text2); margin:4px 0 10px; }
+.mini-item { display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--rose4); border-radius:8px; margin-bottom:6px; cursor:pointer; }
+.mini-chk { width:18px; height:18px; border-radius:6px; border:1.5px solid var(--rose3); background:white; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; }
+.mini-chk.done { background:var(--rose); border-color:var(--rose); color:white; }
+.mini-txt { font-size:13px; flex:1; }
+.mini-txt.done { text-decoration:line-through; color:var(--text3); }
 
-/* ── DIARY ── */
-.diary-card {
-  background: white; border-radius: 20px; padding: 22px;
-  margin-bottom: 10px; box-shadow: var(--shadow2);
-  position: relative; overflow: hidden;
-}
+.tab-nav { display:flex; gap:6px; margin-bottom:20px; overflow-x:auto; padding-bottom:2px; }
+.tab-btn { padding:8px 18px; border-radius:20px; border:1.5px solid var(--rose3); background:white; color:var(--text2); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.2s; font-family:inherit; }
+.tab-btn.active { background:var(--rose); color:white; border-color:var(--rose); }
+
+.diary-card { background:white; border-radius:20px; padding:22px; margin-bottom:10px; box-shadow:var(--shadow2); position:relative; overflow:hidden; }
 .diary-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--rose),var(--rose2)); }
-.diary-date-label { font-size:12px; color:var(--text3); margin-bottom:5px; }
+.diary-date-lbl { font-size:12px; color:var(--text3); margin-bottom:5px; }
 .diary-title { font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:700; margin-bottom:8px; }
 .diary-body { font-size:14px; color:var(--text2); line-height:1.7; }
 .diary-stars { font-size:15px; margin-top:8px; }
 .diary-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
 .diary-tag { padding:2px 10px; border-radius:10px; font-size:12px; background:var(--rose4); color:var(--rose); font-weight:700; }
 
-/* ── PLACES ── */
-.place-item {
-  background: white; border-radius: 16px; padding: 16px 18px;
-  margin-bottom: 8px; box-shadow: var(--shadow2);
-  display: flex; align-items: center; gap: 14px;
-}
+.place-item { background:white; border-radius:16px; padding:16px 18px; margin-bottom:8px; box-shadow:var(--shadow2); display:flex; align-items:center; gap:14px; }
 .place-dot { width:10px; height:10px; border-radius:50%; background:var(--rose); flex-shrink:0; }
 .place-name-big { font-size:15px; font-weight:700; }
-.place-region-label { font-size:12px; color:var(--text3); }
-.region-count-badge { background:var(--rose4); color:var(--rose); font-size:12px; font-weight:700; padding:3px 10px; border-radius:10px; margin-left:auto; white-space:nowrap; }
+.place-region-lbl { font-size:12px; color:var(--text3); }
 
-/* ── MODAL ── */
-.modal-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(61,44,44,0.35); backdrop-filter: blur(3px);
-  z-index: 300; align-items: flex-end; justify-content: center;
-}
-.modal-bg.open { display: flex; }
-.modal {
-  background: white; border-radius: 28px 28px 0 0;
-  padding: 24px 22px 40px; width: 100%; max-width: 480px;
-  max-height: 90vh; overflow-y: auto;
-  animation: slideUp 0.3s ease;
-}
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(61,44,44,0.35); backdrop-filter:blur(3px); z-index:300; align-items:flex-end; justify-content:center; }
+.modal-bg.open { display:flex; }
+.modal { background:white; border-radius:28px 28px 0 0; padding:24px 22px 40px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; animation:slideUp 0.3s ease; }
 @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
 .modal-bar { width:36px; height:4px; background:var(--rose3); border-radius:2px; margin:0 auto 20px; }
 .modal-title { font-family:'Nanum Myeongjo',serif; font-size:20px; font-weight:800; margin-bottom:20px; }
 
-/* ── TOAST ── */
-.toast {
-  position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%) translateY(10px);
-  background: var(--text); color: white; padding: 12px 24px;
-  border-radius: 20px; font-size: 14px; font-weight: 700;
-  opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
+.toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--text); color:white; padding:12px 24px; border-radius:20px; font-size:14px; font-weight:700; opacity:0; transition:all 0.3s; z-index:999; white-space:nowrap; }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 .empty-state { text-align:center; padding:40px 20px; color:var(--text3); font-size:14px; line-height:2; }
-.divider { height:1px; background:var(--rose3); margin:16px 0; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#FFF0F2 0%,#FDF8F0 60%,#F0F4FF 100%);">
-  <div class="login-card">
-    <div class="login-title">please woonyo</div>
-    <div class="login-sub">우뇨야, 데이트를 받아줘<br>우리만의 공간이에요</div>
-    <button class="google-btn" id="google-login-btn">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+<!-- 로그인 -->
+<div id="login-screen" class="screen">
+  <div class="auth-card">
+    <div class="auth-title">please woonyo</div>
+    <div class="auth-sub">우뇨야, 데이트를 받아줘<br>우리만의 공간이에요</div>
+    <button class="google-btn" id="google-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
       Google로 로그인
     </button>
-    <div id="login-error" style="font-size:13px;color:#C0392B;margin-top:10px;min-height:18px;"></div>
-    <div class="login-note">커플 전용 데이트 앱</div>
+    <div class="err-msg" id="login-err"></div>
+    <div class="auth-note">커플 전용 데이트 앱</div>
   </div>
 </div>
 
-<!-- NICKNAME SETUP -->
-<div id="nickname-screen" class="nickname-screen">
-  <div class="nickname-card">
-    <div class="nickname-title">닉네임 설정</div>
-    <div class="nickname-sub">앱에서 사용할 이름을 입력해주세요<br>상대방이 신청할 때 이 이름으로 보여요</div>
+<!-- 닉네임 설정 -->
+<div id="nick-screen" class="screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-title">닉네임 설정</div>
+    <div class="auth-sub">앱에서 사용할 이름을 입력해주세요<br>상대방이 신청할 때 이 이름으로 보여요</div>
     <div class="form-group" style="text-align:left;">
-      <label class="form-label">닉네임</label>
-      <input type="text" id="nickname-input" class="form-input" placeholder="예) 우뇨, 올드맨, 준일..." maxlength="10" onkeydown="if(event.key==='Enter')saveNickname()">
-      <div style="font-size:12px;color:var(--text3);margin-top:5px;">최대 10자, 나중에 변경 불가</div>
+      <label class="form-label">닉네임 (최대 10자)</label>
+      <input type="text" id="nick-input" class="form-input" placeholder="예) 우뇨, 올드맨..." maxlength="10">
     </div>
-    <button class="btn btn-rose btn-full" onclick="saveNickname()">시작하기</button>
+    <button class="btn btn-rose btn-full" id="nick-save-btn">시작하기</button>
   </div>
 </div>
 
-<!-- APP -->
+<!-- 앱 -->
 <div id="app">
   <div class="top-nav">
     <div class="app-title">please woonyo</div>
@@ -379,7 +186,7 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
         <div class="user-dot"></div>
         <div class="user-chip-name" id="user-name-display">-</div>
       </div>
-      <button class="logout-btn" onclick="doLogout()">나가기</button>
+      <button class="logout-btn" id="logout-btn">나가기</button>
     </div>
   </div>
 
@@ -395,10 +202,8 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
           <div><div class="h-val" id="stat-diary">0</div><div class="h-label">일기</div></div>
         </div>
       </div>
-
       <div class="section-label">받은 신청</div>
       <div id="home-incoming"></div>
-
       <div class="section-label">다가오는 데이트</div>
       <div id="home-upcoming"></div>
     </div>
@@ -407,14 +212,11 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
     <div id="page-apply" class="page">
       <div class="page-title">데이트 신청</div>
       <div class="card">
-        <!-- 받는 사람 -->
         <div class="form-group">
           <label class="form-label">누구에게 신청할까요?</label>
           <input type="text" id="a-recipient" class="form-input" placeholder="상대방 닉네임을 입력하세요">
           <div style="font-size:12px;color:var(--text3);margin-top:5px;">상대방이 앱에서 설정한 닉네임을 입력해주세요</div>
         </div>
-
-        <!-- 날짜/시간 -->
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">날짜</label>
@@ -425,83 +227,65 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
             <input type="time" id="a-time" class="form-input" value="14:00">
           </div>
         </div>
-
-        <!-- 테마 -->
         <div class="form-group">
-          <label class="form-label">데이트 테마</label>
-          <div class="theme-grid">
-            <button class="theme-chip" data-theme="로맨틱" onclick="selectTheme(this)"><span class="chip-label">로맨틱</span></button>
-            <button class="theme-chip" data-theme="맛집탐방" onclick="selectTheme(this)"><span class="chip-label">맛집탐방</span></button>
-            <button class="theme-chip" data-theme="액티비티" onclick="selectTheme(this)"><span class="chip-label">액티비티</span></button>
-            <button class="theme-chip" data-theme="힐링" onclick="selectTheme(this)"><span class="chip-label">힐링</span></button>
-            <button class="theme-chip" data-theme="문화생활" onclick="selectTheme(this)"><span class="chip-label">문화생활</span></button>
-            <button class="theme-chip" data-theme="드라이브" onclick="selectTheme(this)"><span class="chip-label">드라이브</span></button>
+          <label class="form-label">테마</label>
+          <div class="theme-grid" id="theme-grid">
+            <button class="theme-chip" data-theme="로맨틱">로맨틱</button>
+            <button class="theme-chip" data-theme="맛집탐방">맛집탐방</button>
+            <button class="theme-chip" data-theme="액티비티">액티비티</button>
+            <button class="theme-chip" data-theme="힐링">힐링</button>
+            <button class="theme-chip" data-theme="문화생활">문화생활</button>
+            <button class="theme-chip" data-theme="드라이브">드라이브</button>
           </div>
         </div>
-
-        <!-- 지역 -->
         <div class="form-group">
           <label class="form-label">지역</label>
           <div class="region-wrap">
-            <button class="region-select-btn" id="region-btn" onclick="toggleRegionDropdown()">
-              <span id="region-btn-text">지역을 선택하세요</span>
-              <span>▾</span>
-            </button>
+            <button class="region-btn" id="region-btn"><span id="region-btn-text">지역을 선택하세요</span><span>▾</span></button>
             <div class="region-dropdown" id="region-dropdown"></div>
           </div>
         </div>
-
-        <!-- 세부 장소 -->
         <div class="form-group">
           <label class="form-label">세부 장소</label>
-          <div style="display:flex;gap:8px;align-items:center;">
+          <div style="display:flex;gap:8px;">
             <input type="text" id="a-subloc" class="form-input" placeholder="예) 수성못, 동성로">
-            <button class="btn btn-outline btn-sm" onclick="saveSublocAsPlace()" style="white-space:nowrap;">저장</button>
+            <button class="btn btn-outline btn-sm" id="save-subloc-btn" style="white-space:nowrap;">저장</button>
           </div>
           <div style="font-size:12px;color:var(--text3);margin-top:5px;">저장 버튼을 누르면 장소 목록에 추가돼요</div>
         </div>
-
-        <!-- 체크리스트 -->
         <div class="form-group">
-          <label class="form-label">체크리스트 <span style="color:var(--text3);font-weight:400;font-size:12px;">(별표 중요표시 최대 3개)</span></label>
+          <label class="form-label">체크리스트 <span style="color:var(--text3);font-weight:400;font-size:12px;">(중요 별표 최대 3개)</span></label>
           <div id="checklist-items"></div>
           <div class="add-row">
-            <input type="text" id="new-check-input" class="form-input" placeholder="할 것 추가..." onkeydown="if(event.key==='Enter')addCheckItem()">
-            <button class="btn btn-outline btn-sm" onclick="addCheckItem()">추가</button>
+            <input type="text" id="new-check" class="form-input" placeholder="할 것 추가...">
+            <button class="btn btn-outline btn-sm" id="add-check-btn">추가</button>
           </div>
         </div>
-
-        <!-- 랜덤 미션 -->
         <div class="form-group">
           <label class="form-label">랜덤 미션</label>
           <div id="mission-display"></div>
-          <button class="btn btn-outline btn-sm" onclick="drawMission()" style="margin-top:6px;">미션 뽑기</button>
+          <button class="btn btn-outline btn-sm" id="draw-mission-btn" style="margin-top:6px;">미션 뽑기</button>
         </div>
-
-        <!-- 메시지 -->
         <div class="form-group">
           <label class="form-label">한마디</label>
           <textarea id="a-message" class="form-input" placeholder="전하고 싶은 말을 적어요"></textarea>
         </div>
-
-        <button class="btn btn-rose btn-full" onclick="submitDateRequest()">신청 보내기</button>
+        <button class="btn btn-rose btn-full" id="submit-btn">신청 보내기</button>
       </div>
     </div>
 
     <!-- 장소 -->
     <div id="page-places" class="page">
       <div class="page-title">우리의 장소</div>
-
       <div class="section-label">지역별 데이트 횟수</div>
-      <div id="region-stats-list"></div>
-
+      <div id="region-stats"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;margin-bottom:10px;">
         <div class="section-label" style="margin:0;">저장된 장소</div>
-        <button class="btn btn-rose btn-sm" onclick="openModal('modal-place')">추가</button>
+        <button class="btn btn-rose btn-sm" id="open-place-modal-btn">추가</button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="tab-btn active" id="place-tab-visited" onclick="filterPlaces('visited',this)">가봤던 곳</button>
-        <button class="tab-btn" id="place-tab-wanna" onclick="filterPlaces('wanna',this)">가고싶은 곳</button>
+        <button class="tab-btn active" id="place-tab-visited">가봤던 곳</button>
+        <button class="tab-btn" id="place-tab-wanna">가고싶은 곳</button>
       </div>
       <div id="places-list"></div>
     </div>
@@ -510,36 +294,20 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
     <div id="page-my" class="page">
       <div class="page-title">마이페이지</div>
       <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchMyTab('received',this)">받은 신청</button>
-        <button class="tab-btn" onclick="switchMyTab('sent',this)">보낸 신청</button>
-        <button class="tab-btn" onclick="switchMyTab('dates',this)">데이트 기록</button>
-        <button class="tab-btn" onclick="switchMyTab('diaries',this)">일기</button>
+        <button class="tab-btn active" data-mytab="received">받은 신청</button>
+        <button class="tab-btn" data-mytab="sent">보낸 신청</button>
+        <button class="tab-btn" data-mytab="dates">데이트 기록</button>
+        <button class="tab-btn" data-mytab="diaries">일기</button>
       </div>
-      <div id="my-tab-content"></div>
+      <div id="my-content"></div>
     </div>
   </main>
 
   <div class="bottom-nav">
-    <button class="nav-item active" onclick="showPage('home',this)">
-      <div class="nav-icon">&#9825;</div>
-      <div class="nav-label">홈</div>
-      <div class="nav-active-dot"></div>
-    </button>
-    <button class="nav-item" onclick="showPage('apply',this)">
-      <div class="nav-icon">&#9993;</div>
-      <div class="nav-label">신청</div>
-      <div class="nav-active-dot"></div>
-    </button>
-    <button class="nav-item" onclick="showPage('places',this)">
-      <div class="nav-icon">&#9673;</div>
-      <div class="nav-label">장소</div>
-      <div class="nav-active-dot"></div>
-    </button>
-    <button class="nav-item" onclick="showPage('my',this)">
-      <div class="nav-icon">&#9786;</div>
-      <div class="nav-label">마이</div>
-      <div class="nav-active-dot"></div>
-    </button>
+    <button class="nav-item active" data-page="home"><div class="nav-icon">♡</div><div class="nav-label">홈</div><div class="nav-dot"></div></button>
+    <button class="nav-item" data-page="apply"><div class="nav-icon">✉</div><div class="nav-label">신청</div><div class="nav-dot"></div></button>
+    <button class="nav-item" data-page="places"><div class="nav-icon">◎</div><div class="nav-label">장소</div><div class="nav-dot"></div></button>
+    <button class="nav-item" data-page="my"><div class="nav-icon">☺</div><div class="nav-label">마이</div><div class="nav-dot"></div></button>
   </div>
 </div>
 
@@ -551,9 +319,7 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
     <div class="form-group">
       <label class="form-label">지역</label>
       <div class="region-wrap">
-        <button class="region-select-btn" id="place-region-btn" onclick="togglePlaceRegionDropdown()">
-          <span id="place-region-btn-text">지역을 선택하세요</span><span>▾</span>
-        </button>
+        <button class="region-btn" id="place-region-btn"><span id="place-region-text">지역을 선택하세요</span><span>▾</span></button>
         <div class="region-dropdown" id="place-region-dropdown"></div>
       </div>
     </div>
@@ -570,11 +336,11 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
     </div>
     <div class="form-group">
       <label class="form-label">메모</label>
-      <input type="text" id="p-memo" class="form-input" placeholder="기억나는 것, 추천 이유...">
+      <input type="text" id="p-memo" class="form-input" placeholder="기억나는 것...">
     </div>
     <div style="display:flex;gap:10px;">
-      <button class="btn btn-outline btn-full" onclick="closeModal('modal-place')">취소</button>
-      <button class="btn btn-rose btn-full" onclick="savePlace()">저장</button>
+      <button class="btn btn-outline btn-full" id="close-place-modal-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="save-place-btn">저장</button>
     </div>
   </div>
 </div>
@@ -591,25 +357,19 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
     </div>
     <div class="form-group">
       <label class="form-label">내용</label>
-      <textarea id="d-content" class="form-input" placeholder="오늘 어땠어요? 기억에 남는 것들을 적어봐요" style="min-height:120px;"></textarea>
+      <textarea id="d-content" class="form-input" placeholder="오늘 어땠어요?" style="min-height:120px;"></textarea>
     </div>
     <div class="form-group">
       <label class="form-label">별점</label>
-      <div style="display:flex;gap:6px;" id="diary-stars">
-        <span style="font-size:22px;cursor:pointer;" onclick="setDiaryStar(1)">☆</span>
-        <span style="font-size:22px;cursor:pointer;" onclick="setDiaryStar(2)">☆</span>
-        <span style="font-size:22px;cursor:pointer;" onclick="setDiaryStar(3)">☆</span>
-        <span style="font-size:22px;cursor:pointer;" onclick="setDiaryStar(4)">☆</span>
-        <span style="font-size:22px;cursor:pointer;" onclick="setDiaryStar(5)">☆</span>
-      </div>
+      <div id="diary-stars" style="display:flex;gap:6px;font-size:22px;cursor:pointer;"></div>
     </div>
     <div class="form-group">
       <label class="form-label">태그 (쉼표로 구분)</label>
       <input type="text" id="d-tags" class="form-input" placeholder="맛집, 야경, 행복한날">
     </div>
     <div style="display:flex;gap:10px;">
-      <button class="btn btn-outline btn-full" onclick="closeModal('modal-diary')">취소</button>
-      <button class="btn btn-rose btn-full" onclick="saveDiary()">저장</button>
+      <button class="btn btn-outline btn-full" id="close-diary-modal-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="save-diary-btn">저장</button>
     </div>
   </div>
 </div>
@@ -618,10 +378,8 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, where }
-  from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBamsaFwG14Va2PAAUDuZw1qZpF7YzB68U",
@@ -629,168 +387,69 @@ const firebaseConfig = {
   projectId: "please-woonyo",
   storageBucket: "please-woonyo.firebasestorage.app",
   messagingSenderId: "496203806109",
-  appId: "1:496203806109:web:da7dfb296ad090956d6b74",
-  measurementId: "G-0P9SJ6SV3Y"
+  appId: "1:496203806109:web:da7dfb296ad090956d6b74"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
 
-// ── 지역 데이터 ──
+// ── 데이터 ──
 const REGIONS = {
-  '수도권': ['서울 강남구','서울 마포구','서울 종로구','서울 홍대','서울 이태원','서울 한강','인천','수원','성남','용인','고양','남양주시','의정부','파주','김포','안양','부천'],
-  '충청': ['대전','청주','천안','공주','세종','충주'],
-  '경상': ['대구','대구 수성못','대구 동성로','부산','부산 해운대','부산 광안리','울산','경주','포항','안동','구미','창원','진주','통영','거제'],
-  '전라': ['광주','전주','여수','순천','목포','남원'],
-  '강원': ['강릉','춘천','속초','원주','평창','정선','동해'],
-  '제주': ['제주시','서귀포','애월','성산','중문'],
+  '수도권': ['서울 강남','서울 홍대','서울 이태원','서울 종로','서울 한강','서울 성수','인천','수원','성남','용인','고양','남양주시','의정부','파주','김포','안양','부천','구리'],
+  '충청': ['대전','청주','천안','공주','세종','충주','아산'],
+  '경상': ['대구','대구 수성못','대구 동성로','대구 앞산','부산','부산 해운대','부산 광안리','부산 남포동','울산','경주','포항','안동','구미','창원','진주','통영','거제','양산'],
+  '전라': ['광주','전주','여수','순천','목포','남원','군산'],
+  '강원': ['강릉','춘천','속초','원주','평창','정선','동해','삼척','태백'],
+  '제주': ['제주시','서귀포','애월','성산','중문','협재'],
   '기타': ['기타']
 };
 
-// ── 미션 ──
 const MISSIONS = [
-  '상대방이 오늘 하루 모든 것을 결정하기',
-  '처음 가보는 골목을 함께 탐험하기',
+  '오늘 하루 상대방이 모든 것을 결정하기',
+  '처음 가보는 골목 함께 탐험하기',
   '서로 어릴 적 추억 하나씩 이야기하기',
   '오늘 가장 예쁜 장면 사진으로 남기기',
   '서로에게 칭찬 5가지씩 말해주기',
   '하늘 보면서 10분간 아무 말 없이 있기',
-  '오늘 데이트 중 새로운 것 하나 도전하기',
+  '오늘 새로운 것 하나 함께 도전하기',
   '서로 손잡고 10분 이상 걷기',
   '오늘 데이트를 한 문장으로 표현해보기',
-  '길을 걷다 눈에 띄는 것 사진 찍기 대결',
+  '눈에 띄는 것 사진 찍기 대결하기',
   '서로 좋아하는 노래 한 곡씩 들려주기',
   '오늘 가장 행복했던 순간 말해주기',
   '서로에게 편지 한 줄씩 써주기',
   '오늘 본 하늘 사진 찍어 간직하기',
-  '지금 이 순간 느끼는 감정 솔직히 말하기',
-  '카페에서 서로 음료 골라주기 (저예산)',
-  '동네 편의점에서 간식 하나씩 골라주기',
+  '지금 느끼는 감정 솔직히 말하기',
   '공원에서 함께 일몰 보기',
   '서로의 버킷리스트 하나씩 공유하기',
-  '오늘 데이트 중 웃겼던 것 하나 꼽기',
+  '편의점에서 간식 서로 골라주기',
+  '카페에서 서로 음료 골라주기',
+  '오늘 웃겼던 것 하나씩 꼽기',
 ];
 
+// ── 상태 ──
 let currentUser = null;
-let currentNickname = '';
-let checklistItems = [];
-let selectedTheme = '';
-let selectedRegion = '';
-let selectedPlaceRegion = '';
-let selectedRecipient = '';
+let currentNick = '';
+let checkItems = [];
+let selTheme = '';
+let selRegion = '';
+let selPlaceRegion = '';
 let diaryStar = 5;
-let currentPlaceFilter = 'visited';
-let currentMyTab = 'received';
+let placeFilter = 'visited';
+let myTab = 'received';
+let allRequests = [];
+let allPlaces = [];
+let allDiaries = [];
 
-// ── 지역 드롭다운 렌더 ──
-function buildRegionDropdown(dropdownId, btnId, btnTextId, onSelect) {
-  const dd = document.getElementById(dropdownId);
-  let html = '';
-  Object.entries(REGIONS).forEach(([group, cities]) => {
-    html += `<div class="region-group-title">${group}</div>`;
-    cities.forEach(city => {
-      html += `<div class="region-option" data-city="${city}" onclick="${onSelect}('${city}')">${city}</div>`;
-    });
-  });
-  dd.innerHTML = html;
-}
-
-window.toggleRegionDropdown = () => {
-  const dd = document.getElementById('region-dropdown');
-  const btn = document.getElementById('region-btn');
-  dd.classList.toggle('open');
-  btn.classList.toggle('open');
-  document.addEventListener('click', closeRegionOutside, {once:true});
-};
-function closeRegionOutside(e) {
-  if (!e.target.closest('.region-wrap')) {
-    document.getElementById('region-dropdown').classList.remove('open');
-    document.getElementById('region-btn').classList.remove('open');
-  }
-}
-window.selectRegionOption = (city) => {
-  selectedRegion = city;
-  document.getElementById('region-btn-text').textContent = city;
-  document.getElementById('region-dropdown').classList.remove('open');
-  document.getElementById('region-btn').classList.remove('open');
-  document.querySelectorAll('#region-dropdown .region-option').forEach(o => {
-    o.classList.toggle('selected', o.dataset.city === city);
-  });
-};
-
-window.togglePlaceRegionDropdown = () => {
-  const dd = document.getElementById('place-region-dropdown');
-  dd.classList.toggle('open');
-};
-window.selectPlaceRegionOption = (city) => {
-  selectedPlaceRegion = city;
-  document.getElementById('place-region-btn-text').textContent = city;
-  document.getElementById('place-region-dropdown').classList.remove('open');
-  document.querySelectorAll('#place-region-dropdown .region-option').forEach(o => {
-    o.classList.toggle('selected', o.dataset.city === city);
-  });
-};
-
-// ── AUTH ──
-document.getElementById('google-login-btn').addEventListener('click', async () => {
-  try {
-    document.getElementById('google-login-btn').textContent = '로그인 중...';
-    document.getElementById('login-error').textContent = '';
-    await signInWithPopup(auth, provider);
-  } catch(e) {
-    document.getElementById('google-login-btn').innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Google로 로그인`;
-    if (e.code === 'auth/popup-blocked') {
-      document.getElementById('login-error').textContent = '팝업이 차단됐어요. 팝업 허용 후 다시 시도해주세요.';
-      await signInWithRedirect(auth, provider);
-    } else if (e.code !== 'auth/popup-closed-by-user') {
-      document.getElementById('login-error').textContent = '오류: ' + e.message;
-    }
-  }
-});
-
-window.doLogout = async () => {
-  await signOut(auth);
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('nickname-screen').style.display = 'none';
-  currentUser = null; currentNickname = '';
-};
-
-onAuthStateChanged(auth, async user => {
-  if (user) {
-    currentUser = user;
-    const savedNick = localStorage.getItem('nick_'+user.uid);
-    if (!savedNick) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('nickname-screen').style.display = 'flex';
-    } else {
-      currentNickname = savedNick;
-      enterApp();
-    }
-  }
-});
-
-window.saveNickname = () => {
-  const nick = document.getElementById('nickname-input').value.trim();
-  if (!nick) { showToast('닉네임을 입력해주세요', true); return; }
-  if (nick.length > 10) { showToast('10자 이내로 입력해주세요', true); return; }
-  localStorage.setItem('nick_'+currentUser.uid, nick);
-  currentNickname = nick;
-  document.getElementById('nickname-screen').style.display = 'none';
-  enterApp();
-};
-
-function enterApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('user-name-display').textContent = currentNickname;
-  document.getElementById('hero-name').textContent = currentNickname + '님';
-  document.getElementById('hero-greeting').textContent = getGreeting();
-  buildRegionDropdown('region-dropdown','region-btn','region-btn-text','selectRegionOption');
-  buildRegionDropdown('place-region-dropdown','place-region-btn','place-region-btn-text','selectPlaceRegionOption');
-  loadAll();
+// ── 유틸 ──
+function showToast(msg, isErr) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isErr ? '#C0392B' : '#3D2C2C';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
 }
 
 function getGreeting() {
@@ -800,340 +459,488 @@ function getGreeting() {
   return '좋은 저녁이에요';
 }
 
-// ── DATA LOADING ──
-function loadAll() {
-  onSnapshot(query(collection(db,'requests'), orderBy('createdAt','desc')), snap => {
-    const all = snap.docs.map(d => ({id:d.id,...d.data()}));
-    renderHome(all);
-    renderMyTab(all, null, null);
+// ── 지역 드롭다운 ──
+function buildDropdown(ddId, onSelect) {
+  const dd = document.getElementById(ddId);
+  let html = '';
+  Object.entries(REGIONS).forEach(([group, cities]) => {
+    html += '<div class="region-group-title">' + group + '</div>';
+    cities.forEach(city => {
+      html += '<div class="region-opt" data-city="' + city + '">' + city + '</div>';
+    });
   });
-  onSnapshot(query(collection(db,'places'), orderBy('createdAt','desc')), snap => {
-    const all = snap.docs.map(d => ({id:d.id,...d.data()}));
-    renderPlaces(all);
-  });
-  onSnapshot(query(collection(db,'diaries'), orderBy('date','desc')), snap => {
-    const all = snap.docs.map(d => ({id:d.id,...d.data()}));
-    window._diaries = all;
-    document.getElementById('stat-diary').textContent = all.length;
-    if (currentMyTab === 'diaries') renderMyTabDiaries(all);
+  dd.innerHTML = html;
+  dd.querySelectorAll('.region-opt').forEach(el => {
+    el.addEventListener('click', () => onSelect(el.dataset.city));
   });
 }
 
-// ── RENDER HOME ──
-function renderHome(requests) {
-  const pending  = requests.filter(r => r.status === '대기');
-  const accepted = requests.filter(r => r.status === '수락');
+document.getElementById('region-btn').addEventListener('click', () => {
+  document.getElementById('region-dropdown').classList.toggle('open');
+  document.getElementById('region-btn').classList.toggle('open');
+});
+document.getElementById('place-region-btn').addEventListener('click', () => {
+  document.getElementById('place-region-dropdown').classList.toggle('open');
+  document.getElementById('place-region-btn').classList.toggle('open');
+});
+
+buildDropdown('region-dropdown', (city) => {
+  selRegion = city;
+  document.getElementById('region-btn-text').textContent = city;
+  document.getElementById('region-dropdown').classList.remove('open');
+  document.getElementById('region-btn').classList.remove('open');
+  document.getElementById('region-dropdown').querySelectorAll('.region-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.city === city);
+  });
+});
+
+buildDropdown('place-region-dropdown', (city) => {
+  selPlaceRegion = city;
+  document.getElementById('place-region-text').textContent = city;
+  document.getElementById('place-region-dropdown').classList.remove('open');
+  document.getElementById('place-region-btn').classList.remove('open');
+  document.getElementById('place-region-dropdown').querySelectorAll('.region-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.city === city);
+  });
+});
+
+// ── 로그인 ──
+document.getElementById('google-btn').addEventListener('click', async () => {
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('google-btn').textContent = '로그인 중...';
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    document.getElementById('google-btn').textContent = 'Google로 로그인';
+    if (e.code === 'auth/popup-blocked') {
+      document.getElementById('login-err').textContent = '팝업이 차단됐어요. 팝업을 허용해주세요.';
+      await signInWithRedirect(auth, provider);
+    } else if (e.code !== 'auth/popup-closed-by-user') {
+      document.getElementById('login-err').textContent = '오류가 발생했어요: ' + e.code;
+    }
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await signOut(auth);
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  currentUser = null; currentNick = '';
+});
+
+document.getElementById('nick-save-btn').addEventListener('click', () => {
+  const nick = document.getElementById('nick-input').value.trim();
+  if (!nick) { showToast('닉네임을 입력해주세요', true); return; }
+  localStorage.setItem('nick_' + currentUser.uid, nick);
+  currentNick = nick;
+  document.getElementById('nick-screen').style.display = 'none';
+  enterApp();
+});
+
+document.getElementById('nick-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('nick-save-btn').click();
+});
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = user;
+    const saved = localStorage.getItem('nick_' + user.uid);
+    if (!saved) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('nick-screen').style.display = 'flex';
+    } else {
+      currentNick = saved;
+      enterApp();
+    }
+  }
+});
+
+getRedirectResult(auth).catch(() => {});
+
+function enterApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('nick-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name-display').textContent = currentNick;
+  document.getElementById('hero-name').textContent = currentNick + '님';
+  document.getElementById('hero-greeting').textContent = getGreeting();
+  loadAll();
+}
+
+// ── 데이터 로드 ──
+function loadAll() {
+  onSnapshot(query(collection(db, 'requests'), orderBy('createdAt', 'desc')), snap => {
+    allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderHome();
+    renderMyContent();
+  });
+  onSnapshot(query(collection(db, 'places'), orderBy('createdAt', 'desc')), snap => {
+    allPlaces = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPlaces();
+  });
+  onSnapshot(query(collection(db, 'diaries'), orderBy('date', 'desc')), snap => {
+    allDiaries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    document.getElementById('stat-diary').textContent = allDiaries.length;
+    if (myTab === 'diaries') renderMyContent();
+  });
+}
+
+// ── 렌더: 홈 ──
+function renderHome() {
+  const pending = allRequests.filter(r => r.status === '대기');
+  const accepted = allRequests.filter(r => r.status === '수락');
   document.getElementById('stat-pending').textContent = pending.length;
   document.getElementById('stat-total').textContent = accepted.length;
 
-  // 받은 신청 (나에게 온 것)
-  const incoming = pending.filter(r => r.toUser === currentNickname);
-  const inEl = document.getElementById('home-incoming');
-  inEl.innerHTML = incoming.length ? incoming.map(r => reqCardHTML(r, true)).join('') :
-    `<div class="empty-state">아직 받은 신청이 없어요</div>`;
+  const incoming = pending.filter(r => r.toUser === currentNick);
+  document.getElementById('home-incoming').innerHTML = incoming.length
+    ? incoming.map(r => reqCardHTML(r, true)).join('')
+    : '<div class="empty-state">아직 받은 신청이 없어요</div>';
 
-  // 다가오는 데이트
   const today = new Date().toISOString().split('T')[0];
-  const upcoming = accepted.filter(r => r.date >= today).sort((a,b)=>a.date.localeCompare(b.date));
-  const upEl = document.getElementById('home-upcoming');
-  upEl.innerHTML = upcoming.length ? upcoming.map(r => upcomingCardHTML(r)).join('') :
-    `<div class="empty-state">예정된 데이트가 없어요</div>`;
+  const upcoming = accepted.filter(r => r.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('home-upcoming').innerHTML = upcoming.length
+    ? upcoming.map(r => dateCardHTML(r)).join('')
+    : '<div class="empty-state">예정된 데이트가 없어요</div>';
 }
 
 function reqCardHTML(r, showActions) {
-  return `<div class="req-card">
-    <div class="req-from">${r.fromUser} → ${r.toUser}</div>
-    <div class="req-date-big">${r.date} ${r.time}</div>
-    <div class="req-info">${r.theme} · ${r.region}${r.subLocation?' / '+r.subLocation:''}</div>
-    ${r.message ? `<div style="font-size:13px;color:var(--text2);font-style:italic;margin-bottom:10px;">"${r.message}"</div>` : ''}
-    ${r.mission ? `<div style="font-size:13px;background:var(--peach);padding:8px 12px;border-radius:10px;margin-bottom:10px;">미션: ${r.mission}</div>` : ''}
-    ${showActions ? `<div class="req-actions">
-      <button class="btn btn-rose btn-sm" onclick="respondRequest('${r.id}','수락')">수락</button>
-      <button class="btn btn-outline btn-sm" onclick="respondRequest('${r.id}','거절')">거절</button>
-    </div>` : `<span class="status-badge ${r.status==='수락'?'s-accepted':r.status==='거절'?'s-rejected':'s-pending'}">${r.status}</span>`}
-  </div>`;
+  return '<div class="req-card">'
+    + '<div class="req-from">' + r.fromUser + ' → ' + r.toUser + '</div>'
+    + '<div class="req-date-big">' + r.date + ' ' + r.time + '</div>'
+    + '<div class="req-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
+    + (r.message ? '<div style="font-size:13px;color:var(--text2);font-style:italic;margin-bottom:10px;">"' + r.message + '"</div>' : '')
+    + (r.mission ? '<div style="font-size:13px;background:var(--peach);padding:8px 12px;border-radius:10px;margin-bottom:10px;">미션: ' + r.mission + '</div>' : '')
+    + (showActions
+      ? '<div class="req-actions"><button class="btn btn-rose btn-sm" data-accept="' + r.id + '">수락</button><button class="btn btn-outline btn-sm" data-reject="' + r.id + '">거절</button></div>'
+      : '<span class="sbadge ' + (r.status === '수락' ? 's-accepted' : r.status === '거절' ? 's-rejected' : 's-pending') + '">' + r.status + '</span>')
+    + '</div>';
 }
 
-function upcomingCardHTML(r) {
-  const checkHTML = r.checklist?.length ? r.checklist.map((c,i) => `
-    <div class="checklist-mini-item" onclick="toggleCheck('${r.id}',${i})">
-      <div class="mini-check ${c.done?'done'}">${c.done?'✓':''}</div>
-      <span class="mini-text ${c.done?'done':''}">${c.important?'<span class="important-star">★</span> ':''}${c.text}</span>
-    </div>`).join('') : '';
-  return `<div class="date-card">
-    <div class="date-card-top">
-      <div>
-        <div class="date-card-date">${r.date} ${r.time}</div>
-        <div class="date-card-info">${r.theme} · ${r.region}${r.subLocation?' / '+r.subLocation:''}</div>
-      </div>
-      <span class="status-badge s-accepted">확정</span>
-    </div>
-    ${checkHTML ? `<div class="checklist-mini">${checkHTML}</div>` : ''}
-  </div>`;
+function dateCardHTML(r) {
+  const checks = (r.checklist || []).map((c, i) =>
+    '<div class="mini-item" data-reqid="' + r.id + '" data-idx="' + i + '">'
+    + '<div class="mini-chk' + (c.done ? ' done' : '') + '">' + (c.done ? '✓' : '') + '</div>'
+    + '<span class="mini-txt' + (c.done ? ' done' : '') + '">' + (c.important ? '<span style="color:#F4A300;">★</span> ' : '') + c.text + '</span>'
+    + '</div>'
+  ).join('');
+  return '<div class="date-card">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+    + '<div class="date-card-date">' + r.date + ' ' + r.time + '</div>'
+    + '<span class="sbadge s-accepted">확정</span></div>'
+    + '<div class="date-card-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
+    + (checks ? '<div>' + checks + '</div>' : '')
+    + '</div>';
 }
 
-// ── MY TAB ──
-window._allRequests = [];
-window.switchMyTab = (tab, el) => {
-  currentMyTab = tab;
-  document.querySelectorAll('#page-my .tab-btn').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  renderMyTab(window._allRequests, window._allPlaces, window._diaries);
-};
+// ── 렌더: 장소 ──
+function renderPlaces() {
+  const regionCount = {};
+  allPlaces.filter(p => p.category === 'visited').forEach(p => {
+    const key = (p.region || '기타').split(' ')[0];
+    regionCount[key] = (regionCount[key] || 0) + 1;
+  });
+  const maxC = Math.max(1, ...Object.values(regionCount));
+  const statsEl = document.getElementById('region-stats');
+  statsEl.innerHTML = Object.keys(regionCount).length
+    ? Object.entries(regionCount).sort((a, b) => b[1] - a[1]).map(([r, c]) =>
+      '<div style="display:flex;align-items:center;gap:12px;background:white;border-radius:14px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow2);">'
+      + '<div style="font-size:14px;font-weight:700;min-width:60px;">' + r + '</div>'
+      + '<div style="flex:1;height:6px;background:var(--rose3);border-radius:3px;overflow:hidden;"><div style="width:' + (c / maxC * 100) + '%;height:100%;background:var(--rose);border-radius:3px;"></div></div>'
+      + '<div style="font-family:\'Nanum Myeongjo\',serif;font-size:18px;font-weight:800;color:var(--rose);min-width:24px;text-align:right;">' + c + '</div>'
+      + '</div>'
+    ).join('')
+    : '<div class="empty-state">아직 기록이 없어요</div>';
 
-onSnapshot(query(collection(db,'requests'),orderBy('createdAt','desc')), snap => {
-  window._allRequests = snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderMyTab(window._allRequests, window._allPlaces, window._diaries);
-});
+  const filtered = allPlaces.filter(p => p.category === placeFilter);
+  document.getElementById('places-list').innerHTML = filtered.length
+    ? filtered.map(p =>
+      '<div class="place-item">'
+      + '<div class="place-dot"></div>'
+      + '<div style="flex:1;"><div class="place-name-big">' + p.name + '</div>'
+      + '<div class="place-region-lbl">' + p.region + (p.memo ? ' · ' + p.memo : '') + '</div></div>'
+      + '<button class="btn btn-outline btn-sm" data-del-place="' + p.id + '">삭제</button>'
+      + '</div>'
+    ).join('')
+    : '<div class="empty-state">저장된 장소가 없어요</div>';
+}
 
-function renderMyTab(requests, places, diaries) {
-  if (!requests) return;
-  window._allRequests = requests;
-  const el = document.getElementById('my-tab-content');
-
-  if (currentMyTab === 'received') {
-    const mine = requests.filter(r => r.toUser === currentNickname);
-    el.innerHTML = mine.length ? mine.map(r => reqCardHTML(r, r.status==='대기')).join('') :
-      `<div class="empty-state">받은 신청이 없어요</div>`;
-  } else if (currentMyTab === 'sent') {
-    const mine = requests.filter(r => r.fromUser === currentNickname);
-    el.innerHTML = mine.length ? mine.map(r => reqCardHTML(r, false)).join('') :
-      `<div class="empty-state">보낸 신청이 없어요</div>`;
-  } else if (currentMyTab === 'dates') {
-    const accepted = requests.filter(r => r.status === '수락').sort((a,b)=>b.date.localeCompare(a.date));
+// ── 렌더: 마이페이지 ──
+function renderMyContent() {
+  const el = document.getElementById('my-content');
+  if (myTab === 'received') {
+    const mine = allRequests.filter(r => r.toUser === currentNick);
+    el.innerHTML = mine.length ? mine.map(r => reqCardHTML(r, r.status === '대기')).join('') : '<div class="empty-state">받은 신청이 없어요</div>';
+  } else if (myTab === 'sent') {
+    const mine = allRequests.filter(r => r.fromUser === currentNick);
+    el.innerHTML = mine.length ? mine.map(r => reqCardHTML(r, false)).join('') : '<div class="empty-state">보낸 신청이 없어요</div>';
+  } else if (myTab === 'dates') {
+    const accepted = allRequests.filter(r => r.status === '수락').sort((a, b) => b.date.localeCompare(a.date));
     el.innerHTML = accepted.length ? accepted.map(r => {
-      const d = (window._diaries||[]).find(d=>d.reqId===r.id);
-      const checkHTML = r.checklist?.length ? r.checklist.map((c,i)=>`
-        <div class="checklist-mini-item" onclick="toggleCheck('${r.id}',${i})">
-          <div class="mini-check ${c.done?'done'}">${c.done?'✓':''}</div>
-          <span class="mini-text ${c.done?'done':''}">${c.important?'<span class="important-star">★</span> ':''}${c.text}</span>
-        </div>`).join('') : '';
-      return `<div class="date-card">
-        <div class="date-card-top">
-          <div>
-            <div class="date-card-date">${r.date} ${r.time}</div>
-            <div class="date-card-info">${r.theme} · ${r.region}${r.subLocation?' / '+r.subLocation:''}</div>
-          </div>
-        </div>
-        ${checkHTML ? `<div class="checklist-mini">${checkHTML}</div>` : ''}
-        ${d ? `<div style="background:var(--rose4);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text2);">일기: ${d.title}</div>` :
-          `<button class="btn btn-outline btn-sm btn-full" onclick="openDiaryModal('${r.id}','${r.date}')" style="margin-top:8px;">일기 쓰기</button>`}
-      </div>`;
-    }).join('') : `<div class="empty-state">데이트 기록이 없어요</div>`;
-  } else if (currentMyTab === 'diaries') {
-    renderMyTabDiaries(window._diaries||[]);
+      const d = allDiaries.find(x => x.reqId === r.id);
+      const checks = (r.checklist || []).map((c, i) =>
+        '<div class="mini-item" data-reqid="' + r.id + '" data-idx="' + i + '">'
+        + '<div class="mini-chk' + (c.done ? ' done' : '') + '">' + (c.done ? '✓' : '') + '</div>'
+        + '<span class="mini-txt' + (c.done ? ' done' : '') + '">' + (c.important ? '<span style="color:#F4A300;">★</span> ' : '') + c.text + '</span>'
+        + '</div>'
+      ).join('');
+      return '<div class="date-card">'
+        + '<div class="date-card-date">' + r.date + ' ' + r.time + '</div>'
+        + '<div class="date-card-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
+        + (checks ? '<div>' + checks + '</div>' : '')
+        + (d ? '<div style="background:var(--rose4);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text2);margin-top:8px;">일기: ' + d.title + '</div>'
+          : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기</button>')
+        + '</div>';
+    }).join('') : '<div class="empty-state">데이트 기록이 없어요</div>';
+  } else if (myTab === 'diaries') {
+    el.innerHTML = allDiaries.length ? allDiaries.map(d =>
+      '<div class="diary-card">'
+      + '<div class="diary-date-lbl">' + d.date + '</div>'
+      + '<div class="diary-title">' + d.title + '</div>'
+      + '<div class="diary-body">' + d.content + '</div>'
+      + '<div class="diary-stars">' + '★'.repeat(d.star || 5) + '☆'.repeat(5 - (d.star || 5)) + '</div>'
+      + (d.tags && d.tags.length ? '<div class="diary-tags">' + d.tags.map(t => '<span class="diary-tag">#' + t.trim() + '</span>').join('') + '</div>' : '')
+      + '</div>'
+    ).join('') : '<div class="empty-state">아직 일기가 없어요</div>';
   }
 }
 
-function renderMyTabDiaries(diaries) {
-  const el = document.getElementById('my-tab-content');
-  el.innerHTML = diaries.length ? diaries.map(d => `
-    <div class="diary-card">
-      <div class="diary-date-label">${d.date}</div>
-      <div class="diary-title">${d.title}</div>
-      <div class="diary-body">${d.content}</div>
-      <div class="diary-stars">${'★'.repeat(d.star||5)}${'☆'.repeat(5-(d.star||5))}</div>
-      ${d.tags?.length ? `<div class="diary-tags">${d.tags.map(t=>`<span class="diary-tag">#${t.trim()}</span>`).join('')}</div>` : ''}
-    </div>`).join('') : `<div class="empty-state">아직 일기가 없어요</div>`;
+// ── 체크리스트 ──
+function renderCheckItems() {
+  document.getElementById('checklist-items').innerHTML = checkItems.map((c, i) =>
+    '<div class="check-item">'
+    + '<span class="check-text' + (c.important ? ' imp' : '') + '">' + c.text + '</span>'
+    + (c.important ? '<span style="font-size:12px;background:var(--rose3);color:var(--rose);padding:2px 8px;border-radius:6px;font-weight:700;">중요</span>' : '')
+    + '<button class="star-btn' + (c.important ? ' on' : '') + '" data-star="' + i + '">★</button>'
+    + '<button class="del-btn" data-del="' + i + '">×</button>'
+    + '</div>'
+  ).join('');
 }
 
-// ── RENDER PLACES ──
-function renderPlaces(places) {
-  window._allPlaces = places;
-  const regionCount = {};
-  places.filter(p=>p.category==='visited').forEach(p => {
-    const key = p.region?.split(' ')[0] || p.region;
-    regionCount[key] = (regionCount[key]||0)+1;
-  });
-  const maxC = Math.max(1,...Object.values(regionCount));
-  const statsEl = document.getElementById('region-stats-list');
-  statsEl.innerHTML = Object.keys(regionCount).length ? Object.entries(regionCount).sort((a,b)=>b[1]-a[1]).map(([r,c])=>`
-    <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:14px;padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow2);">
-      <div style="font-size:14px;font-weight:700;min-width:60px;">${r}</div>
-      <div style="flex:1;height:6px;background:var(--rose3);border-radius:3px;overflow:hidden;">
-        <div style="width:${c/maxC*100}%;height:100%;background:var(--rose);border-radius:3px;transition:width 0.6s;"></div>
-      </div>
-      <div style="font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:800;color:var(--rose);min-width:24px;text-align:right;">${c}</div>
-    </div>`).join('') : `<div class="empty-state">아직 기록이 없어요</div>`;
+document.getElementById('add-check-btn').addEventListener('click', () => {
+  const input = document.getElementById('new-check');
+  const text = input.value.trim();
+  if (!text) return;
+  if (checkItems.length >= 10) { showToast('최대 10개까지 가능해요', true); return; }
+  checkItems.push({ text, important: false, done: false });
+  input.value = '';
+  renderCheckItems();
+});
 
-  const listEl = document.getElementById('places-list');
-  const filtered = places.filter(p=>p.category===currentPlaceFilter);
-  listEl.innerHTML = filtered.length ? filtered.map(p=>`
-    <div class="place-item">
-      <div class="place-dot"></div>
-      <div style="flex:1;">
-        <div class="place-name-big">${p.name}</div>
-        <div class="place-region-label">${p.region}${p.memo?' · '+p.memo:''}</div>
-      </div>
-      <button onclick="deletePlace('${p.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">삭제</button>
-    </div>`).join('') : `<div class="empty-state">저장된 장소가 없어요</div>`;
-}
+document.getElementById('new-check').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('add-check-btn').click();
+});
 
-window.filterPlaces = (tab, el) => {
-  currentPlaceFilter = tab;
-  document.querySelectorAll('#page-places .tab-btn').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
-  renderPlaces(window._allPlaces||[]);
-};
+document.getElementById('checklist-items').addEventListener('click', e => {
+  const starBtn = e.target.closest('[data-star]');
+  const delBtn = e.target.closest('[data-del]');
+  if (starBtn) {
+    const i = parseInt(starBtn.dataset.star);
+    const cnt = checkItems.filter(c => c.important).length;
+    if (!checkItems[i].important && cnt >= 3) { showToast('중요 표시는 최대 3개까지', true); return; }
+    checkItems[i].important = !checkItems[i].important;
+    renderCheckItems();
+  }
+  if (delBtn) {
+    checkItems.splice(parseInt(delBtn.dataset.del), 1);
+    renderCheckItems();
+  }
+});
 
-// ── ACTIONS ──
-window.selectRecipient = (nick) => {
-  selectedRecipient = nick;
-  document.getElementById('r-woonyo').classList.toggle('selected', nick==='woonyo');
-  document.getElementById('r-oldman').classList.toggle('selected', nick==='old man');
-};
-window.selectTheme = (el) => {
-  document.querySelectorAll('.theme-chip').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected'); selectedTheme = el.dataset.theme;
-};
-window.addCheckItem = () => {
-  const input = document.getElementById('new-check-input');
-  const text = input.value.trim(); if (!text) return;
-  if (checklistItems.length >= 10) { showToast('최대 10개까지 가능해요', true); return; }
-  checklistItems.push({text, important:false, done:false});
-  input.value = ''; renderChecklistItems();
-};
-function renderChecklistItems() {
-  const starCount = checklistItems.filter(c=>c.important).length;
-  document.getElementById('checklist-items').innerHTML = checklistItems.map((c,i)=>`
-    <div class="checklist-item">
-      <span class="check-text ${c.important?'important':''}">${c.text}</span>
-      ${c.important?'<span style="font-size:12px;background:var(--rose3);color:var(--rose);padding:2px 8px;border-radius:6px;font-weight:700;">중요</span>':''}
-      <button class="star-btn ${c.important?'on':''}" onclick="toggleImportant(${i})">★</button>
-      <button class="del-btn" onclick="removeCheck(${i})">×</button>
-    </div>`).join('');
-}
-window.toggleImportant = (idx) => {
-  const cnt = checklistItems.filter(c=>c.important).length;
-  if (!checklistItems[idx].important && cnt >= 3) { showToast('중요 표시는 최대 3개까지', true); return; }
-  checklistItems[idx].important = !checklistItems[idx].important; renderChecklistItems();
-};
-window.removeCheck = (idx) => { checklistItems.splice(idx,1); renderChecklistItems(); };
+// ── 테마 ──
+document.getElementById('theme-grid').addEventListener('click', e => {
+  const chip = e.target.closest('.theme-chip');
+  if (!chip) return;
+  document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('selected'));
+  chip.classList.add('selected');
+  selTheme = chip.dataset.theme;
+});
 
-window.drawMission = () => {
-  const m = MISSIONS[Math.floor(Math.random()*MISSIONS.length)];
-  document.getElementById('mission-display').innerHTML =
-    `<div class="mission-box"><div class="mission-box-text">${m}</div></div>`;
-  document.getElementById('mission-display').dataset.mission = m;
-};
+// ── 미션 ──
+document.getElementById('draw-mission-btn').addEventListener('click', () => {
+  const m = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
+  const el = document.getElementById('mission-display');
+  el.innerHTML = '<div class="mission-box">' + m + '</div>';
+  el.dataset.mission = m;
+});
 
-window.submitDateRequest = async () => {
+// ── 신청 제출 ──
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const recipient = document.getElementById('a-recipient').value.trim();
   const date = document.getElementById('a-date').value;
   const time = document.getElementById('a-time').value;
-  const recipient = document.getElementById('a-recipient').value.trim();
   if (!recipient) { showToast('받는 사람 닉네임을 입력해주세요', true); return; }
-  if (recipient === currentNickname) { showToast('자신에게는 신청할 수 없어요', true); return; }
-  if (!date || !selectedTheme || !selectedRegion) { showToast('날짜, 테마, 지역을 모두 선택해주세요', true); return; }
-  await addDoc(collection(db,'requests'), {
-    fromUser: currentNickname,
-    toUser: recipient,
-    date, time,
-    theme: selectedTheme,
-    region: selectedRegion,
+  if (recipient === currentNick) { showToast('자신에게는 신청할 수 없어요', true); return; }
+  if (!date || !selTheme || !selRegion) { showToast('날짜, 테마, 지역을 모두 선택해주세요', true); return; }
+  await addDoc(collection(db, 'requests'), {
+    fromUser: currentNick, toUser: recipient, date, time,
+    theme: selTheme, region: selRegion,
     subLocation: document.getElementById('a-subloc').value,
-    checklist: checklistItems.map(c=>({...c})),
-    mission: document.getElementById('mission-display').dataset?.mission||'',
+    checklist: checkItems.map(c => ({ ...c })),
+    mission: document.getElementById('mission-display').dataset.mission || '',
     message: document.getElementById('a-message').value,
-    status: '대기',
-    createdAt: serverTimestamp()
+    status: '대기', createdAt: serverTimestamp()
   });
   showToast('신청을 보냈어요!');
-  checklistItems=[]; renderChecklistItems(); selectedTheme=''; selectedRegion='';
-  document.querySelectorAll('.theme-chip').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('region-btn-text').textContent='지역을 선택하세요';
-  document.getElementById('a-recipient').value='';
-  document.getElementById('a-subloc').value=''; document.getElementById('a-message').value='';
-  document.getElementById('mission-display').innerHTML='';
-  showPage('home', document.querySelector('.nav-item'));
-};
+  checkItems = []; renderCheckItems(); selTheme = ''; selRegion = '';
+  document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('region-btn-text').textContent = '지역을 선택하세요';
+  document.getElementById('a-recipient').value = '';
+  document.getElementById('a-subloc').value = '';
+  document.getElementById('a-message').value = '';
+  document.getElementById('mission-display').innerHTML = '';
+  showPage('home');
+});
 
-window.respondRequest = async (id, status) => {
-  await updateDoc(doc(db,'requests',id), {status});
-  showToast(status==='수락'?'수락했어요!':'거절했어요');
-};
-
-window.toggleCheck = async (reqId, idx) => {
-  const all = window._allRequests||[];
-  const r = all.find(x=>x.id===reqId); if(!r) return;
-  const cl = [...(r.checklist||[])];
-  cl[idx] = {...cl[idx], done: !cl[idx].done};
-  await updateDoc(doc(db,'requests',reqId),{checklist:cl});
-};
-
-window.saveSublocAsPlace = async () => {
+// ── 세부장소 저장 ──
+document.getElementById('save-subloc-btn').addEventListener('click', async () => {
   const name = document.getElementById('a-subloc').value.trim();
-  if (!name || !selectedRegion) { showToast('지역과 세부 장소를 먼저 입력해주세요', true); return; }
-  await addDoc(collection(db,'places'),{name, region:selectedRegion, memo:'', category:'visited', createdAt:serverTimestamp()});
+  if (!name || !selRegion) { showToast('지역과 세부 장소를 먼저 입력해주세요', true); return; }
+  await addDoc(collection(db, 'places'), { name, region: selRegion, memo: '', category: 'visited', createdAt: serverTimestamp() });
   showToast('장소가 저장됐어요!');
-};
+});
 
-window.savePlace = async () => {
+// ── 장소 추가 모달 ──
+document.getElementById('open-place-modal-btn').addEventListener('click', () => {
+  document.getElementById('modal-place').classList.add('open');
+});
+document.getElementById('close-place-modal-btn').addEventListener('click', () => {
+  document.getElementById('modal-place').classList.remove('open');
+});
+document.getElementById('save-place-btn').addEventListener('click', async () => {
   const name = document.getElementById('p-name').value.trim();
-  if (!name || !selectedPlaceRegion) { showToast('지역과 장소명을 입력해주세요', true); return; }
-  await addDoc(collection(db,'places'),{
-    name, region:selectedPlaceRegion,
-    memo:document.getElementById('p-memo').value,
-    category:document.getElementById('p-cat').value,
-    createdAt:serverTimestamp()
+  if (!name || !selPlaceRegion) { showToast('지역과 장소명을 입력해주세요', true); return; }
+  await addDoc(collection(db, 'places'), {
+    name, region: selPlaceRegion,
+    memo: document.getElementById('p-memo').value,
+    category: document.getElementById('p-cat').value,
+    createdAt: serverTimestamp()
   });
-  closeModal('modal-place');
-  document.getElementById('p-name').value=''; document.getElementById('p-memo').value='';
-  selectedPlaceRegion=''; document.getElementById('place-region-btn-text').textContent='지역을 선택하세요';
+  document.getElementById('modal-place').classList.remove('open');
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-memo').value = '';
+  selPlaceRegion = '';
+  document.getElementById('place-region-text').textContent = '지역을 선택하세요';
   showToast('장소가 저장됐어요!');
-};
+});
 
-window.deletePlace = async (id) => {
-  if(!confirm('삭제할까요?')) return;
-  await deleteDoc(doc(db,'places',id)); showToast('삭제됐어요');
-};
+// ── 일기 모달 ──
+function updateDiaryStars() {
+  document.getElementById('diary-stars').innerHTML = [1,2,3,4,5].map(n =>
+    '<span data-star="' + n + '" style="font-size:22px;cursor:pointer;">' + (n <= diaryStar ? '★' : '☆') + '</span>'
+  ).join('');
+}
+updateDiaryStars();
 
-window.openDiaryModal = (reqId, date) => {
-  document.getElementById('d-req-id').value = reqId;
-  document.getElementById('d-title').value = '';
-  document.getElementById('d-content').value = '';
-  document.getElementById('d-tags').value = '';
-  diaryStar=5; updateDiaryStars();
-  openModal('modal-diary');
-};
+document.getElementById('diary-stars').addEventListener('click', e => {
+  const s = e.target.closest('[data-star]');
+  if (s) { diaryStar = parseInt(s.dataset.star); updateDiaryStars(); }
+});
 
-window.saveDiary = async () => {
+document.getElementById('close-diary-modal-btn').addEventListener('click', () => {
+  document.getElementById('modal-diary').classList.remove('open');
+});
+document.getElementById('save-diary-btn').addEventListener('click', async () => {
   const title = document.getElementById('d-title').value.trim();
   const content = document.getElementById('d-content').value.trim();
   const reqId = document.getElementById('d-req-id').value;
-  if (!title||!content) { showToast('제목과 내용을 입력해주세요', true); return; }
-  const req = (window._allRequests||[]).find(r=>r.id===reqId);
-  await addDoc(collection(db,'diaries'),{
+  if (!title || !content) { showToast('제목과 내용을 입력해주세요', true); return; }
+  const req = allRequests.find(r => r.id === reqId);
+  await addDoc(collection(db, 'diaries'), {
     reqId, title, content,
-    date: req?.date || new Date().toISOString().split('T')[0],
+    date: req ? req.date : new Date().toISOString().split('T')[0],
     star: diaryStar,
-    tags: document.getElementById('d-tags').value.split(',').filter(t=>t.trim()),
-    author: currentNickname,
-    createdAt: serverTimestamp()
+    tags: document.getElementById('d-tags').value.split(',').filter(t => t.trim()),
+    author: currentNick, createdAt: serverTimestamp()
   });
-  closeModal('modal-diary'); showToast('일기가 저장됐어요!');
-  switchMyTab('dates', null);
-};
+  document.getElementById('modal-diary').classList.remove('open');
+  document.getElementById('d-title').value = '';
+  document.getElementById('d-content').value = '';
+  document.getElementById('d-tags').value = '';
+  diaryStar = 5; updateDiaryStars();
+  showToast('일기가 저장됐어요!');
+  myTab = 'dates';
+  document.querySelectorAll('[data-mytab]').forEach(b => b.classList.toggle('active', b.dataset.mytab === 'dates'));
+  renderMyContent();
+});
 
-window.setDiaryStar = (n) => { diaryStar=n; updateDiaryStars(); };
-function updateDiaryStars() {
-  const spans = document.querySelectorAll('#diary-stars span');
-  spans.forEach((s,i) => { s.textContent = i<diaryStar?'★':'☆'; });
+// ── 이벤트 위임 ──
+document.addEventListener('click', async e => {
+  // 수락/거절
+  const acceptBtn = e.target.closest('[data-accept]');
+  const rejectBtn = e.target.closest('[data-reject]');
+  if (acceptBtn) { await updateDoc(doc(db, 'requests', acceptBtn.dataset.accept), { status: '수락' }); showToast('수락했어요!'); return; }
+  if (rejectBtn) { await updateDoc(doc(db, 'requests', rejectBtn.dataset.reject), { status: '거절' }); showToast('거절했어요'); return; }
+
+  // 체크리스트 토글
+  const miniItem = e.target.closest('[data-reqid]');
+  if (miniItem && miniItem.dataset.idx !== undefined) {
+    const reqId = miniItem.dataset.reqid;
+    const idx = parseInt(miniItem.dataset.idx);
+    const r = allRequests.find(x => x.id === reqId);
+    if (!r) return;
+    const cl = r.checklist.map((c, i) => i === idx ? { ...c, done: !c.done } : c);
+    await updateDoc(doc(db, 'requests', reqId), { checklist: cl });
+    return;
+  }
+
+  // 장소 삭제
+  const delPlace = e.target.closest('[data-del-place]');
+  if (delPlace) {
+    if (!confirm('삭제할까요?')) return;
+    await deleteDoc(doc(db, 'places', delPlace.dataset.delPlace));
+    showToast('삭제됐어요');
+    return;
+  }
+
+  // 일기 쓰기 버튼
+  const openDiary = e.target.closest('[data-open-diary]');
+  if (openDiary) {
+    document.getElementById('d-req-id').value = openDiary.dataset.openDiary;
+    document.getElementById('d-title').value = '';
+    document.getElementById('d-content').value = '';
+    document.getElementById('d-tags').value = '';
+    diaryStar = 5; updateDiaryStars();
+    document.getElementById('modal-diary').classList.add('open');
+    return;
+  }
+});
+
+// ── 장소 탭 ──
+document.getElementById('place-tab-visited').addEventListener('click', () => {
+  placeFilter = 'visited';
+  document.getElementById('place-tab-visited').classList.add('active');
+  document.getElementById('place-tab-wanna').classList.remove('active');
+  renderPlaces();
+});
+document.getElementById('place-tab-wanna').addEventListener('click', () => {
+  placeFilter = 'wanna';
+  document.getElementById('place-tab-wanna').classList.add('active');
+  document.getElementById('place-tab-visited').classList.remove('active');
+  renderPlaces();
+});
+
+// ── 마이탭 ──
+document.querySelectorAll('[data-mytab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    myTab = btn.dataset.mytab;
+    document.querySelectorAll('[data-mytab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMyContent();
+  });
+});
+
+// ── 페이지 전환 ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelector('[data-page="' + id + '"]').classList.add('active');
 }
 
-// ── UI ──
-window.showPage = (id, el) => {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  if(el) el.classList.add('active');
-};
-window.openModal = (id) => document.getElementById(id).classList.add('open');
-window.closeModal = (id) => document.getElementById(id).classList.remove('open');
-window.showToast = (msg, isErr=false) => {
-  const t = document.getElementById('toast');
-  t.textContent=msg; t.style.background=isErr?'#C0392B':'#3D2C2C';
-  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800);
-};
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => showPage(btn.dataset.page));
+});
 
 document.getElementById('a-date').value = new Date().toISOString().split('T')[0];
 </script>
