@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Please Woonyo</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -51,7 +51,7 @@ main{max-width:480px;margin:0 auto;padding:16px 16px 80px;}
 .card:hover{box-shadow:var(--shadow2);}
 .form-group{margin-bottom:16px;}
 .form-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;display:block;}
-.form-input{width:100%;background:white;border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:14px;font-family:inherit;outline:none;transition:all 0.2s;}
+.form-input{width:100%;background:white;border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:16px;font-family:inherit;outline:none;transition:all 0.2s;}
 .form-input:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(255,107,157,0.1);}
 textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -94,10 +94,6 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .del-btn{background:none;border:none;font-size:16px;cursor:pointer;color:var(--text3);transition:color 0.2s;}
 .del-btn:hover{color:var(--rose);}
 .add-row{display:flex;gap:8px;}
-.mission-card{background:linear-gradient(135deg,var(--rose4),var(--yellow2));border:1px solid var(--rose3);border-radius:12px;padding:16px;text-align:center;margin-bottom:8px;position:relative;overflow:hidden;}
-.mission-card::before{content:'✨';font-size:40px;position:absolute;right:-5px;top:-5px;opacity:0.15;}
-.mission-label{font-size:11px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.mission-text{font-size:14px;font-weight:700;color:var(--text);line-height:1.5;}
 .hero{background:linear-gradient(135deg,var(--rose) 0%,#E85B8A 100%);border-radius:16px;padding:24px;margin-bottom:20px;color:white;position:relative;overflow:hidden;}
 .hero::after{content:'♡';font-size:100px;position:absolute;right:-10px;bottom:-20px;opacity:0.1;}
 .hero-greeting{font-size:13px;opacity:0.85;margin-bottom:4px;}
@@ -241,18 +237,6 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
   </div>
 </div>
 
-<div id="nick-screen" class="screen" style="display:none;">
-  <div class="auth-card">
-    <div class="auth-logo">🌸</div>
-    <div class="auth-title">닉네임 설정</div>
-    <div class="auth-sub">앱에서 사용할 이름을 입력해주세요</div>
-    <div class="form-group" style="text-align:left;">
-      <label class="form-label">닉네임 (최대 10자)</label>
-      <input type="text" id="nick-input" class="form-input" placeholder="예) 우뇨, 올드맨..." maxlength="10">
-    </div>
-    <button class="btn btn-rose btn-full" id="nick-save-btn">다음 💕</button>
-  </div>
-</div>
 
 <div id="couple-screen" class="screen" style="display:none;">
   <div class="auth-card">
@@ -299,8 +283,12 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         <div id="generated-code" style="font-family:'Nanum Myeongjo',serif;font-size:36px;font-weight:800;color:var(--rose);letter-spacing:6px;">------</div>
         <button class="btn btn-outline btn-sm" id="copy-code-btn" style="margin-top:12px;">복사하기 📋</button>
       </div>
-      <div style="font-size:13px;color:var(--text3);margin-bottom:20px;line-height:1.7;">
+      <div style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.7;">
         이 코드를 상대방에게 알려주세요<br>상대방이 동일한 코드로 입장하면 연결돼요 💕
+      </div>
+      <div class="form-group" style="text-align:left;margin-bottom:16px;">
+        <label class="form-label">내 이름</label>
+        <input type="text" id="create-nick-input" class="form-input" placeholder="예) 우뇨, 올드맨..." maxlength="10">
       </div>
       <div style="display:flex;gap:10px;">
         <button class="btn btn-outline btn-full" id="back-from-create">← 뒤로</button>
@@ -316,9 +304,16 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           style="text-align:center;font-size:24px;font-family:'Nanum Myeongjo',serif;letter-spacing:8px;font-weight:800;">
         <div class="err-hint" id="err-couple-join">존재하지 않는 커플 코드예요</div>
       </div>
+      <div id="join-member-select" style="display:none;">
+        <div class="form-group" style="text-align:left;">
+          <label class="form-label">나는 누구인가요?</label>
+          <select id="join-member-dropdown" class="form-input"></select>
+          <input type="text" id="join-new-nick" class="form-input" placeholder="이름 입력" maxlength="10" style="display:none;margin-top:8px;">
+        </div>
+      </div>
       <div style="display:flex;gap:10px;">
         <button class="btn btn-outline btn-full" id="back-from-join">← 뒤로</button>
-        <button class="btn btn-rose btn-full" id="enter-join-btn">입장하기 💕</button>
+        <button class="btn btn-rose btn-full" id="enter-join-btn">코드 확인</button>
       </div>
     </div>
   </div>
@@ -391,11 +386,20 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         </div>
         <div class="form-group">
           <label class="form-label">지역</label>
-          <div class="region-wrap">
-            <button class="region-btn" id="region-btn"><span id="region-btn-text">지역을 선택하세요</span><span>▾</span></button>
-            <div class="region-dropdown" id="region-dropdown"></div>
+          <div style="display:flex;gap:8px;">
+            <select id="a-region-major" class="form-input" style="flex:0 0 110px;">
+              <option value="">대분류 선택</option>
+              <option value="수도권">수도권</option>
+              <option value="강원">강원</option>
+              <option value="충청">충청</option>
+              <option value="경상">경상</option>
+              <option value="전라">전라</option>
+              <option value="제주">제주</option>
+              <option value="기타">기타</option>
+            </select>
+            <input type="text" id="a-region-sub" class="form-input" placeholder="시/군/구" style="flex:1;">
           </div>
-          <div class="err-hint" id="err-region">지역을 선택해주세요</div>
+          <div class="err-hint" id="err-region">지역 대분류를 선택해주세요</div>
         </div>
         <div class="form-group">
           <label class="form-label">세부 장소</label>
@@ -411,11 +415,6 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
             <input type="text" id="new-check" class="form-input" placeholder="할 것 추가...">
             <button class="btn btn-outline btn-sm" id="add-check-btn">추가</button>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">랜덤 미션</label>
-          <div id="mission-display"></div>
-          <button class="btn btn-outline btn-sm" id="draw-mission-btn" style="margin-top:6px;">미션 뽑기 🎲</button>
         </div>
         <div class="form-group">
           <label class="form-label">한마디</label>
@@ -472,12 +471,51 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 
     <div id="page-my" class="page">
       <div class="page-title">마이페이지</div>
-      <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:6px;">MY COUPLE CODE</div>
-          <div id="my-couple-code" style="font-size:24px;font-weight:800;letter-spacing:7px;color:var(--rose);font-variant-numeric:tabular-nums;">------</div>
+
+      <!-- 방 정보 카드 -->
+      <div class="card" style="margin-bottom:16px;">
+        <!-- 방 제목 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:4px;">ROOM</div>
+            <div id="room-title-display" style="font-size:18px;font-weight:800;color:var(--text);">우리의 방</div>
+          </div>
+          <button class="btn btn-outline btn-sm" id="edit-room-title-btn">편집</button>
         </div>
-        <button class="btn btn-outline btn-sm" id="copy-my-code-btn">복사 📋</button>
+        <div id="room-title-edit" style="display:none;margin-bottom:12px;">
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="room-title-input" class="form-input" maxlength="20" placeholder="방 이름 (최대 20자)" style="flex:1;">
+            <button class="btn btn-rose btn-sm" id="save-room-title-btn" style="white-space:nowrap;">저장</button>
+          </div>
+        </div>
+        <!-- 커플 코드 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:4px;">COUPLE CODE</div>
+            <div id="my-couple-code" style="font-size:22px;font-weight:800;letter-spacing:6px;color:var(--rose);font-variant-numeric:tabular-nums;">------</div>
+          </div>
+          <button class="btn btn-outline btn-sm" id="copy-my-code-btn">복사 📋</button>
+        </div>
+        <!-- 참가자 목록 -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:8px;">MEMBERS</div>
+          <div id="room-members" style="display:flex;gap:8px;flex-wrap:wrap;min-height:28px;"></div>
+        </div>
+        <!-- 방 통계 -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--border);padding-top:12px;">
+          <div style="text-align:center;">
+            <div id="rs-dates" style="font-size:22px;font-weight:800;color:var(--rose);">0</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">데이트</div>
+          </div>
+          <div style="text-align:center;">
+            <div id="rs-diaries" style="font-size:22px;font-weight:800;color:var(--rose);">0</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">일기</div>
+          </div>
+          <div style="text-align:center;">
+            <div id="rs-places" style="font-size:22px;font-weight:800;color:var(--rose);">0</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">방문 장소</div>
+          </div>
+        </div>
       </div>
       <div class="tab-nav">
         <button class="tab-btn active" data-mytab="received">받은 신청</button>
@@ -691,18 +729,6 @@ const REGIONS = {
   '기타':['기타']
 };
 
-const MISSIONS = [
-  '오늘 하루 상대방이 모든 것을 결정하기','처음 가보는 골목 함께 탐험하기',
-  '서로 어릴 적 추억 하나씩 이야기하기','오늘 가장 예쁜 장면 사진으로 남기기',
-  '서로에게 칭찬 5가지씩 말해주기','하늘 보면서 10분간 아무 말 없이 있기',
-  '오늘 새로운 것 하나 함께 도전하기','서로 손잡고 10분 이상 걷기',
-  '오늘 데이트를 한 문장으로 표현해보기','눈에 띄는 것 사진 찍기 대결하기',
-  '서로 좋아하는 노래 한 곡씩 들려주기','오늘 가장 행복했던 순간 말해주기',
-  '서로에게 편지 한 줄씩 써주기','공원에서 함께 일몰 보기',
-  '지금 느끼는 감정 솔직히 말하기','서로의 버킷리스트 하나씩 공유하기',
-  '편의점에서 간식 서로 골라주기','카페에서 서로 음료 골라주기',
-  '오늘 웃겼던 것 하나씩 꼽기','걷다가 마음에 드는 벤치에 앉아 쉬기',
-];
 
 // 행정구역명 → 권역 매핑 (GADM 영어명 기준)
 const PROV_REGION = {
@@ -749,15 +775,20 @@ function heatColor(n) {
   return '#C0392B';
 }
 
-function getRegionGroup(city) {
+function getRegionGroup(region) {
+  if (!region) return '기타';
+  // 새 형식 "경상 · 대구 수성못" — 대분류가 직접 그룹 키인 경우
+  const base = region.split(' · ')[0].trim();
+  if (REGIONS[base]) return base;
+  // 구버전 형식 — 도시명으로 역방향 조회
   for (const [g, cities] of Object.entries(REGIONS)) {
-    if (cities.includes(city)) return g;
+    if (cities.includes(base) || cities.includes(region)) return g;
   }
   return '기타';
 }
 
 let currentUser = null, currentNick = '', currentCoupleCode = '';
-let checkItems = [], selTheme = '', selRegion = '', selPlaceRegion = '';
+let checkItems = [], selTheme = '', selPlaceRegion = '';
 let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전체';
 let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [];
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
@@ -818,22 +849,9 @@ function buildDropdown(ddId, onSelect) {
   });
 }
 
-document.getElementById('region-btn').addEventListener('click', () => {
-  document.getElementById('region-dropdown').classList.toggle('open');
-  document.getElementById('region-btn').classList.toggle('open');
-});
 document.getElementById('place-region-btn').addEventListener('click', () => {
   document.getElementById('place-region-dropdown').classList.toggle('open');
   document.getElementById('place-region-btn').classList.toggle('open');
-});
-
-buildDropdown('region-dropdown', city => {
-  selRegion = city;
-  document.getElementById('region-btn-text').textContent = city;
-  document.getElementById('region-dropdown').classList.remove('open');
-  document.getElementById('region-btn').classList.remove('open');
-  document.getElementById('err-region').classList.remove('show');
-  document.getElementById('region-dropdown').querySelectorAll('.region-opt').forEach(o => o.classList.toggle('selected', o.dataset.city === city));
 });
 
 buildDropdown('place-region-dropdown', city => {
@@ -870,22 +888,10 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   currentUser = null; currentNick = ''; currentCoupleCode = '';
 });
 
-document.getElementById('nick-save-btn').addEventListener('click', async () => {
-  const nick = document.getElementById('nick-input').value.trim();
-  if (!nick) { showToast('닉네임을 입력해주세요', true); return; }
-  localStorage.setItem('nick_' + currentUser.uid, nick);
-  await setDoc(doc(db, 'users', nick), { uid: currentUser.uid, nickname: nick, createdAt: serverTimestamp() });
-  currentNick = nick;
-  document.getElementById('nick-screen').style.display = 'none';
-  document.getElementById('couple-screen').style.display = 'flex';
-});
-
-document.getElementById('nick-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('nick-save-btn').click();
-});
-
 // ── 커플 코드 ──
 let pendingCoupleCode = '';
+let pendingJoinCode = '';
+let joinStep = 'verify'; // 'verify' | 'select'
 
 function showCoupleSection(id) {
   ['couple-choice','couple-create','couple-join'].forEach(s => {
@@ -893,12 +899,12 @@ function showCoupleSection(id) {
   });
 }
 
-async function saveCoupleCode(code) {
-  const btn = document.getElementById('enter-create-btn') || document.getElementById('enter-join-btn');
+async function saveCoupleCode(code, nick) {
   try {
     localStorage.setItem('couple_' + currentUser.uid, code);
-    // setDoc with merge: 문서가 없어도 동작, updateDoc 실패 방지
-    await setDoc(doc(db, 'users', currentNick), { coupleCode: code }, { merge: true });
+    localStorage.setItem('nick_' + currentUser.uid, nick);
+    await setDoc(doc(db, 'users', nick), { uid: currentUser.uid, nickname: nick, coupleCode: code, createdAt: serverTimestamp() }, { merge: true });
+    currentNick = nick;
     currentCoupleCode = code;
     document.getElementById('couple-screen').style.display = 'none';
     enterApp();
@@ -921,6 +927,11 @@ document.getElementById('back-from-create').addEventListener('click', () => show
 document.getElementById('back-from-join').addEventListener('click', () => {
   document.getElementById('err-couple-join').classList.remove('show');
   document.getElementById('couple-join-input').value = '';
+  document.getElementById('couple-join-input').disabled = false;
+  document.getElementById('couple-join-input').classList.remove('input-err');
+  document.getElementById('join-member-select').style.display = 'none';
+  document.getElementById('enter-join-btn').textContent = '코드 확인';
+  joinStep = 'verify';
   showCoupleSection('couple-choice');
 });
 
@@ -932,22 +943,71 @@ document.getElementById('copy-my-code-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(currentCoupleCode).then(() => showToast('코드를 복사했어요! 📋')).catch(() => showToast(currentCoupleCode));
 });
 
-document.getElementById('enter-create-btn').addEventListener('click', () => saveCoupleCode(pendingCoupleCode));
+document.getElementById('edit-room-title-btn').addEventListener('click', () => {
+  const editDiv = document.getElementById('room-title-edit');
+  const isOpen = editDiv.style.display !== 'none';
+  editDiv.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('edit-room-title-btn').textContent = isOpen ? '편집' : '취소';
+  if (!isOpen) document.getElementById('room-title-input').focus();
+});
+
+document.getElementById('save-room-title-btn').addEventListener('click', async () => {
+  const title = document.getElementById('room-title-input').value.trim();
+  if (!title) { showToast('방 이름을 입력해주세요', true); return; }
+  await setDoc(doc(db, 'rooms', currentCoupleCode), { title }, { merge: true });
+  document.getElementById('room-title-display').textContent = title;
+  document.getElementById('room-title-edit').style.display = 'none';
+  document.getElementById('edit-room-title-btn').textContent = '편집';
+  showToast('방 이름이 변경됐어요 💕');
+});
+
+document.getElementById('room-title-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('save-room-title-btn').click();
+});
+
+document.getElementById('enter-create-btn').addEventListener('click', () => {
+  const nick = document.getElementById('create-nick-input').value.trim();
+  if (!nick) { showToast('이름을 입력해주세요', true); return; }
+  saveCoupleCode(pendingCoupleCode, nick);
+});
+
+document.getElementById('join-member-dropdown').addEventListener('change', () => {
+  const val = document.getElementById('join-member-dropdown').value;
+  document.getElementById('join-new-nick').style.display = val === '__new__' ? 'block' : 'none';
+});
 
 document.getElementById('enter-join-btn').addEventListener('click', async () => {
-  const code = document.getElementById('couple-join-input').value.trim();
-  if (code.length !== 6) { showToast('6자리 코드를 입력해주세요', true); return; }
-  const errEl = document.getElementById('err-couple-join');
-  // Firestore에서 해당 coupleCode를 가진 사용자 존재 여부 확인
-  const snap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', code)));
-  if (snap.empty) {
-    errEl.classList.add('show');
-    document.getElementById('couple-join-input').classList.add('input-err');
-    return;
+  if (joinStep === 'verify') {
+    const code = document.getElementById('couple-join-input').value.trim();
+    if (code.length !== 6) { showToast('6자리 코드를 입력해주세요', true); return; }
+    const errEl = document.getElementById('err-couple-join');
+    const snap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', code)));
+    if (snap.empty) {
+      errEl.classList.add('show');
+      document.getElementById('couple-join-input').classList.add('input-err');
+      return;
+    }
+    errEl.classList.remove('show');
+    document.getElementById('couple-join-input').classList.remove('input-err');
+    document.getElementById('couple-join-input').disabled = true;
+    const members = snap.docs.map(d => d.data().nickname || d.id);
+    const dropdown = document.getElementById('join-member-dropdown');
+    dropdown.innerHTML = '<option value="">선택해주세요</option>' +
+      members.map(m => `<option value="${m}">${m}</option>`).join('') +
+      '<option value="__new__">직접 입력...</option>';
+    document.getElementById('join-new-nick').style.display = 'none';
+    document.getElementById('join-member-select').style.display = 'block';
+    document.getElementById('enter-join-btn').textContent = '입장하기 💕';
+    pendingJoinCode = code;
+    joinStep = 'select';
+  } else {
+    const dropdown = document.getElementById('join-member-dropdown');
+    let nick = dropdown.value;
+    if (nick === '__new__') nick = document.getElementById('join-new-nick').value.trim();
+    if (!nick) { showToast('이름을 선택하거나 입력해주세요', true); return; }
+    await saveCoupleCode(pendingJoinCode, nick);
+    joinStep = 'verify';
   }
-  errEl.classList.remove('show');
-  document.getElementById('couple-join-input').classList.remove('input-err');
-  await saveCoupleCode(code);
 });
 
 document.getElementById('couple-join-input').addEventListener('keydown', e => {
@@ -959,11 +1019,7 @@ onAuthStateChanged(auth, async user => {
     currentUser = user;
     const savedNick = localStorage.getItem('nick_' + user.uid);
     const savedCouple = localStorage.getItem('couple_' + user.uid);
-    if (!savedNick) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('nick-screen').style.display = 'flex';
-    } else if (!savedCouple) {
-      currentNick = savedNick;
+    if (!savedNick || !savedCouple) {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('couple-screen').style.display = 'flex';
     } else {
@@ -978,7 +1034,6 @@ getRedirectResult(auth).catch(() => {});
 
 function enterApp() {
   document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('nick-screen').style.display = 'none';
   document.getElementById('couple-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-name-display').textContent = currentNick;
@@ -986,7 +1041,30 @@ function enterApp() {
   document.getElementById('hero-name').textContent = currentNick + '님';
   document.getElementById('hero-greeting').textContent = getGreeting();
   document.getElementById('a-date').value = new Date().toISOString().split('T')[0];
+  loadRoomInfo();
   loadAll();
+}
+
+async function loadRoomInfo() {
+  // 방 제목
+  const roomDoc = await getDoc(doc(db, 'rooms', currentCoupleCode));
+  const title = roomDoc.exists() ? (roomDoc.data().title || '우리의 방') : '우리의 방';
+  document.getElementById('room-title-display').textContent = title;
+  document.getElementById('room-title-input').value = title;
+
+  // 참가자 목록
+  const membersSnap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', currentCoupleCode)));
+  const members = membersSnap.docs.map(d => d.data().nickname || d.id);
+  document.getElementById('room-members').innerHTML = members.length
+    ? members.map(m => `<div style="background:var(--rose4);color:var(--rose);padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;">${m}</div>`).join('')
+    : '<div style="color:var(--text3);font-size:13px;">아직 멤버가 없어요</div>';
+}
+
+function updateRoomStats() {
+  const accepted = allRequests.filter(r => r.status === '수락' || r.status === '확정');
+  document.getElementById('rs-dates').textContent = accepted.length;
+  document.getElementById('rs-diaries').textContent = allDiaries.length;
+  document.getElementById('rs-places').textContent = allPlaces.filter(p => p.category === 'visited').length;
 }
 
 // ── 데이터 로드 ──
@@ -997,13 +1075,13 @@ function loadAll() {
   const u1 = onSnapshot(query(collection(db, 'requests'), where('coupleCode', '==', currentCoupleCode)), snap => {
     allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    renderHome(); renderMyContent(); renderCalendar();
+    renderHome(); renderMyContent(); renderCalendar(); updateRoomStats();
   });
 
   const u2 = onSnapshot(query(collection(db, 'places'), where('coupleCode', '==', currentCoupleCode)), snap => {
     allPlaces = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-    renderPlaces(); renderMap();
+    renderPlaces(); renderMap(); updateRoomStats();
   });
 
   const u3 = onSnapshot(query(collection(db, 'diaries'), where('coupleCode', '==', currentCoupleCode)), snap => {
@@ -1011,6 +1089,7 @@ function loadAll() {
       .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     document.getElementById('stat-diary').textContent = allDiaries.length;
     if (myTab === 'diaries') renderMyContent();
+    updateRoomStats();
   });
 
   const u4 = onSnapshot(query(collection(db, 'anniversaries'), where('coupleCode', '==', currentCoupleCode)), snap => {
@@ -1070,7 +1149,6 @@ function reqCardHTML(r, showActions) {
     + '<div class="req-date-big">' + r.date + ' ' + r.time + '</div>'
     + '<div class="req-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
     + (r.message ? '<div style="font-size:13px;color:var(--text2);font-style:italic;margin-bottom:10px;padding:10px 12px;background:var(--rose4);border-radius:10px;">"' + r.message + '"</div>' : '')
-    + (r.mission ? '<div class="mission-card" style="margin-bottom:12px;"><div class="mission-label">미션 🎲</div><div class="mission-text">' + r.mission + '</div></div>' : '')
     + actions
     + '</div>';
 }
@@ -1233,7 +1311,6 @@ async function renderMap() {
     counts[g] = (counts[g] || 0) + 1;
   });
 
-  // 시/군/구 단위 TopoJSON — 여러 URL 순차 시도
   const URLS = [
     'https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2018/json/skorea-municipalities-2018-topo.json',
     'https://cdn.jsdelivr.net/npm/south-korea-maps@latest/kostat/2018/json/skorea-municipalities-2018-topo.json',
@@ -1251,36 +1328,60 @@ async function renderMap() {
   const objKey = Object.keys(topo.objects)[0];
   const geo = topojson.feature(topo, topo.objects[objKey]);
 
-  const W = 300, H = 390;
-  const proj = d3.geoMercator().fitExtent([[4, 4], [W - 4, H - 4]], geo);
+  // 울릉도 분리 — 동해 멀리 있어서 본토 bbox 압축되는 문제 해결
+  const isUlleungdo = f => String(f.properties?.code || f.properties?.SIG_CD || '').startsWith('37720');
+  const mainlandGeo = { type: 'FeatureCollection', features: geo.features.filter(f => !isUlleungdo(f)) };
+  const ulFeature = geo.features.find(isUlleungdo);
+
+  const W = 280, H = 368;
+  const proj = d3.geoMercator().fitExtent([[3, 3], [W - 3, H - 3]], mainlandGeo);
   const pathFn = d3.geoPath().projection(proj);
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%">`;
-  svg += `<rect width="${W}" height="${H}" fill="#1a4a6e" rx="12"/>`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block;">`;
+  svg += `<rect width="${W}" height="${H}" fill="#DCE9F5" rx="14"/>`;
 
   // 시/군/구 폴리곤
-  geo.features.forEach(f => {
+  mainlandGeo.features.forEach(f => {
     const p = f.properties || {};
-    // 통계청 kostat 포맷: code(5자리), name(한국어)
     const code = String(p.code || p.CODE || p.SIG_CD || p.adm_cd || '').slice(0, 2);
     const name = p.name || p.NAME || p.SIG_KOR_NM || p.adm_nm || '';
     const regionKey = CODE_REGION[code] || '기타';
     const cnt = counts[regionKey] || 0;
     const d = pathFn(f);
     if (!d) return;
-    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.45)" stroke-width="0.35" class="map-region" data-rkey="${regionKey}" data-name="${name}" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter=''"><title>${name}</title></path>`;
+    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.55)" stroke-width="0.2" class="map-region" data-rkey="${regionKey}" data-name="${name}" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''"><title>${name}</title></path>`;
   });
 
-  // 시/도 경계선 (굵게)
+  // 시/도 경계선
   try {
     const provMesh = topojson.mesh(topo, topo.objects[objKey], (a, b) => {
       const ca = String(a.properties?.code || a.properties?.SIG_CD || '').slice(0, 2);
       const cb = String(b.properties?.code || b.properties?.SIG_CD || '').slice(0, 2);
-      return ca !== cb;
+      return ca !== cb && !isUlleungdo(a) && !isUlleungdo(b);
     });
     const meshD = pathFn(provMesh);
-    if (meshD) svg += `<path d="${meshD}" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.2" pointer-events="none"/>`;
+    if (meshD) svg += `<path d="${meshD}" fill="none" stroke="rgba(255,255,255,0.88)" stroke-width="0.75" pointer-events="none"/>`;
   } catch(_) {}
+
+  // 울릉도 — 동해안 근처에 재배치
+  if (ulFeature) {
+    const ulGeo = { type: 'FeatureCollection', features: [ulFeature] };
+    const ulProj = d3.geoMercator().fitExtent([[0, 0], [16, 16]], ulGeo);
+    const ulPathFn = d3.geoPath().projection(ulProj);
+    const ulD = ulPathFn(ulFeature);
+    if (ulD) {
+      const p = ulFeature.properties || {};
+      const code = String(p.code || p.SIG_CD || '').slice(0, 2);
+      const regionKey = CODE_REGION[code] || '경상';
+      const cnt = counts[regionKey] || 0;
+      const ulX = W - 36, ulY = 88;
+      svg += `<g transform="translate(${ulX},${ulY})" class="map-region" data-rkey="${regionKey}" data-name="울릉도" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''">`;
+      svg += `<path d="${ulD}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.7)" stroke-width="0.5"/>`;
+      svg += `<title>울릉도</title></g>`;
+      // 점선으로 동해안과 연결
+      svg += `<line x1="${ulX}" y1="${ulY + 8}" x2="${ulX - 14}" y2="${ulY + 8}" stroke="rgba(120,160,200,0.6)" stroke-width="0.7" stroke-dasharray="2,2" pointer-events="none"/>`;
+    }
+  }
 
   svg += '</svg>';
   el.innerHTML = svg;
@@ -1529,12 +1630,6 @@ document.getElementById('theme-grid').addEventListener('click', e => {
 });
 
 // ── 미션 ──
-document.getElementById('draw-mission-btn').addEventListener('click', () => {
-  const m = MISSIONS[Math.floor(Math.random() * MISSIONS.length)];
-  const el = document.getElementById('mission-display');
-  el.innerHTML = '<div class="mission-card"><div class="mission-label">오늘의 미션 🎲</div><div class="mission-text">' + m + '</div></div>';
-  el.dataset.mission = m;
-});
 
 // ── 세부장소 저장 ──
 document.getElementById('save-subloc-btn').addEventListener('click', async () => {
@@ -1582,27 +1677,30 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     document.getElementById('a-date').classList.remove('input-err');
   }
 
+  const regionMajor = document.getElementById('a-region-major').value;
+  const regionSub = document.getElementById('a-region-sub').value.trim();
+  const regionFull = regionMajor ? (regionSub ? regionMajor + ' · ' + regionSub : regionMajor) : '';
   if (!selTheme) { document.getElementById('err-theme').classList.add('show'); valid = false; }
-  if (!selRegion) { document.getElementById('err-region').classList.add('show'); valid = false; }
+  if (!regionMajor) { document.getElementById('err-region').classList.add('show'); valid = false; }
+  else { document.getElementById('err-region').classList.remove('show'); }
   if (!valid) return;
 
   await addDoc(collection(db, 'requests'), {
     fromUser: currentNick, toUser: recipient, date,
     time: document.getElementById('a-time').value,
-    theme: selTheme, region: selRegion,
+    theme: selTheme, region: regionFull,
     subLocation: document.getElementById('a-subloc').value,
     checklist: checkItems.map(c => ({ ...c })),
-    mission: document.getElementById('mission-display').dataset.mission || '',
     message: document.getElementById('a-message').value,
     status: '대기', coupleCode: currentCoupleCode, createdAt: serverTimestamp()
   });
 
   showToast('Please Woonyo! 신청 완료 💕');
-  checkItems = []; renderCheckItems(); selTheme = ''; selRegion = '';
+  checkItems = []; renderCheckItems(); selTheme = '';
   document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('selected'));
-  document.getElementById('region-btn-text').textContent = '지역을 선택하세요';
+  document.getElementById('a-region-major').value = '';
+  document.getElementById('a-region-sub').value = '';
   ['a-recipient','a-subloc','a-message'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('mission-display').innerHTML = '';
   showPage('home');
 });
 
