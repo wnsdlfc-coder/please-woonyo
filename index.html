@@ -207,6 +207,12 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .filter-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
 .filter-btn{padding:6px 14px;border-radius:16px;border:1.5px solid var(--rose3);background:white;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit;}
 .filter-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
+.couple-choice-btn{width:100%;display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:18px;border:2px solid var(--rose3);background:white;cursor:pointer;transition:all 0.25s;font-family:inherit;text-align:left;}
+.couple-choice-btn:hover{border-color:var(--rose);background:var(--rose4);transform:translateY(-2px);box-shadow:var(--shadow);}
+.couple-choice-icon{font-size:28px;flex-shrink:0;}
+.couple-choice-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:3px;}
+.couple-choice-desc{font-size:12px;color:var(--text3);}
+.couple-code-box{background:linear-gradient(135deg,var(--rose4),#FFF8DC);border:2px dashed var(--rose2);border-radius:20px;padding:24px;text-align:center;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -241,13 +247,56 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 <div id="couple-screen" class="screen" style="display:none;">
   <div class="auth-card">
     <div class="auth-logo">💑</div>
-    <div class="auth-title">커플 코드</div>
-    <div class="auth-sub">상대방과 동일한 코드를 입력해야<br>데이터를 함께 볼 수 있어요 🔑</div>
-    <div class="form-group" style="text-align:left;">
-      <label class="form-label">커플 코드 (영문+숫자)</label>
-      <input type="text" id="couple-input" class="form-input" placeholder="예) woonyo2025" maxlength="20">
+    <div class="auth-title">우리의 방</div>
+    <div class="auth-sub">둘만의 공간을 만들거나<br>상대방의 방에 입장하세요 🔑</div>
+
+    <!-- 선택지 (기본) -->
+    <div id="couple-choice">
+      <button class="couple-choice-btn" id="btn-create-room">
+        <div class="couple-choice-icon">🏠</div>
+        <div>
+          <div class="couple-choice-title">새로운 방 만들기</div>
+          <div class="couple-choice-desc">커플 코드를 자동으로 생성해요</div>
+        </div>
+      </button>
+      <button class="couple-choice-btn" id="btn-join-room" style="margin-top:10px;">
+        <div class="couple-choice-icon">🚪</div>
+        <div>
+          <div class="couple-choice-title">기존 방 입장하기</div>
+          <div class="couple-choice-desc">상대방의 커플 코드를 입력해요</div>
+        </div>
+      </button>
     </div>
-    <button class="btn btn-rose btn-full" id="couple-save-btn">입장하기 💕</button>
+
+    <!-- 방 만들기 -->
+    <div id="couple-create" style="display:none;">
+      <div class="couple-code-box" id="generated-code-box">
+        <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:1px;">YOUR COUPLE CODE</div>
+        <div id="generated-code" style="font-family:'Nanum Myeongjo',serif;font-size:36px;font-weight:800;color:var(--rose);letter-spacing:6px;">------</div>
+        <button class="btn btn-outline btn-sm" id="copy-code-btn" style="margin-top:12px;">복사하기 📋</button>
+      </div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:20px;line-height:1.7;">
+        이 코드를 상대방에게 알려주세요<br>상대방이 동일한 코드로 입장하면 연결돼요 💕
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline btn-full" id="back-from-create">← 뒤로</button>
+        <button class="btn btn-rose btn-full" id="enter-create-btn">입장하기 💕</button>
+      </div>
+    </div>
+
+    <!-- 방 입장하기 -->
+    <div id="couple-join" style="display:none;">
+      <div class="form-group" style="text-align:left;">
+        <label class="form-label">커플 코드 6자리 입력</label>
+        <input type="text" id="couple-join-input" class="form-input" placeholder="숫자 6자리" maxlength="6" inputmode="numeric"
+          style="text-align:center;font-size:24px;font-family:'Nanum Myeongjo',serif;letter-spacing:8px;font-weight:800;">
+        <div class="err-hint" id="err-couple-join">존재하지 않는 커플 코드예요</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline btn-full" id="back-from-join">← 뒤로</button>
+        <button class="btn btn-rose btn-full" id="enter-join-btn">입장하기 💕</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -555,7 +604,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBamsaFwG14Va2PAAUDuZw1qZpF7YzB68U",
@@ -755,18 +804,64 @@ document.getElementById('nick-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('nick-save-btn').click();
 });
 
-document.getElementById('couple-save-btn').addEventListener('click', async () => {
-  const code = document.getElementById('couple-input').value.trim();
-  if (!code) { showToast('커플 코드를 입력해주세요', true); return; }
+// ── 커플 코드 ──
+let pendingCoupleCode = '';
+
+function showCoupleSection(id) {
+  ['couple-choice','couple-create','couple-join'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+async function saveCoupleCode(code) {
   localStorage.setItem('couple_' + currentUser.uid, code);
   await updateDoc(doc(db, 'users', currentNick), { coupleCode: code });
   currentCoupleCode = code;
   document.getElementById('couple-screen').style.display = 'none';
   enterApp();
+}
+
+document.getElementById('btn-create-room').addEventListener('click', () => {
+  pendingCoupleCode = String(Math.floor(100000 + Math.random() * 900000));
+  document.getElementById('generated-code').textContent = pendingCoupleCode;
+  showCoupleSection('couple-create');
 });
 
-document.getElementById('couple-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('couple-save-btn').click();
+document.getElementById('btn-join-room').addEventListener('click', () => {
+  showCoupleSection('couple-join');
+});
+
+document.getElementById('back-from-create').addEventListener('click', () => showCoupleSection('couple-choice'));
+document.getElementById('back-from-join').addEventListener('click', () => {
+  document.getElementById('err-couple-join').classList.remove('show');
+  document.getElementById('couple-join-input').value = '';
+  showCoupleSection('couple-choice');
+});
+
+document.getElementById('copy-code-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(pendingCoupleCode).then(() => showToast('코드를 복사했어요! 📋')).catch(() => showToast(pendingCoupleCode));
+});
+
+document.getElementById('enter-create-btn').addEventListener('click', () => saveCoupleCode(pendingCoupleCode));
+
+document.getElementById('enter-join-btn').addEventListener('click', async () => {
+  const code = document.getElementById('couple-join-input').value.trim();
+  if (code.length !== 6) { showToast('6자리 코드를 입력해주세요', true); return; }
+  const errEl = document.getElementById('err-couple-join');
+  // Firestore에서 해당 coupleCode를 가진 사용자 존재 여부 확인
+  const snap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', code)));
+  if (snap.empty) {
+    errEl.classList.add('show');
+    document.getElementById('couple-join-input').classList.add('input-err');
+    return;
+  }
+  errEl.classList.remove('show');
+  document.getElementById('couple-join-input').classList.remove('input-err');
+  await saveCoupleCode(code);
+});
+
+document.getElementById('couple-join-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('enter-join-btn').click();
 });
 
 onAuthStateChanged(auth, async user => {
