@@ -888,9 +888,17 @@ function showCoupleSection(id) {
 
 async function saveCoupleCode(code, nick) {
   try {
-    localStorage.setItem('couple_' + currentUser.uid, code);
+    // Firestore: UID 기반 (기기 간 동기화 - 메인)
+    await setDoc(doc(db, 'users', currentUser.uid), {
+      uid: currentUser.uid, nickname: nick, coupleCode: code, updatedAt: serverTimestamp()
+    }, { merge: true });
+    // Firestore: 닉네임 기반 (방 멤버 조회 호환)
+    await setDoc(doc(db, 'users', nick), {
+      uid: currentUser.uid, nickname: nick, coupleCode: code
+    }, { merge: true });
+    // localStorage: 캐시 (폴백용)
     localStorage.setItem('nick_' + currentUser.uid, nick);
-    await setDoc(doc(db, 'users', nick), { uid: currentUser.uid, nickname: nick, coupleCode: code, createdAt: serverTimestamp() }, { merge: true });
+    localStorage.setItem('couple_' + currentUser.uid, code);
     currentNick = nick;
     currentCoupleCode = code;
     document.getElementById('couple-screen').style.display = 'none';
@@ -977,7 +985,10 @@ document.getElementById('enter-join-btn').addEventListener('click', async () => 
     errEl.classList.remove('show');
     document.getElementById('couple-join-input').classList.remove('input-err');
     document.getElementById('couple-join-input').disabled = true;
-    const members = snap.docs.map(d => d.data().nickname || d.id);
+    const seen2 = new Set();
+    const members = snap.docs
+      .map(d => d.data().nickname || d.id)
+      .filter(n => { if (seen2.has(n)) return false; seen2.add(n); return true; });
     const dropdown = document.getElementById('join-member-dropdown');
     dropdown.innerHTML = '<option value="">선택해주세요</option>' +
       members.map(m => `<option value="${m}">${m}</option>`).join('') +
@@ -1004,15 +1015,35 @@ document.getElementById('couple-join-input').addEventListener('keydown', e => {
 onAuthStateChanged(auth, async user => {
   if (user) {
     currentUser = user;
+    // 1순위: Firestore UID 기반 (기기 간 동기화)
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (data.coupleCode && data.nickname) {
+          currentNick = data.nickname;
+          currentCoupleCode = data.coupleCode;
+          localStorage.setItem('nick_' + user.uid, currentNick);
+          localStorage.setItem('couple_' + user.uid, currentCoupleCode);
+          enterApp();
+          return;
+        }
+      }
+    } catch(_) { /* Firestore 접근 실패 → 폴백 */ }
+    // 2순위: localStorage (오프라인 / 구버전 기기)
     const savedNick = localStorage.getItem('nick_' + user.uid);
     const savedCouple = localStorage.getItem('couple_' + user.uid);
-    if (!savedNick || !savedCouple) {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('couple-screen').style.display = 'flex';
-    } else {
+    if (savedNick && savedCouple) {
       currentNick = savedNick;
       currentCoupleCode = savedCouple;
+      // 백그라운드에서 Firestore에 동기화 (다음 기기 로그인 대비)
+      setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid, nickname: savedNick, coupleCode: savedCouple, updatedAt: serverTimestamp()
+      }, { merge: true }).catch(() => {});
       enterApp();
+    } else {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('couple-screen').style.display = 'flex';
     }
   }
 });
@@ -1039,9 +1070,12 @@ async function loadRoomInfo() {
   document.getElementById('room-title-display').textContent = title;
   document.getElementById('room-title-input').value = title;
 
-  // 참가자 목록
+  // 참가자 목록 (UID doc + 닉네임 doc 중복 제거)
   const membersSnap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', currentCoupleCode)));
-  const members = membersSnap.docs.map(d => d.data().nickname || d.id);
+  const seen = new Set();
+  const members = membersSnap.docs
+    .map(d => d.data().nickname || d.id)
+    .filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
   document.getElementById('room-members').innerHTML = members.length
     ? members.map(m => `<div style="background:var(--rose4);color:var(--rose);padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;">${m}</div>`).join('')
     : '<div style="color:var(--text3);font-size:13px;">아직 멤버가 없어요</div>';
