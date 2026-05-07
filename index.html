@@ -246,8 +246,8 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 
 <div id="couple-screen" class="screen" style="display:none;">
   <div class="auth-card">
-    <div class="auth-logo">💑</div>
-    <div class="auth-title">우리의 방</div>
+    <div class="auth-logo" style="font-size:62px;line-height:1.1;">👩🧑</div>
+    <div class="auth-title" style="font-size:36px;">우뇨의 방</div>
     <div class="auth-sub">둘만의 공간을 만들거나<br>상대방의 방에 입장하세요 🔑</div>
 
     <!-- 선택지 (기본) -->
@@ -814,11 +814,17 @@ function showCoupleSection(id) {
 }
 
 async function saveCoupleCode(code) {
-  localStorage.setItem('couple_' + currentUser.uid, code);
-  await updateDoc(doc(db, 'users', currentNick), { coupleCode: code });
-  currentCoupleCode = code;
-  document.getElementById('couple-screen').style.display = 'none';
-  enterApp();
+  const btn = document.getElementById('enter-create-btn') || document.getElementById('enter-join-btn');
+  try {
+    localStorage.setItem('couple_' + currentUser.uid, code);
+    // setDoc with merge: 문서가 없어도 동작, updateDoc 실패 방지
+    await setDoc(doc(db, 'users', currentNick), { coupleCode: code }, { merge: true });
+    currentCoupleCode = code;
+    document.getElementById('couple-screen').style.display = 'none';
+    enterApp();
+  } catch(e) {
+    showToast('입장 실패: ' + e.message, true);
+  }
 }
 
 document.getElementById('btn-create-room').addEventListener('click', () => {
