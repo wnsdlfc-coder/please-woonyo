@@ -172,8 +172,8 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .anni-name{font-weight:700;font-size:14px;}
 .anni-date{font-size:12px;color:var(--text3);}
 .anni-dday{font-size:15px;font-weight:800;color:var(--rose);margin-left:auto;white-space:nowrap;}
-.map-wrap{border-radius:0;overflow:hidden;background:#DCE9F5;border:none;margin:0 -16px 12px;padding:0;}
-.map-wrap svg{width:100%;height:auto;display:block;}
+.map-wrap{border-radius:12px;overflow:hidden;background:#F0F4F8;border:1px solid var(--border);margin:0 0 12px;padding:0;position:relative;}
+.map-wrap svg{width:100%;height:auto;display:block;touch-action:none;}
 #korea-map{width:100%;}
 .map-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center;}
 .map-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);}
@@ -220,6 +220,22 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .join-card .choice-desc{color:var(--text3);opacity:1;}
 .choice-arrow{margin-left:auto;flex-shrink:0;}
 .couple-code-box{background:linear-gradient(135deg,var(--rose4),var(--yellow2));border:2px dashed var(--rose2);border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;}
+/* 달력 날짜 배경색 */
+.cal-cell.has-anni{background:#FFE4EC;}
+.cal-cell.has-diary{background:#E4F0FF;}
+.cal-cell.has-schedule{background:#FFF9E4;}
+.cal-cell.has-anni.has-diary{background:linear-gradient(135deg,#FFE4EC 50%,#E4F0FF 50%);}
+.cal-cell.has-anni.has-schedule{background:linear-gradient(135deg,#FFE4EC 50%,#FFF9E4 50%);}
+.cal-cell.has-diary.has-schedule{background:linear-gradient(135deg,#E4F0FF 50%,#FFF9E4 50%);}
+.cal-cell.has-anni.has-diary.has-schedule{background:linear-gradient(135deg,#FFE4EC 33%,#E4F0FF 66%,#FFF9E4 100%);}
+/* 지역 검색 드롭다운 */
+.region-sub-wrap{position:relative;margin-top:8px;}
+.region-sub-search{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;font-family:inherit;outline:none;transition:all 0.2s;background:white;color:var(--text);}
+.region-sub-search:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(255,107,157,0.1);}
+.region-sub-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:50;max-height:200px;overflow-y:auto;border:1px solid var(--border);}
+.region-sub-dropdown.open{display:block;animation:fadeUp 0.15s ease;}
+.region-sub-opt{padding:9px 14px;cursor:pointer;font-size:14px;color:var(--text);}
+.region-sub-opt:hover,.region-sub-opt.selected{background:var(--rose4);color:var(--rose);font-weight:700;}
 </style>
 </head>
 <body>
@@ -389,29 +405,31 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         </div>
         <div class="form-group">
           <label class="form-label">지역</label>
-          <div style="display:flex;gap:8px;">
-            <select id="a-region-major" class="form-input" style="flex:0 0 140px;">
-              <option value="">지역 선택</option>
-              <option value="서울특별시">서울특별시</option>
-              <option value="경기도">경기도</option>
-              <option value="인천광역시">인천광역시</option>
-              <option value="부산광역시">부산광역시</option>
-              <option value="대구광역시">대구광역시</option>
-              <option value="광주광역시">광주광역시</option>
-              <option value="대전광역시">대전광역시</option>
-              <option value="울산광역시">울산광역시</option>
-              <option value="세종특별자치시">세종특별자치시</option>
-              <option value="강원특별자치도">강원특별자치도</option>
-              <option value="충청북도">충청북도</option>
-              <option value="충청남도">충청남도</option>
-              <option value="전북특별자치도">전북특별자치도</option>
-              <option value="전라남도">전라남도</option>
-              <option value="경상북도">경상북도</option>
-              <option value="경상남도">경상남도</option>
-              <option value="제주특별자치도">제주특별자치도</option>
-              <option value="기타">기타</option>
-            </select>
-            <input type="text" id="a-region-sub" class="form-input" placeholder="시/군/구" style="flex:1;">
+          <select id="a-region-major" class="form-input">
+            <option value="">1단계: 도/광역시 선택</option>
+            <option value="서울특별시">서울특별시</option>
+            <option value="경기도">경기도</option>
+            <option value="인천광역시">인천광역시</option>
+            <option value="부산광역시">부산광역시</option>
+            <option value="대구광역시">대구광역시</option>
+            <option value="광주광역시">광주광역시</option>
+            <option value="대전광역시">대전광역시</option>
+            <option value="울산광역시">울산광역시</option>
+            <option value="세종특별자치시">세종특별자치시</option>
+            <option value="강원특별자치도">강원특별자치도</option>
+            <option value="충청북도">충청북도</option>
+            <option value="충청남도">충청남도</option>
+            <option value="전북특별자치도">전북특별자치도</option>
+            <option value="전라남도">전라남도</option>
+            <option value="경상북도">경상북도</option>
+            <option value="경상남도">경상남도</option>
+            <option value="제주특별자치도">제주특별자치도</option>
+            <option value="기타">기타</option>
+          </select>
+          <div class="region-sub-wrap" id="a-region-sub-wrap" style="display:none;">
+            <input type="text" id="a-region-sub-search" class="region-sub-search" placeholder="시/군 검색 또는 선택...">
+            <input type="hidden" id="a-region-sub">
+            <div class="region-sub-dropdown" id="a-region-sub-dropdown"></div>
           </div>
           <div class="err-hint" id="err-region">지역 대분류를 선택해주세요</div>
         </div>
@@ -441,7 +459,10 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
     <div id="page-calendar" class="page">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div class="page-title" style="margin:0;">달력 📅</div>
-        <button class="btn btn-rose btn-sm" id="open-anni-modal-btn">기념일 추가</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline btn-sm" id="open-schedule-modal-btn">일정 추가</button>
+          <button class="btn btn-rose btn-sm" id="open-anni-modal-btn">기념일 추가</button>
+        </div>
       </div>
       <div class="card">
         <div class="cal-header">
@@ -451,9 +472,9 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         </div>
         <div class="cal-grid" id="cal-grid"></div>
         <div class="cal-legend">
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-date"></div> 확정</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-pending"></div> 대기</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-anniversary"></div> 기념일</div>
+          <div class="cal-legend-item"><div style="width:14px;height:14px;border-radius:4px;background:#FFE4EC;border:1px solid #F8B4CC;flex-shrink:0;"></div> 기념일</div>
+          <div class="cal-legend-item"><div style="width:14px;height:14px;border-radius:4px;background:#E4F0FF;border:1px solid #A8C8F0;flex-shrink:0;"></div> 일기</div>
+          <div class="cal-legend-item"><div style="width:14px;height:14px;border-radius:4px;background:#FFF9E4;border:1px solid #F0D890;flex-shrink:0;"></div> 일정</div>
         </div>
       </div>
       <div class="section-label">기념일</div>
@@ -661,6 +682,30 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
   </div>
 </div>
 
+<!-- 일정 추가 모달 -->
+<div class="modal-bg" id="modal-schedule">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title">일정 추가 📋</div>
+    <div class="form-group">
+      <label class="form-label">제목</label>
+      <input type="text" id="sch-title" class="form-input" placeholder="일정 제목">
+    </div>
+    <div class="form-group">
+      <label class="form-label">날짜</label>
+      <input type="date" id="sch-date" class="form-input">
+    </div>
+    <div class="form-group">
+      <label class="form-label">내용 (선택)</label>
+      <textarea id="sch-desc" class="form-input" placeholder="간단한 메모..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline btn-full" id="close-schedule-modal-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="save-schedule-btn">저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- 달력 상세 모달 -->
 <div class="modal-bg" id="modal-cal-detail">
   <div class="modal">
@@ -803,23 +848,23 @@ const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
 
 const REGIONS = {
-  '서울특별시':['서울','서울 강남','서울 홍대','서울 이태원','서울 종로','서울 한강','서울 성수','서울 마포'],
-  '경기도':['수원','성남','용인','고양','남양주','의정부','파주','김포','안양','부천','구리','시흥','화성','안산','평택','오산','광주'],
-  '인천광역시':['인천'],
-  '부산광역시':['부산','부산 해운대','부산 광안리','부산 남포동','부산 서면'],
-  '대구광역시':['대구','대구 수성못','대구 동성로','대구 앞산'],
+  '서울특별시':['서울','강남','홍대','이태원','종로','한강','성수','마포','잠실','신촌','명동','인사동','북촌','을지로','여의도'],
+  '경기도':['수원','성남','용인','고양','남양주','의정부','파주','김포','안양','부천','구리','시흥','화성','안산','평택','오산','광주','하남','이천','양평','가평','포천','동두천','여주','연천'],
+  '인천광역시':['인천','부평','계양','강화','송도','영종'],
+  '부산광역시':['부산','해운대','광안리','남포동','서면','기장','영도','수영'],
+  '대구광역시':['대구','수성못','동성로','앞산','달성','군위'],
   '광주광역시':['광주'],
   '대전광역시':['대전'],
-  '울산광역시':['울산'],
+  '울산광역시':['울산','언양','온산'],
   '세종특별자치시':['세종'],
-  '강원특별자치도':['강릉','춘천','속초','원주','평창','정선','동해','삼척','태백','양양','홍천','인제'],
-  '충청북도':['청주','충주','제천','청원'],
-  '충청남도':['천안','공주','아산','홍성','보령','서산','논산'],
-  '전북특별자치도':['전주','군산','익산','남원','정읍'],
-  '전라남도':['여수','순천','목포','광양','나주'],
-  '경상북도':['경주','포항','안동','구미','영주','문경','상주'],
-  '경상남도':['창원','진주','통영','거제','양산','김해'],
-  '제주특별자치도':['제주시','서귀포','애월','성산','중문','협재'],
+  '강원특별자치도':['강릉','춘천','속초','원주','평창','정선','동해','삼척','태백','양양','홍천','인제','횡성','영월','화천','양구','고성','철원'],
+  '충청북도':['청주','충주','제천','보은','옥천','영동','진천','괴산','음성','단양','증평'],
+  '충청남도':['천안','공주','아산','홍성','보령','서산','논산','당진','예산','태안','청양','부여','서천','계룡'],
+  '전북특별자치도':['전주','군산','익산','남원','정읍','김제','완주','진안','무주','장수','임실','순창','고창','부안'],
+  '전라남도':['여수','순천','목포','광양','나주','담양','곡성','구례','고흥','보성','화순','장흥','강진','해남','영암','무안','함평','영광','장성','완도','진도','신안'],
+  '경상북도':['포항','경주','안동','구미','영주','영천','상주','문경','경산','군위','의성','청송','영양','영덕','청도','고령','성주','칠곡','예천','봉화','울진','울릉'],
+  '경상남도':['창원','진주','통영','사천','김해','밀양','거제','양산','마산','의령','함안','창녕','고성','남해','하동','산청','함양','거창','합천'],
+  '제주특별자치도':['제주시','서귀포','애월','성산','중문','협재','한림','모슬포','표선'],
   '기타':['기타'],
 };
 
@@ -848,7 +893,7 @@ function getRegionGroup(region) {
 let currentUser = null, currentNick = '', currentCoupleCode = '';
 let checkItems = [], selTheme = '', selPlaceRegion = '';
 let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전체';
-let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [];
+let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [], allSchedules = [];
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
 let unsubscribers = [];
 
@@ -891,6 +936,82 @@ function getDday(dateStr, repeat) {
   if (diff > 0) return 'D-' + diff;
   return 'D+' + Math.abs(diff);
 }
+
+function simplifyRegionName(n) {
+  if (!n) return n;
+  const special = {
+    '포항시북구':'포항','포항시남구':'포항',
+    '마산합포구':'마산','마산회원구':'마산',
+    '부산광역시':'부산','제주특별자치도':'제주',
+    '세종특별자치시':'세종','서울특별시':'서울',
+    '인천광역시':'인천','대구광역시':'대구',
+    '광주광역시':'광주','대전광역시':'대전',
+    '울산광역시':'울산',
+  };
+  if (special[n]) return special[n];
+  // ~시~구 → 앞 시 이름만 (수원시장안구 → 수원)
+  const districtMatch = n.match(/^(.+?시)[가-힣]+구$/);
+  if (districtMatch) return districtMatch[1].replace(/시$/, '');
+  return n
+    .replace(/특별자치도$|특별자치시$|광역시$|특별시$/, '')
+    .replace(/시$|군$|구$/, '');
+}
+
+// ── 지역 드롭다운 2단계 + 검색 ──
+function initRegionSubDropdown() {
+  const majorSel = document.getElementById('a-region-major');
+  const subWrap = document.getElementById('a-region-sub-wrap');
+  const subSearch = document.getElementById('a-region-sub-search');
+  const subHidden = document.getElementById('a-region-sub');
+  const subDd = document.getElementById('a-region-sub-dropdown');
+  let subCities = [];
+
+  majorSel.addEventListener('change', () => {
+    const major = majorSel.value;
+    subHidden.value = '';
+    subSearch.value = '';
+    if (!major || !REGIONS[major]) {
+      subWrap.style.display = 'none';
+      return;
+    }
+    subCities = REGIONS[major];
+    subWrap.style.display = 'block';
+    renderSubOpts(subCities);
+    document.getElementById('err-region').classList.remove('show');
+  });
+
+  function renderSubOpts(list) {
+    subDd.innerHTML = list.map(c =>
+      `<div class="region-sub-opt" data-city="${c}">${c}</div>`
+    ).join('');
+    subDd.classList.add('open');
+    subDd.querySelectorAll('.region-sub-opt').forEach(el => {
+      el.addEventListener('click', () => {
+        subHidden.value = el.dataset.city;
+        subSearch.value = el.dataset.city;
+        subDd.classList.remove('open');
+        subDd.querySelectorAll('.region-sub-opt').forEach(o => o.classList.toggle('selected', o.dataset.city === el.dataset.city));
+      });
+    });
+  }
+
+  subSearch.addEventListener('input', () => {
+    const q = subSearch.value.trim();
+    if (!q) { renderSubOpts(subCities); return; }
+    const filtered = subCities.filter(c => c.includes(q));
+    renderSubOpts(filtered);
+    subHidden.value = '';
+  });
+
+  subSearch.addEventListener('focus', () => {
+    if (subCities.length) { renderSubOpts(subCities); }
+  });
+
+  document.addEventListener('click', e => {
+    if (!subWrap.contains(e.target)) subDd.classList.remove('open');
+  });
+}
+initRegionSubDropdown();
 
 function buildDropdown(ddId, onSelect) {
   const dd = document.getElementById(ddId);
@@ -1256,7 +1377,7 @@ async function loadRoomInfo() {
   // 신청 대상 드롭다운 업데이트 (본인 제외)
   const sel = document.getElementById('a-recipient');
   sel.innerHTML = '<option value="">상대방 선택</option>' +
-    members.filter(m => m !== currentNick).map(m => `<option value="${m}">${m}</option>`).join('');
+    members.filter(m => m.nick !== currentNick).map(m => `<option value="${m.nick}">${m.nick}</option>`).join('');
 }
 
 function updateRoomStats() {
@@ -1303,7 +1424,13 @@ function loadAll() {
     if (myTab === 'notes') renderMyContent();
   });
 
-  unsubscribers = [u1, u2, u3, u4, u5];
+  const u6 = onSnapshot(query(collection(db, 'schedules'), where('roomId', '==', currentCoupleCode)), snap => {
+    allSchedules = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    renderCalendar();
+  });
+
+  unsubscribers = [u1, u2, u3, u4, u5, u6];
 }
 
 // ── 홈 ──
@@ -1385,6 +1512,12 @@ function renderCalendar() {
     if (!anniDates[key]) anniDates[key] = [];
     anniDates[key].push(a);
   });
+  const diaryDates = new Set(allDiaries.map(d => d.date));
+  const scheduleDates = {};
+  allSchedules.forEach(s => {
+    if (!scheduleDates[s.date]) scheduleDates[s.date] = [];
+    scheduleDates[s.date].push(s);
+  });
   const days = ['일','월','화','수','목','금','토'];
   let html = days.map(d => '<div class="cal-day-label">' + d + '</div>').join('');
   for (let i = 0; i < firstDay; i++) {
@@ -1396,47 +1529,78 @@ function renderCalendar() {
     const cellDate = new Date(calYear, calMonth, d);
     const dow = cellDate.getDay();
     const isToday = cellDate.getTime() === today.getTime();
+    const hasAnni = !!anniDates[dateStr];
+    const hasDiary = diaryDates.has(dateStr);
+    const hasSched = !!scheduleDates[dateStr];
     const hasAccepted = acceptedDates.has(dateStr);
     const hasPending = pendingDates.has(dateStr);
-    const hasAnni = anniDates[dateStr];
-    const hasEvent = hasAccepted || hasPending || hasAnni;
-    let cls = 'cal-cell' + (isToday ? ' today' : '') + (hasEvent ? ' has-event' : '') + (dow === 0 ? ' sunday' : '') + (dow === 6 ? ' saturday' : '');
-    let dots = (hasAccepted ? '<div class="cal-dot cal-dot-date"></div>' : '')
-      + (hasPending ? '<div class="cal-dot cal-dot-pending"></div>' : '')
-      + (hasAnni ? '<div class="cal-dot cal-dot-anniversary"></div>' : '');
+    let cls = 'cal-cell'
+      + (isToday ? ' today' : '')
+      + (dow === 0 ? ' sunday' : '') + (dow === 6 ? ' saturday' : '')
+      + (hasAnni ? ' has-anni' : '')
+      + (hasDiary ? ' has-diary' : '')
+      + (hasSched ? ' has-schedule' : '');
+    let indicators = '';
+    if (hasAccepted) indicators += '<div class="cal-dot cal-dot-date"></div>';
+    if (hasPending) indicators += '<div class="cal-dot cal-dot-pending"></div>';
     html += '<button class="' + cls + '" data-caldate="' + dateStr + '">'
       + '<span class="cal-num">' + d + '</span>'
-      + (dots ? '<div class="cal-dots">' + dots + '</div>' : '')
+      + (indicators ? '<div class="cal-dots">' + indicators + '</div>' : '')
       + '</button>';
   }
   document.getElementById('cal-grid').innerHTML = html;
   document.querySelectorAll('[data-caldate]').forEach(btn => {
-    btn.addEventListener('click', () => showCalDetail(btn.dataset.caldate, acceptedDates, pendingDates, anniDates));
+    btn.addEventListener('click', () => showCalDetail(btn.dataset.caldate, acceptedDates, pendingDates, anniDates, scheduleDates));
   });
 }
 
-function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates) {
+function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates, scheduleDates) {
   const [y, m, d] = dateStr.split('-');
   document.getElementById('cal-detail-title').textContent = y + '년 ' + parseInt(m) + '월 ' + parseInt(d) + '일';
   let html = '';
+  // 기념일
+  (anniDates[dateStr] || []).forEach(a => {
+    html += '<div class="anni-card" style="margin-bottom:8px;"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
+  });
+  // 일정
+  (scheduleDates && scheduleDates[dateStr] || []).forEach(s => {
+    html += '<div class="card" style="border-left:3px solid var(--yellow);margin-bottom:8px;">'
+      + '<div style="font-weight:700;font-size:15px;">📋 ' + s.title + '</div>'
+      + (s.description ? '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + s.description + '</div>' : '')
+      + '<div style="font-size:11px;color:var(--text3);margin-top:6px;">' + (s.createdBy || '') + '</div>'
+      + '</div>';
+  });
+  // 확정 데이트 (일기 포함)
   allRequests.filter(r => r.date === dateStr && r.status === '수락').forEach(r => {
     const diary = allDiaries.find(x => x.reqId === r.id);
+    let diaryHtml = '';
+    if (diary) {
+      const comments = (diary.comments || []).map(c =>
+        '<div class="comment-item"><span class="comment-author">' + c.author + '</span><span class="comment-text">' + c.text + '</span></div>'
+      ).join('');
+      diaryHtml = '<div style="margin-top:10px;padding:12px;background:var(--rose4);border-radius:10px;">'
+        + '<div style="font-weight:800;font-size:14px;margin-bottom:4px;">📔 ' + diary.title + '</div>'
+        + '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px;">' + diary.content + '</div>'
+        + '<div style="font-size:13px;color:#F4A300;margin-bottom:8px;">' + '★'.repeat(diary.star || 5) + '☆'.repeat(5 - (diary.star || 5)) + '</div>'
+        + (comments ? '<div style="margin-top:8px;border-top:1px solid rgba(255,107,157,0.2);padding-top:8px;">' + comments + '</div>' : '')
+        + '<div class="comment-row" style="margin-top:8px;">'
+        + '<input type="text" class="form-input comment-input" data-diary-id="' + diary.id + '" placeholder="댓글 달기..." style="font-size:13px;padding:8px 12px;">'
+        + '<button class="btn btn-rose btn-sm comment-send-btn" data-diary-id="' + diary.id + '">↑</button>'
+        + '</div>'
+        + '</div>';
+    }
     html += '<div class="card" style="margin-bottom:8px;">'
       + '<div style="font-weight:700;font-size:15px;">' + r.time + ' · ' + r.theme + '</div>'
       + '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
-      + (diary
-        ? '<div style="margin-top:10px;padding:10px;background:var(--rose4);border-radius:10px;font-size:13px;"><b>📔 ' + diary.title + '</b><br><span style="color:var(--text2);">' + diary.content + '</span></div>'
-        : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
+      + (diary ? diaryHtml : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
       + '</div>';
   });
+  // 대기 중 신청
   allRequests.filter(r => r.date === dateStr && r.status === '대기').forEach(r => {
     html += '<div class="card" style="border-left:3px solid var(--yellow);margin-bottom:8px;">'
       + '<div style="font-weight:700;">' + r.time + ' · ' + r.theme + '</div>'
-      + '<div style="font-size:13px;color:var(--text2);">' + r.fromUser + ' → ' + r.toUser + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);">' + r.fromUser + ' → ' + r.toUser + ' (대기 중)</div>'
       + '</div>';
-  });
-  (anniDates[dateStr] || []).forEach(a => {
-    html += '<div class="anni-card" style="margin-bottom:8px;"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
   });
   if (!html) html = '<div class="empty-state">이 날에는 일정이 없어요</div>';
   document.getElementById('cal-detail-content').innerHTML = html;
@@ -1453,6 +1617,28 @@ document.getElementById('cal-next').addEventListener('click', () => {
 });
 document.getElementById('close-cal-detail-btn').addEventListener('click', () => {
   document.getElementById('modal-cal-detail').classList.remove('open');
+});
+
+// ── 일정 ──
+document.getElementById('open-schedule-modal-btn').addEventListener('click', () => {
+  document.getElementById('sch-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-schedule').classList.add('open');
+});
+document.getElementById('close-schedule-modal-btn').addEventListener('click', () => document.getElementById('modal-schedule').classList.remove('open'));
+document.getElementById('save-schedule-btn').addEventListener('click', async () => {
+  const title = document.getElementById('sch-title').value.trim();
+  const date = document.getElementById('sch-date').value;
+  if (!title || !date) { showToast('제목과 날짜를 입력해주세요', true); return; }
+  await addDoc(collection(db, 'schedules'), {
+    title, date,
+    description: document.getElementById('sch-desc').value.trim(),
+    createdBy: currentNick,
+    roomId: currentCoupleCode,
+    createdAt: serverTimestamp()
+  });
+  document.getElementById('modal-schedule').classList.remove('open');
+  ['sch-title','sch-desc'].forEach(id => document.getElementById(id).value = '');
+  showToast('일정이 저장됐어요! 📋');
 });
 
 // ── 기념일 ──
@@ -1519,23 +1705,31 @@ function renderMap() {
   const { W, H, paths, meshD, jejuPaths, jejuTX, jejuTY, ulData } = PREBUILT_MAP;
   const LABEL_MIN = 400; // bbox 면적 임계값 (작은 지역 레이블 숨김)
 
-  const lbl = (x, y, txt) =>
-    `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
-      font-size="8" font-weight="700" fill="white" stroke="black" stroke-width="2"
-      paint-order="stroke fill" pointer-events="none"
-      style="font-family:sans-serif;">${txt}</text>`;
+  // 수락된 데이트 지역도 포함
+  allRequests.filter(r => r.status === '수락' && r.region).forEach(r => {
+    const g = getRegionGroup(r.region);
+    counts[g] = (counts[g] || 0) + 1;
+  });
+
+  const lbl = (x, y, txt) => {
+    const simplified = simplifyRegionName(txt);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
+      font-size="8" font-weight="600" fill="rgba(0,0,0,0.5)"
+      pointer-events="none"
+      style="font-family:sans-serif;">${simplified}</text>`;
+  };
 
   let svg = `<svg id="map-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block;touch-action:none;">`;
-  svg += `<rect width="${W}" height="${H}" fill="#DCE9F5"/>`;
+  svg += `<rect width="${W}" height="${H}" fill="#F0F4F8"/>`;
   svg += `<g id="map-g">`;
 
   // 본토 경로
   paths.forEach(({ d, rk, n }) => {
     const cnt = counts[rk] || 0;
-    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.6)" stroke-width="0.3" class="map-region" data-rkey="${rk}" data-name="${n}" style="cursor:pointer;"><title>${n}</title></path>`;
+    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.4" class="map-region" data-rkey="${rk}" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
   });
 
-  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="0.8" pointer-events="none"/>`;
+  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#333" stroke-width="0.6" pointer-events="none"/>`;
 
   // 본토 레이블 (큰 지역만)
   paths.forEach(({ n, cx, cy, ba }) => {
@@ -1547,7 +1741,7 @@ function renderMap() {
     let jg = '';
     jejuPaths.forEach(({ d, n, cx, cy, ba }) => {
       const cnt = counts['제주특별자치도'] || 0;
-      jg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.6)" stroke-width="0.3" class="map-region" data-rkey="제주특별자치도" data-name="${n}" style="cursor:pointer;"><title>${n}</title></path>`;
+      jg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.4" class="map-region" data-rkey="제주특별자치도" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
       if (ba >= LABEL_MIN) jg += lbl(cx, cy, n);
     });
     svg += `<g transform="translate(${jejuTX},${jejuTY})">${jg}</g>`;
@@ -1558,8 +1752,8 @@ function renderMap() {
     const cnt = counts[ulData.rk] || 0;
     const ulX = W - 42, ulY = 110;
     svg += `<g transform="translate(${ulX},${ulY})" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}" style="cursor:pointer;">`;
-    svg += `<path d="${ulData.d}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.7)" stroke-width="0.5"/><title>${ulData.n}</title></g>`;
-    svg += `<line x1="${ulX+12}" y1="${ulY+12}" x2="${ulX-14}" y2="${ulY+12}" stroke="rgba(120,160,200,0.7)" stroke-width="0.8" stroke-dasharray="2,2" pointer-events="none"/>`;
+    svg += `<path d="${ulData.d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.5"/><title>${simplifyRegionName(ulData.n)}</title></g>`;
+    svg += `<line x1="${ulX+12}" y1="${ulY+12}" x2="${ulX-14}" y2="${ulY+12}" stroke="rgba(100,140,180,0.6)" stroke-width="0.8" stroke-dasharray="2,2" pointer-events="none"/>`;
   }
 
   svg += `</g></svg>`;
@@ -1647,12 +1841,12 @@ function renderFallbackMap(el, counts) {
   svg += '<path d="M25,28 L235,20 L245,62 L250,112 L252,175 L250,215 L245,258 L234,290 L218,318 L195,340 L165,355 L138,360 L112,355 L85,344 L60,328 L40,306 L27,278 L17,245 L14,200 L14,128 L14,90 L18,52 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
   MAP_DATA.forEach(r => {
     const cnt = counts[r.key] || 0;
-    svg += `<path d="${r.d}" fill="${heatColor(cnt)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="${r.key}" data-name="${r.label}" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''"/>`;
-    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="700" fill="#333" pointer-events="none">${r.label}</text>`;
+    svg += `<path d="${r.d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.8" class="map-region" data-rkey="${r.key}" data-name="${r.label}" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter=''"/>`;
+    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="600" fill="rgba(0,0,0,0.5)" pointer-events="none">${r.label}</text>`;
     if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#555" pointer-events="none">${cnt}회</text>`;
   });
   const jeju = counts['제주'] || 0;
-  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" data-name="제주" style="cursor:pointer;"/>`;
+  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="#333" stroke-width="0.8" class="map-region" data-rkey="제주" data-name="제주" style="cursor:pointer;"/>`;
   svg += `<text x="100" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#333" pointer-events="none">제주</text>`;
   if (jeju > 0) svg += `<text x="100" y="406" text-anchor="middle" font-size="9" fill="#555" pointer-events="none">${jeju}회</text>`;
   svg += '</svg>';
@@ -1880,8 +2074,11 @@ document.getElementById('theme-grid').addEventListener('click', e => {
 // ── 세부장소 저장 ──
 document.getElementById('save-subloc-btn').addEventListener('click', async () => {
   const name = document.getElementById('a-subloc').value.trim();
-  if (!name || !selRegion) { showToast('지역과 세부 장소를 입력해주세요', true); return; }
-  await addDoc(collection(db, 'places'), { name, region: selRegion, memo: '', category: 'visited', coupleCode: currentCoupleCode, createdAt: serverTimestamp() });
+  const regionMajor = document.getElementById('a-region-major').value;
+  const regionSub = document.getElementById('a-region-sub').value.trim();
+  const regionFull = regionMajor ? (regionSub ? regionMajor + ' · ' + regionSub : regionMajor) : '';
+  if (!name || !regionFull) { showToast('지역과 세부 장소를 입력해주세요', true); return; }
+  await addDoc(collection(db, 'places'), { name, region: regionFull, memo: '', category: 'visited', coupleCode: currentCoupleCode, createdAt: serverTimestamp() });
   showToast('장소가 저장됐어요! 📍');
 });
 
@@ -1913,6 +2110,7 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   const regionSub = document.getElementById('a-region-sub').value.trim();
   const regionFull = regionMajor ? (regionSub ? regionMajor + ' · ' + regionSub : regionMajor) : '';
   if (!selTheme) { document.getElementById('err-theme').classList.add('show'); valid = false; }
+  else document.getElementById('err-theme').classList.remove('show');
   if (!regionMajor) { document.getElementById('err-region').classList.add('show'); valid = false; }
   else { document.getElementById('err-region').classList.remove('show'); }
   if (!valid) return;
@@ -1932,6 +2130,8 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('a-region-major').value = '';
   document.getElementById('a-region-sub').value = '';
+  document.getElementById('a-region-sub-search').value = '';
+  document.getElementById('a-region-sub-wrap').style.display = 'none';
   document.getElementById('a-recipient').selectedIndex = 0;
   ['a-subloc','a-message'].forEach(id => document.getElementById(id).value = '');
   showPage('home');
