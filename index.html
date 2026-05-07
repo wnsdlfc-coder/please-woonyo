@@ -645,18 +645,16 @@ const MISSIONS = [
 
 // SVG 한국 지도 권역 데이터 (간략화 도형)
 const MAP_DATA = [
-  { key:'수도권', label:'수도권', tx:65,  ty:95,
-    d:'M8,18 L125,16 L128,152 L80,162 L8,150 Z' },
-  { key:'강원',  label:'강원',  tx:200, ty:88,
-    d:'M125,16 L262,18 L262,155 L128,152 Z' },
-  { key:'충청',  label:'충청',  tx:70,  ty:200,
-    d:'M8,150 L80,162 L128,155 L132,230 L72,242 L8,225 Z' },
-  { key:'경상',  label:'경상',  tx:205, ty:238,
-    d:'M128,152 L262,155 L260,325 L172,338 L128,318 Z' },
-  { key:'전라',  label:'전라',  tx:70,  ty:288,
-    d:'M8,225 L72,242 L132,233 L132,320 L150,338 L52,350 L8,322 Z' },
-  { key:'제주',  label:'제주',  tx:100, ty:382,
-    d:'M42,368 L162,368 L160,394 L44,394 Z' },
+  { key:'수도권', label:'수도권', tx:82,  ty:100,
+    d:'M25,28 L155,24 L158,112 L160,175 L88,180 L38,175 L22,160 L14,128 L14,90 L18,52 Z' },
+  { key:'강원',  label:'강원',  tx:208, ty:92,
+    d:'M155,24 L235,20 L245,62 L250,112 L252,175 L160,175 L158,112 Z' },
+  { key:'충청',  label:'충청',  tx:88,  ty:218,
+    d:'M22,160 L38,175 L88,180 L160,175 L162,252 L78,264 L18,248 L14,215 L14,175 Z' },
+  { key:'경상',  label:'경상',  tx:212, ty:265,
+    d:'M160,175 L252,175 L250,215 L245,258 L234,290 L218,318 L195,340 L165,355 L162,350 L162,252 Z' },
+  { key:'전라',  label:'전라',  tx:90,  ty:308,
+    d:'M18,248 L78,264 L162,252 L165,355 L138,360 L112,355 L85,344 L60,328 L40,306 L27,278 L17,245 Z' },
 ];
 
 function heatColor(n) {
@@ -1135,9 +1133,9 @@ function renderMap() {
     counts[g] = (counts[g] || 0) + 1;
   });
 
-  let svg = '<svg viewBox="0 0 278 408" xmlns="http://www.w3.org/2000/svg">';
-  svg += '<rect width="278" height="408" fill="#C8E6F5" rx="12"/>';
-  svg += '<path d="M8,18 L262,18 L260,325 L172,338 L150,338 L52,350 L8,322 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
+  let svg = '<svg viewBox="0 0 270 410" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<rect width="270" height="410" fill="#C8E6F5" rx="12"/>';
+  svg += '<path d="M25,28 L235,20 L245,62 L250,112 L252,175 L250,215 L245,258 L234,290 L218,318 L195,340 L165,355 L138,360 L112,355 L85,344 L60,328 L40,306 L27,278 L17,245 L14,200 L14,158 L14,128 L14,90 L18,52 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
 
   MAP_DATA.forEach(r => {
     const cnt = counts[r.key] || 0;
@@ -1147,11 +1145,10 @@ function renderMap() {
     if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${cnt}회</text>`;
   });
 
-  svg += '<text x="42" y="360" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>';
   const jeju = counts['제주'] || 0;
-  svg += `<ellipse cx="100" cy="380" rx="52" ry="17" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" style="cursor:pointer;"/>`;
-  svg += `<text x="100" y="384" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>`;
-  if (jeju > 0) svg += `<text x="100" y="397" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${jeju}회</text>`;
+  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" style="cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"/>`;
+  svg += `<text x="100" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>`;
+  if (jeju > 0) svg += `<text x="100" y="406" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${jeju}회</text>`;
 
   svg += '</svg>';
   document.getElementById('korea-map').innerHTML = svg;
