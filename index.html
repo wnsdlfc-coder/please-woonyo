@@ -1213,8 +1213,19 @@ document.getElementById('save-anni-btn').addEventListener('click', async () => {
 });
 
 // ── 지도 ──
+// 행정구역 코드 앞 2자리 → 권역 (통계청 행정코드 기준)
+const CODE_REGION = {
+  '11':'수도권','23':'수도권','31':'수도권',
+  '32':'강원',
+  '25':'충청','29':'충청','33':'충청','34':'충청',
+  '21':'경상','22':'경상','26':'경상','37':'경상','38':'경상',
+  '24':'전라','35':'전라','36':'전라',
+  '39':'제주',
+};
+
 async function renderMap() {
   const el = document.getElementById('korea-map');
+  el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;">지도 불러오는 중…</div>';
 
   const counts = {};
   allPlaces.filter(p => p.category === 'visited').forEach(p => {
@@ -1222,67 +1233,90 @@ async function renderMap() {
     counts[g] = (counts[g] || 0) + 1;
   });
 
-  // D3 + 실제 행정구역 TopoJSON 시도
-  try {
-    const res = await fetch('https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/gadm/json/skorea-provinces-2018-topo.json');
-    if (!res.ok) throw new Error();
-    const topo = await res.json();
-    const objKey = Object.keys(topo.objects)[0];
-    const geo = topojson.feature(topo, topo.objects[objKey]);
+  // 시/군/구 단위 TopoJSON — 여러 URL 순차 시도
+  const URLS = [
+    'https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/kostat/2018/json/skorea-municipalities-2018-topo.json',
+    'https://cdn.jsdelivr.net/npm/south-korea-maps@latest/kostat/2018/json/skorea-municipalities-2018-topo.json',
+  ];
 
-    const W = 290, H = 360;
-    const proj = d3.geoMercator().fitExtent([[4, 4], [W - 4, H - 4]], geo);
-    const pathFn = d3.geoPath().projection(proj);
-
-    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%">`;
-    svg += `<rect width="${W}" height="${H}" fill="#C8E6F5" rx="12"/>`;
-
-    geo.features.forEach(f => {
-      const name = f.properties?.NAME_1 || f.properties?.name || '';
-      const regionKey = PROV_REGION[name] || '기타';
-      const cnt = counts[regionKey] || 0;
-      const d = pathFn(f);
-      if (!d) return;
-      svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="white" stroke-width="1" class="map-region" data-rkey="${regionKey}" style="cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=0.72" onmouseout="this.style.opacity=1"/>`;
-      const c = pathFn.centroid(f);
-      if (c && !isNaN(c[0])) {
-        const lbl = PROV_LABEL[name] || name;
-        svg += `<text x="${c[0].toFixed(1)}" y="${(c[1]+3).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#333" pointer-events="none">${lbl}</text>`;
-        if (cnt > 0) svg += `<text x="${c[0].toFixed(1)}" y="${(c[1]+12).toFixed(1)}" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">${cnt}회</text>`;
-      }
-    });
-
-    svg += '</svg>';
-    el.innerHTML = svg;
-  } catch(_) {
-    // 폴백: 간략 SVG
-    renderFallbackMap(el, counts);
+  let topo = null;
+  for (const url of URLS) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) { topo = await res.json(); break; }
+    } catch(_) {}
   }
+  if (!topo) { renderFallbackMap(el, counts); return; }
+
+  const objKey = Object.keys(topo.objects)[0];
+  const geo = topojson.feature(topo, topo.objects[objKey]);
+
+  const W = 300, H = 390;
+  const proj = d3.geoMercator().fitExtent([[4, 4], [W - 4, H - 4]], geo);
+  const pathFn = d3.geoPath().projection(proj);
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%">`;
+  svg += `<rect width="${W}" height="${H}" fill="#1a4a6e" rx="12"/>`;
+
+  // 시/군/구 폴리곤
+  geo.features.forEach(f => {
+    const p = f.properties || {};
+    // 통계청 kostat 포맷: code(5자리), name(한국어)
+    const code = String(p.code || p.CODE || p.SIG_CD || p.adm_cd || '').slice(0, 2);
+    const name = p.name || p.NAME || p.SIG_KOR_NM || p.adm_nm || '';
+    const regionKey = CODE_REGION[code] || '기타';
+    const cnt = counts[regionKey] || 0;
+    const d = pathFn(f);
+    if (!d) return;
+    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="rgba(255,255,255,0.45)" stroke-width="0.35" class="map-region" data-rkey="${regionKey}" data-name="${name}" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.35)'" onmouseout="this.style.filter=''"><title>${name}</title></path>`;
+  });
+
+  // 시/도 경계선 (굵게)
+  try {
+    const provMesh = topojson.mesh(topo, topo.objects[objKey], (a, b) => {
+      const ca = String(a.properties?.code || a.properties?.SIG_CD || '').slice(0, 2);
+      const cb = String(b.properties?.code || b.properties?.SIG_CD || '').slice(0, 2);
+      return ca !== cb;
+    });
+    const meshD = pathFn(provMesh);
+    if (meshD) svg += `<path d="${meshD}" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.2" pointer-events="none"/>`;
+  } catch(_) {}
+
+  svg += '</svg>';
+  el.innerHTML = svg;
 
   el.querySelectorAll('.map-region').forEach(r => {
     r.addEventListener('click', () => {
+      const name = r.dataset.name;
       const key = r.dataset.rkey;
-      showToast(key + ': ' + (counts[key] || 0) + '곳 방문');
+      showToast(`${name} (${key}): ${counts[key] || 0}곳 방문`);
     });
   });
 }
 
 function renderFallbackMap(el, counts) {
   let svg = '<svg viewBox="0 0 270 410" xmlns="http://www.w3.org/2000/svg">';
-  svg += '<rect width="270" height="410" fill="#C8E6F5" rx="12"/>';
+  svg += '<rect width="270" height="410" fill="#1a4a6e" rx="12"/>';
   svg += '<path d="M25,28 L235,20 L245,62 L250,112 L252,175 L250,215 L245,258 L234,290 L218,318 L195,340 L165,355 L138,360 L112,355 L85,344 L60,328 L40,306 L27,278 L17,245 L14,200 L14,128 L14,90 L18,52 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
   MAP_DATA.forEach(r => {
     const cnt = counts[r.key] || 0;
-    svg += `<path d="${r.d}" fill="${heatColor(cnt)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="${r.key}" style="cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1"/>`;
-    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">${r.label}</text>`;
-    if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${cnt}회</text>`;
+    svg += `<path d="${r.d}" fill="${heatColor(cnt)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="${r.key}" data-name="${r.label}" style="cursor:pointer;" onmouseover="this.style.filter='brightness(1.3)'" onmouseout="this.style.filter=''"/>`;
+    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="700" fill="#333" pointer-events="none">${r.label}</text>`;
+    if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#555" pointer-events="none">${cnt}회</text>`;
   });
   const jeju = counts['제주'] || 0;
-  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" style="cursor:pointer;"/>`;
-  svg += `<text x="100" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>`;
-  if (jeju > 0) svg += `<text x="100" y="406" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${jeju}회</text>`;
+  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" data-name="제주" style="cursor:pointer;"/>`;
+  svg += `<text x="100" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#333" pointer-events="none">제주</text>`;
+  if (jeju > 0) svg += `<text x="100" y="406" text-anchor="middle" font-size="9" fill="#555" pointer-events="none">${jeju}회</text>`;
   svg += '</svg>';
   el.innerHTML = svg;
+
+  el.querySelectorAll('.map-region').forEach(r => {
+    r.addEventListener('click', () => {
+      const key = r.dataset.rkey;
+      showToast(`${r.dataset.name} (${key}): ${counts[key] || 0}곳 방문`);
+    });
+  });
 }
 
 // ── 장소 ──
