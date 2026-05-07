@@ -682,6 +682,16 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
   </div>
 </div>
 
+<!-- 지역 데이트 목록 모달 -->
+<div class="modal-bg" id="modal-region-dates">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title" id="region-dates-title"></div>
+    <div id="region-dates-content"></div>
+    <button class="btn btn-outline btn-full" id="close-region-dates-btn" style="margin-top:16px;">닫기</button>
+  </div>
+</div>
+
 <!-- 일정 추가 모달 -->
 <div class="modal-bg" id="modal-schedule">
   <div class="modal">
@@ -880,12 +890,26 @@ function heatColor(n) {
 function getRegionGroup(region) {
   if (!region) return '기타';
   const base = region.split(' · ')[0].trim();
+  // 광역시도 직접 매칭
   if (REGIONS[base]) return base;
-  // 구버전 그룹명 → 새 이름 매핑
+  // 구버전 그룹명 매핑
   const legacy = { '수도권':'서울특별시','경상':'경상북도','전라':'전라남도','충청':'충청남도','강원':'강원특별자치도','제주':'제주특별자치도' };
   if (legacy[base]) return legacy[base];
+  // cities 배열에서 정확 매칭
   for (const [g, cities] of Object.entries(REGIONS)) {
     if (cities.includes(base) || cities.includes(region)) return g;
+  }
+  // 접미사 제거 후 재시도 (남양주시 → 남양주, 포항시 → 포항 등)
+  const stripped = base.replace(/특별자치도$|특별자치시$|광역시$|특별시$|시$|군$|구$/, '');
+  if (stripped !== base) {
+    if (REGIONS[stripped]) return stripped;
+    for (const [g, cities] of Object.entries(REGIONS)) {
+      if (cities.includes(stripped)) return g;
+    }
+  }
+  // 부분 문자열 매칭 (포항시북구 → 포항)
+  for (const [g, cities] of Object.entries(REGIONS)) {
+    if (cities.some(c => base.startsWith(c) || c.startsWith(base))) return g;
   }
   return '기타';
 }
@@ -1396,6 +1420,7 @@ function loadAll() {
     allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     renderHome(); renderMyContent(); renderCalendar(); updateRoomStats();
+    if (document.getElementById('page-map').classList.contains('active')) renderMap();
   });
 
   const u2 = onSnapshot(query(collection(db, 'places'), where('coupleCode', '==', currentCoupleCode)), snap => {
@@ -1619,6 +1644,43 @@ document.getElementById('close-cal-detail-btn').addEventListener('click', () => 
   document.getElementById('modal-cal-detail').classList.remove('open');
 });
 
+// ── 지역 데이트 목록 ──
+function showRegionDates(rkey, rname, counts) {
+  const simplified = simplifyRegionName(rname);
+  const regionDates = allRequests.filter(r =>
+    (r.status === '수락' || r.status === 'accepted') && r.region && getRegionGroup(r.region) === rkey
+  ).sort((a, b) => b.date.localeCompare(a.date));
+  const visitCount = counts[rkey] || 0;
+
+  document.getElementById('region-dates-title').textContent = simplified + (visitCount ? ` (${visitCount}회)` : '');
+  let html = '';
+  if (regionDates.length) {
+    regionDates.forEach(r => {
+      const diary = allDiaries.find(d => d.reqId === r.id);
+      html += '<div class="date-card" style="margin-bottom:10px;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+        + '<div class="date-card-date">' + r.date + ' ' + r.time + '</div>'
+        + '<span class="sbadge s-accepted">확정 💕</span>'
+        + '</div>'
+        + '<div class="date-card-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
+        + (diary
+          ? '<div style="background:var(--rose4);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:8px;">'
+            + '<span style="font-weight:700;">📔 ' + diary.title + '</span>'
+            + '<div style="color:var(--text2);margin-top:3px;font-size:12px;">' + '★'.repeat(diary.star || 5) + '</div>'
+            + '</div>'
+          : '')
+        + '</div>';
+    });
+  } else {
+    html = '<div class="empty-state">이 지역 데이트 기록이 없어요 🗺️</div>';
+  }
+  document.getElementById('region-dates-content').innerHTML = html;
+  document.getElementById('modal-region-dates').classList.add('open');
+}
+document.getElementById('close-region-dates-btn').addEventListener('click', () => {
+  document.getElementById('modal-region-dates').classList.remove('open');
+});
+
 // ── 일정 ──
 document.getElementById('open-schedule-modal-btn').addEventListener('click', () => {
   document.getElementById('sch-date').value = new Date().toISOString().split('T')[0];
@@ -1714,7 +1776,7 @@ function renderMap() {
   const lbl = (x, y, txt) => {
     const simplified = simplifyRegionName(txt);
     return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
-      font-size="8" font-weight="600" fill="rgba(0,0,0,0.5)"
+      font-size="6" font-weight="500" fill="rgba(0,0,0,0.45)"
       pointer-events="none"
       style="font-family:sans-serif;">${simplified}</text>`;
   };
@@ -1726,10 +1788,10 @@ function renderMap() {
   // 본토 경로
   paths.forEach(({ d, rk, n }) => {
     const cnt = counts[rk] || 0;
-    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.4" class="map-region" data-rkey="${rk}" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
+    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#000000" stroke-width="0.35" class="map-region" data-rkey="${rk}" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
   });
 
-  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#333" stroke-width="0.6" pointer-events="none"/>`;
+  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#000000" stroke-width="0.5" pointer-events="none"/>`;
 
   // 본토 레이블 (큰 지역만)
   paths.forEach(({ n, cx, cy, ba }) => {
@@ -1741,7 +1803,7 @@ function renderMap() {
     let jg = '';
     jejuPaths.forEach(({ d, n, cx, cy, ba }) => {
       const cnt = counts['제주특별자치도'] || 0;
-      jg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.4" class="map-region" data-rkey="제주특별자치도" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
+      jg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#000000" stroke-width="0.35" class="map-region" data-rkey="제주특별자치도" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
       if (ba >= LABEL_MIN) jg += lbl(cx, cy, n);
     });
     svg += `<g transform="translate(${jejuTX},${jejuTY})">${jg}</g>`;
@@ -1759,18 +1821,11 @@ function renderMap() {
   svg += `</g></svg>`;
   el.innerHTML = svg;
 
-  // 클릭 피드백 + 터치 햅틱
+  // 클릭 → 지역 데이트 목록 모달
   el.querySelectorAll('.map-region').forEach(r => {
     r.addEventListener('click', () => {
       if (navigator.vibrate) navigator.vibrate(25);
-      const pathEl = r.tagName === 'path' ? r : r.querySelector('path');
-      if (pathEl) {
-        const orig = pathEl.getAttribute('fill');
-        pathEl.setAttribute('fill', '#FF6B9D');
-        setTimeout(() => pathEl.setAttribute('fill', orig), 280);
-      }
-      const key = r.dataset.rkey;
-      showToast(`${r.dataset.name}: ${counts[key] || 0}곳 방문`);
+      showRegionDates(r.dataset.rkey, r.dataset.name, counts);
     });
   });
 
@@ -1783,19 +1838,28 @@ function initMapZoom(svgEl, W, H) {
   const g = svgEl.querySelector('#map-g');
   let sc = 1, tx = 0, ty = 0;
 
+  function clamp() {
+    // 확대 시 지도가 뷰포트 밖으로 너무 나가지 않도록 제한
+    const maxTx = (sc - 1) * W * 0.5 + W * 0.2;
+    const maxTy = (sc - 1) * H * 0.5 + H * 0.2;
+    tx = Math.min(maxTx, Math.max(-maxTx, tx));
+    ty = Math.min(maxTy, Math.max(-maxTy, ty));
+  }
+
   function apply() {
+    clamp();
     g.setAttribute('transform', `translate(${tx.toFixed(1)},${ty.toFixed(1)}) scale(${sc.toFixed(3)})`);
   }
 
   function zoom(cx, cy, delta) {
-    const ns = Math.min(3, Math.max(0.6, sc * delta));
+    const ns = Math.min(4, Math.max(0.8, sc * delta));
     tx = cx - (cx - tx) * (ns / sc);
     ty = cy - (cy - ty) * (ns / sc);
     sc = ns;
     apply();
   }
 
-  // 마우스 휠
+  // ── 마우스 휠 줌 ──
   svgEl.addEventListener('wheel', e => {
     e.preventDefault();
     const rect = svgEl.getBoundingClientRect();
@@ -1806,30 +1870,74 @@ function initMapZoom(svgEl, W, H) {
     );
   }, { passive: false });
 
-  // 핀치 줌 (터치)
-  let ptDist = 0;
+  // ── 마우스 드래그 팬 ──
+  let mouseDrag = null;
+  svgEl.style.cursor = 'grab';
+  svgEl.addEventListener('mousedown', e => {
+    mouseDrag = { x: e.clientX, y: e.clientY, tx, ty };
+    svgEl.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  svgEl.addEventListener('mousemove', e => {
+    if (!mouseDrag) return;
+    const rect = svgEl.getBoundingClientRect();
+    tx = mouseDrag.tx + (e.clientX - mouseDrag.x) * W / rect.width;
+    ty = mouseDrag.ty + (e.clientY - mouseDrag.y) * H / rect.height;
+    apply();
+  });
+  svgEl.addEventListener('mouseup', () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
+  svgEl.addEventListener('mouseleave', () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
+
+  // ── 터치 핀치줌 + 단일터치 드래그 팬 ──
+  let ptDist = 0, ptMid = null, touchDrag = null;
+
   svgEl.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
-      ptDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+      touchDrag = null;
+      ptDist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY
+      );
+      ptMid = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+      };
+    } else if (e.touches.length === 1) {
+      touchDrag = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty };
     }
   }, { passive: true });
 
   svgEl.addEventListener('touchmove', e => {
-    if (e.touches.length !== 2) return;
-    e.preventDefault();
-    const dist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
-    const rect = svgEl.getBoundingClientRect();
-    const cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * W / rect.width;
-    const cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top)  * H / rect.height;
-    if (ptDist > 0) zoom(cx, cy, dist / ptDist);
-    ptDist = dist;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[1].clientX - e.touches[0].clientX,
+        e.touches[1].clientY - e.touches[0].clientY
+      );
+      const rect = svgEl.getBoundingClientRect();
+      const cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * W / rect.width;
+      const cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top)  * H / rect.height;
+      if (ptDist > 0) zoom(cx, cy, dist / ptDist);
+      ptDist = dist;
+    } else if (e.touches.length === 1 && touchDrag) {
+      e.preventDefault();
+      const rect = svgEl.getBoundingClientRect();
+      tx = touchDrag.tx + (e.touches[0].clientX - touchDrag.x) * W / rect.width;
+      ty = touchDrag.ty + (e.touches[0].clientY - touchDrag.y) * H / rect.height;
+      apply();
+    }
   }, { passive: false });
 
-  // 더블 탭 / 더블 클릭으로 리셋
+  svgEl.addEventListener('touchend', e => {
+    if (e.touches.length === 0) touchDrag = null;
+    if (e.touches.length < 2) { ptDist = 0; }
+  });
+
+  // ── 더블탭 / 더블클릭 리셋 ──
   let lastTap = 0;
   svgEl.addEventListener('touchend', () => {
     const now = Date.now();
-    if (now - lastTap < 280) { sc = 1; tx = 0; ty = 0; apply(); }
+    if (now - lastTap < 300) { sc = 1; tx = 0; ty = 0; apply(); }
     lastTap = now;
   });
   svgEl.addEventListener('dblclick', () => { sc = 1; tx = 0; ty = 0; apply(); });
