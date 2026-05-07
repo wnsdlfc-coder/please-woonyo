@@ -172,8 +172,11 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .anni-name{font-weight:700;font-size:14px;}
 .anni-date{font-size:12px;color:var(--text3);}
 .anni-dday{font-size:15px;font-weight:800;color:var(--rose);margin-left:auto;white-space:nowrap;}
-.map-wrap{border-radius:12px;overflow:hidden;background:#F0F4F8;border:1px solid var(--border);margin:0 0 12px;padding:0;position:relative;}
-.map-wrap svg{width:100%;height:auto;display:block;touch-action:none;}
+.map-wrap{border-radius:12px;overflow:hidden;background:#F0F4F8;border:1px solid var(--border);margin:0 0 12px;padding:0;position:relative;touch-action:none;}
+.map-wrap svg{width:100%;height:auto;display:block;}
+#korea-map{touch-action:none;}
+.map-region{transition:filter 0.2s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+.map-region:hover{filter:brightness(0.82);}
 #korea-map{width:100%;}
 .map-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center;}
 .map-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);}
@@ -1757,91 +1760,145 @@ const CODE_REGION = {
 
 function renderMap() {
   const el = document.getElementById('korea-map');
+  const { W, H, paths, meshD, jejuPaths, jejuTX, jejuTY, ulData } = PREBUILT_MAP;
+  const LABEL_MIN = 400;
 
-  const counts = {};
+  // ── 방문 장소: 광역시도 단위 heat 카운트 ──
+  const placeCounts = {};
   allPlaces.filter(p => p.category === 'visited').forEach(p => {
     const g = getRegionGroup(p.region || '기타');
-    counts[g] = (counts[g] || 0) + 1;
+    placeCounts[g] = (placeCounts[g] || 0) + 1;
   });
 
-  const { W, H, paths, meshD, jejuPaths, jejuTX, jejuTY, ulData } = PREBUILT_MAP;
-  const LABEL_MIN = 400; // bbox 면적 임계값 (작은 지역 레이블 숨김)
+  // ── 수락 데이트: 시/군 path 단위 정밀 매칭 ──
+  // 수원시장안구 → 수원 / 남양주시 → 남양주 / 마산합포구 → 그대로 후 prefix 비교
+  function normCity(s) {
+    s = (s || '').trim();
+    const m = s.match(/^(.+?시)[가-힣]+[구동]$/); // 포항시남구 → 포항시 → 포항
+    if (m) return m[1].replace(/시$/, '');
+    return s.replace(/특별자치도$|특별자치시$|광역시$|특별시$|시$|군$|구$/, '');
+  }
 
-  // 수락된 데이트 지역도 포함
-  allRequests.filter(r => r.status === '수락' && r.region).forEach(r => {
+  function cityMatchesPath(dateCity, pathName) {
+    if (!dateCity || !pathName) return false;
+    const dc = normCity(dateCity);
+    const np = normCity(pathName);
+    // 정확 매칭 (남양주 ↔ 남양주시)
+    if (dc === np) return true;
+    // 접두어 매칭 (마산 ↔ 마산합포구)
+    if (pathName.startsWith(dc) || np.startsWith(dc)) return true;
+    return false;
+  }
+
+  const dateMatchedNames = new Set(); // 매칭된 path.n
+  const dateMatchedRks   = new Set(); // 시/군 매칭 실패 시 광역시도 폴백
+
+  allRequests
+    .filter(r => (r.status === '수락' || r.status === 'accepted') && r.region)
+    .forEach(r => {
+      const parts = r.region.split(' · ');
+      if (parts.length >= 2) {
+        const subCity = parts[1].trim();
+        let matched = false;
+        [...(paths || []), ...(jejuPaths || [])].forEach(({ n }) => {
+          if (cityMatchesPath(subCity, n)) { dateMatchedNames.add(n); matched = true; }
+        });
+        if (!matched) dateMatchedRks.add(getRegionGroup(r.region));
+      } else {
+        dateMatchedRks.add(getRegionGroup(r.region));
+      }
+    });
+
+  // 모달 표시용 통합 카운트 (장소+데이트)
+  const counts = { ...placeCounts };
+  allRequests.filter(r => (r.status === '수락' || r.status === 'accepted') && r.region).forEach(r => {
     const g = getRegionGroup(r.region);
     counts[g] = (counts[g] || 0) + 1;
   });
 
-  const lbl = (x, y, txt) => {
-    const simplified = simplifyRegionName(txt);
-    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
-      font-size="6" font-weight="500" fill="rgba(0,0,0,0.45)"
-      pointer-events="none"
-      style="font-family:sans-serif;">${simplified}</text>`;
-  };
+  function pathFill(rk, n) {
+    if (dateMatchedNames.has(n) || dateMatchedRks.has(rk)) return '#FF6B9D';
+    return heatColor(placeCounts[rk] || 0);
+  }
 
-  let svg = `<svg id="map-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%" style="display:block;touch-action:none;">`;
+  const lbl = (x, y, txt) =>
+    `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle"
+      font-size="6" font-weight="500" fill="rgba(0,0,0,0.45)"
+      pointer-events="none" style="font-family:sans-serif;">${simplifyRegionName(txt)}</text>`;
+
+  // ── SVG 생성 ──
+  let svg = `<svg id="map-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+    width="100%" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none;">`;
   svg += `<rect width="${W}" height="${H}" fill="#F0F4F8"/>`;
   svg += `<g id="map-g">`;
 
-  // 본토 경로
   paths.forEach(({ d, rk, n }) => {
-    const cnt = counts[rk] || 0;
-    svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#000000" stroke-width="0.35" class="map-region" data-rkey="${rk}" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
+    svg += `<path d="${d}" fill="${pathFill(rk, n)}" stroke="#000000" stroke-width="0.35"
+      class="map-region" data-rkey="${rk}" data-name="${n}"><title>${simplifyRegionName(n)}</title></path>`;
   });
 
-  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#000000" stroke-width="0.5" pointer-events="none"/>`;
+  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#000000" stroke-width="0.45" pointer-events="none"/>`;
 
-  // 본토 레이블 (큰 지역만)
   paths.forEach(({ n, cx, cy, ba }) => {
     if (ba >= LABEL_MIN) svg += lbl(cx, cy, n);
   });
 
-  // 제주
   if (jejuPaths && jejuPaths.length) {
     let jg = '';
     jejuPaths.forEach(({ d, n, cx, cy, ba }) => {
-      const cnt = counts['제주특별자치도'] || 0;
-      jg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="#000000" stroke-width="0.35" class="map-region" data-rkey="제주특별자치도" data-name="${n}" style="cursor:pointer;"><title>${simplifyRegionName(n)}</title></path>`;
+      jg += `<path d="${d}" fill="${pathFill('제주특별자치도', n)}" stroke="#000000" stroke-width="0.35"
+        class="map-region" data-rkey="제주특별자치도" data-name="${n}"><title>${simplifyRegionName(n)}</title></path>`;
       if (ba >= LABEL_MIN) jg += lbl(cx, cy, n);
     });
     svg += `<g transform="translate(${jejuTX},${jejuTY})">${jg}</g>`;
   }
 
-  // 울릉도
   if (ulData) {
-    const cnt = counts[ulData.rk] || 0;
-    const ulX = W - 42, ulY = 110;
-    svg += `<g transform="translate(${ulX},${ulY})" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}" style="cursor:pointer;">`;
-    svg += `<path d="${ulData.d}" fill="${heatColor(cnt)}" stroke="#333" stroke-width="0.5"/><title>${simplifyRegionName(ulData.n)}</title></g>`;
-    svg += `<line x1="${ulX+12}" y1="${ulY+12}" x2="${ulX-14}" y2="${ulY+12}" stroke="rgba(100,140,180,0.6)" stroke-width="0.8" stroke-dasharray="2,2" pointer-events="none"/>`;
+    svg += `<g transform="translate(${W - 42},110)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
+    svg += `<path d="${ulData.d}" fill="${pathFill(ulData.rk, ulData.n)}" stroke="#000000" stroke-width="0.5"/>`;
+    svg += `<title>${simplifyRegionName(ulData.n)}</title></g>`;
   }
 
   svg += `</g></svg>`;
   el.innerHTML = svg;
 
-  // 클릭 → 지역 데이트 목록 모달
-  el.querySelectorAll('.map-region').forEach(r => {
-    r.addEventListener('click', () => {
-      if (navigator.vibrate) navigator.vibrate(25);
-      showRegionDates(r.dataset.rkey, r.dataset.name, counts);
-    });
+  // ── 클릭 이벤트: 컨테이너 위임 (iOS 호환) ──
+  // touchMoveDistance: 터치 이동 거리 추적 (드래그 vs 탭 구분)
+  let touchMoveDistance = 0;
+
+  el.addEventListener('click', e => {
+    if (touchMoveDistance > 8) return; // 드래그였으면 클릭 무시
+    const region = e.target.closest('.map-region');
+    if (!region) return;
+    flashRegion(region);
+    if (navigator.vibrate) navigator.vibrate(20);
+    showRegionDates(region.dataset.rkey, region.dataset.name, counts);
   });
 
-  // 휠 줌 / 핀치 줌
-  initMapZoom(el.querySelector('#map-svg'), W, H);
+  initMapZoom(el.querySelector('#map-svg'), W, H, d => { touchMoveDistance = d; });
 }
 
-function initMapZoom(svgEl, W, H) {
+// 클릭/탭 시 path 순간 어둡게 → 복원 애니메이션
+function flashRegion(el) {
+  const path = el.tagName === 'path' ? el : el.querySelector('path');
+  if (!path) return;
+  path.style.transition = 'none';
+  path.style.filter = 'brightness(0.5) saturate(1.6)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    path.style.transition = 'filter 0.35s ease-out';
+    path.style.filter = '';
+    setTimeout(() => { path.style.transition = ''; }, 400);
+  }));
+}
+
+function initMapZoom(svgEl, W, H, onTouchMove) {
   if (!svgEl) return;
   const g = svgEl.querySelector('#map-g');
   let sc = 1, tx = 0, ty = 0;
 
   function clamp() {
-    // 확대 시 지도가 뷰포트 밖으로 너무 나가지 않도록 제한
-    const maxTx = (sc - 1) * W * 0.5 + W * 0.2;
-    const maxTy = (sc - 1) * H * 0.5 + H * 0.2;
+    const maxTx = Math.max(0, (sc - 1) * W * 0.5 + W * 0.15);
+    const maxTy = Math.max(0, (sc - 1) * H * 0.5 + H * 0.15);
     tx = Math.min(maxTx, Math.max(-maxTx, tx));
     ty = Math.min(maxTy, Math.max(-maxTy, ty));
   }
@@ -1859,7 +1916,7 @@ function initMapZoom(svgEl, W, H) {
     apply();
   }
 
-  // ── 마우스 휠 줌 ──
+  // ── 마우스 휠 ──
   svgEl.addEventListener('wheel', e => {
     e.preventDefault();
     const rect = svgEl.getBoundingClientRect();
@@ -1870,7 +1927,7 @@ function initMapZoom(svgEl, W, H) {
     );
   }, { passive: false });
 
-  // ── 마우스 드래그 팬 ──
+  // ── 마우스 드래그 ──
   let mouseDrag = null;
   svgEl.style.cursor = 'grab';
   svgEl.addEventListener('mousedown', e => {
@@ -1885,31 +1942,31 @@ function initMapZoom(svgEl, W, H) {
     ty = mouseDrag.ty + (e.clientY - mouseDrag.y) * H / rect.height;
     apply();
   });
-  svgEl.addEventListener('mouseup', () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
+  svgEl.addEventListener('mouseup',    () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
   svgEl.addEventListener('mouseleave', () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
 
-  // ── 터치 핀치줌 + 단일터치 드래그 팬 ──
-  let ptDist = 0, ptMid = null, touchDrag = null;
+  // ── 터치 (핀치줌 + 드래그) ──
+  // touch-action:none (CSS) 이 스크롤을 차단하므로 touchstart는 passive 유지 가능
+  let ptDist = 0, touchDrag = null, touchStartPos = null;
 
   svgEl.addEventListener('touchstart', e => {
     if (e.touches.length === 2) {
       touchDrag = null;
+      touchStartPos = null;
       ptDist = Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY
       );
-      ptMid = {
-        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
-        y: (e.touches[0].clientY + e.touches[1].clientY) / 2
-      };
     } else if (e.touches.length === 1) {
+      touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       touchDrag = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx, ty };
+      if (onTouchMove) onTouchMove(0);
     }
   }, { passive: true });
 
   svgEl.addEventListener('touchmove', e => {
+    e.preventDefault(); // iOS 스크롤 방지 (CSS touch-action:none 보완)
     if (e.touches.length === 2) {
-      e.preventDefault();
       const dist = Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY
@@ -1920,26 +1977,33 @@ function initMapZoom(svgEl, W, H) {
       if (ptDist > 0) zoom(cx, cy, dist / ptDist);
       ptDist = dist;
     } else if (e.touches.length === 1 && touchDrag) {
-      e.preventDefault();
       const rect = svgEl.getBoundingClientRect();
       tx = touchDrag.tx + (e.touches[0].clientX - touchDrag.x) * W / rect.width;
       ty = touchDrag.ty + (e.touches[0].clientY - touchDrag.y) * H / rect.height;
       apply();
+      if (touchStartPos && onTouchMove) {
+        onTouchMove(Math.hypot(
+          e.touches[0].clientX - touchStartPos.x,
+          e.touches[0].clientY - touchStartPos.y
+        ));
+      }
     }
   }, { passive: false });
 
-  svgEl.addEventListener('touchend', e => {
-    if (e.touches.length === 0) touchDrag = null;
-    if (e.touches.length < 2) { ptDist = 0; }
-  });
-
-  // ── 더블탭 / 더블클릭 리셋 ──
+  // ── touchend: 중복 핸들러 없이 하나로 통합 ──
   let lastTap = 0;
-  svgEl.addEventListener('touchend', () => {
+  svgEl.addEventListener('touchend', e => {
+    if (e.touches.length < 2) ptDist = 0;
+    if (e.touches.length === 0) { touchDrag = null; touchStartPos = null; }
+    // 더블탭 → 리셋
     const now = Date.now();
     if (now - lastTap < 300) { sc = 1; tx = 0; ty = 0; apply(); }
     lastTap = now;
+    // 드래그 거리 초기화 (click 이벤트 발생 후 리셋)
+    if (onTouchMove) setTimeout(() => onTouchMove(0), 80);
   });
+
+  // ── 더블클릭 리셋 ──
   svgEl.addEventListener('dblclick', () => { sc = 1; tx = 0; ty = 0; apply(); });
 }
 
