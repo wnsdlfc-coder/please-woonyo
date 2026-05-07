@@ -455,10 +455,11 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
       <div class="map-wrap">
         <div id="korea-map"></div>
         <div class="map-legend">
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#EFEFEF;border:1px solid #ccc;"></div>0회</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FFD6DF;"></div>1-2</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF8FA3;"></div>3-6</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8748A;"></div>7-9</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8E8E8;border:1px solid #ccc;"></div>0회</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FFD6E7;"></div>1-2</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF8FB1;"></div>3-5</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF6B9D;"></div>6-8</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#C0392B;"></div>10+</div>
         </div>
       </div>
@@ -470,7 +471,14 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
     </div>
 
     <div id="page-my" class="page">
-      <div class="page-title">마이페이지 ☺</div>
+      <div class="page-title">마이페이지</div>
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:6px;">MY COUPLE CODE</div>
+          <div id="my-couple-code" style="font-size:24px;font-weight:800;letter-spacing:7px;color:var(--rose);font-variant-numeric:tabular-nums;">------</div>
+        </div>
+        <button class="btn btn-outline btn-sm" id="copy-my-code-btn">복사 📋</button>
+      </div>
       <div class="tab-nav">
         <button class="tab-btn active" data-mytab="received">받은 신청</button>
         <button class="tab-btn" data-mytab="sent">보낸 신청</button>
@@ -656,6 +664,8 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import * as topojson from "https://cdn.jsdelivr.net/npm/topojson-client@3/+esm";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBamsaFwG14Va2PAAUDuZw1qZpF7YzB68U",
@@ -694,7 +704,29 @@ const MISSIONS = [
   '오늘 웃겼던 것 하나씩 꼽기','걷다가 마음에 드는 벤치에 앉아 쉬기',
 ];
 
-// SVG 한국 지도 권역 데이터 (간략화 도형)
+// 행정구역명 → 권역 매핑 (GADM 영어명 기준)
+const PROV_REGION = {
+  'Seoul':'수도권','Incheon':'수도권','Gyeonggi-do':'수도권',
+  'Gangwon-do':'강원','Gangwon':'강원',
+  'Chungcheongbuk-do':'충청','Chungcheongnam-do':'충청',
+  'Daejeon':'충청','Sejong':'충청','Sejong-si':'충청',
+  'Gyeongsangbuk-do':'경상','Gyeongsangnam-do':'경상',
+  'Busan':'경상','Daegu':'경상','Ulsan':'경상',
+  'Jeollabuk-do':'전라','Jeollanam-do':'전라','Gwangju':'전라',
+  'Jeju-do':'제주',
+};
+const PROV_LABEL = {
+  'Seoul':'서울','Incheon':'인천','Gyeonggi-do':'경기',
+  'Gangwon-do':'강원','Gangwon':'강원',
+  'Chungcheongbuk-do':'충북','Chungcheongnam-do':'충남',
+  'Daejeon':'대전','Sejong':'세종','Sejong-si':'세종',
+  'Gyeongsangbuk-do':'경북','Gyeongsangnam-do':'경남',
+  'Busan':'부산','Daegu':'대구','Ulsan':'울산',
+  'Jeollabuk-do':'전북','Jeollanam-do':'전남','Gwangju':'광주',
+  'Jeju-do':'제주',
+};
+
+// SVG 한국 지도 권역 데이터 (폴백용 간략 도형)
 const MAP_DATA = [
   { key:'수도권', label:'수도권', tx:82,  ty:100,
     d:'M25,28 L155,24 L158,112 L160,175 L88,180 L38,175 L22,160 L14,128 L14,90 L18,52 Z' },
@@ -709,12 +741,11 @@ const MAP_DATA = [
 ];
 
 function heatColor(n) {
-  if (!n) return '#EFEFEF';
-  if (n <= 2) return '#FFD6DF';
-  if (n <= 4) return '#FFB3C1';
-  if (n <= 6) return '#FF8FA3';
-  if (n <= 8) return '#E8748A';
-  if (n <= 10) return '#C95B70';
+  if (!n) return '#E8E8E8';
+  if (n <= 2) return '#FFD6E7';
+  if (n <= 5) return '#FF8FB1';
+  if (n <= 8) return '#FF6B9D';
+  if (n <= 10) return '#E8456A';
   return '#C0392B';
 }
 
@@ -897,6 +928,10 @@ document.getElementById('copy-code-btn').addEventListener('click', () => {
   navigator.clipboard.writeText(pendingCoupleCode).then(() => showToast('코드를 복사했어요! 📋')).catch(() => showToast(pendingCoupleCode));
 });
 
+document.getElementById('copy-my-code-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(currentCoupleCode).then(() => showToast('코드를 복사했어요! 📋')).catch(() => showToast(currentCoupleCode));
+});
+
 document.getElementById('enter-create-btn').addEventListener('click', () => saveCoupleCode(pendingCoupleCode));
 
 document.getElementById('enter-join-btn').addEventListener('click', async () => {
@@ -947,6 +982,7 @@ function enterApp() {
   document.getElementById('couple-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-name-display').textContent = currentNick;
+  document.getElementById('my-couple-code').textContent = currentCoupleCode;
   document.getElementById('hero-name').textContent = currentNick + '님';
   document.getElementById('hero-greeting').textContent = getGreeting();
   document.getElementById('a-date').value = new Date().toISOString().split('T')[0];
@@ -1177,41 +1213,76 @@ document.getElementById('save-anni-btn').addEventListener('click', async () => {
 });
 
 // ── 지도 ──
-function renderMap() {
+async function renderMap() {
+  const el = document.getElementById('korea-map');
+
   const counts = {};
   allPlaces.filter(p => p.category === 'visited').forEach(p => {
     const g = getRegionGroup(p.region || '기타');
     counts[g] = (counts[g] || 0) + 1;
   });
 
-  let svg = '<svg viewBox="0 0 270 410" xmlns="http://www.w3.org/2000/svg">';
-  svg += '<rect width="270" height="410" fill="#C8E6F5" rx="12"/>';
-  svg += '<path d="M25,28 L235,20 L245,62 L250,112 L252,175 L250,215 L245,258 L234,290 L218,318 L195,340 L165,355 L138,360 L112,355 L85,344 L60,328 L40,306 L27,278 L17,245 L14,200 L14,158 L14,128 L14,90 L18,52 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
+  // D3 + 실제 행정구역 TopoJSON 시도
+  try {
+    const res = await fetch('https://cdn.jsdelivr.net/gh/southkorea/southkorea-maps@master/gadm/json/skorea-provinces-2018-topo.json');
+    if (!res.ok) throw new Error();
+    const topo = await res.json();
+    const objKey = Object.keys(topo.objects)[0];
+    const geo = topojson.feature(topo, topo.objects[objKey]);
 
-  MAP_DATA.forEach(r => {
-    const cnt = counts[r.key] || 0;
-    const fill = heatColor(cnt);
-    svg += `<path d="${r.d}" fill="${fill}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="${r.key}" style="cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"/>`;
-    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">${r.label}</text>`;
-    if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${cnt}회</text>`;
-  });
+    const W = 290, H = 360;
+    const proj = d3.geoMercator().fitExtent([[4, 4], [W - 4, H - 4]], geo);
+    const pathFn = d3.geoPath().projection(proj);
 
-  const jeju = counts['제주'] || 0;
-  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" style="cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"/>`;
-  svg += `<text x="100" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>`;
-  if (jeju > 0) svg += `<text x="100" y="406" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${jeju}회</text>`;
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" width="100%">`;
+    svg += `<rect width="${W}" height="${H}" fill="#C8E6F5" rx="12"/>`;
 
-  svg += '</svg>';
-  document.getElementById('korea-map').innerHTML = svg;
+    geo.features.forEach(f => {
+      const name = f.properties?.NAME_1 || f.properties?.name || '';
+      const regionKey = PROV_REGION[name] || '기타';
+      const cnt = counts[regionKey] || 0;
+      const d = pathFn(f);
+      if (!d) return;
+      svg += `<path d="${d}" fill="${heatColor(cnt)}" stroke="white" stroke-width="1" class="map-region" data-rkey="${regionKey}" style="cursor:pointer;transition:opacity 0.15s;" onmouseover="this.style.opacity=0.72" onmouseout="this.style.opacity=1"/>`;
+      const c = pathFn.centroid(f);
+      if (c && !isNaN(c[0])) {
+        const lbl = PROV_LABEL[name] || name;
+        svg += `<text x="${c[0].toFixed(1)}" y="${(c[1]+3).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#333" pointer-events="none">${lbl}</text>`;
+        if (cnt > 0) svg += `<text x="${c[0].toFixed(1)}" y="${(c[1]+12).toFixed(1)}" text-anchor="middle" font-size="7" fill="#555" pointer-events="none">${cnt}회</text>`;
+      }
+    });
 
-  document.querySelectorAll('.map-region').forEach(el => {
-    el.addEventListener('click', () => {
-      const key = el.dataset.rkey;
-      const cities = REGIONS[key] || [];
-      const filtered = allPlaces.filter(p => cities.includes(p.region));
+    svg += '</svg>';
+    el.innerHTML = svg;
+  } catch(_) {
+    // 폴백: 간략 SVG
+    renderFallbackMap(el, counts);
+  }
+
+  el.querySelectorAll('.map-region').forEach(r => {
+    r.addEventListener('click', () => {
+      const key = r.dataset.rkey;
       showToast(key + ': ' + (counts[key] || 0) + '곳 방문');
     });
   });
+}
+
+function renderFallbackMap(el, counts) {
+  let svg = '<svg viewBox="0 0 270 410" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<rect width="270" height="410" fill="#C8E6F5" rx="12"/>';
+  svg += '<path d="M25,28 L235,20 L245,62 L250,112 L252,175 L250,215 L245,258 L234,290 L218,318 L195,340 L165,355 L138,360 L112,355 L85,344 L60,328 L40,306 L27,278 L17,245 L14,200 L14,128 L14,90 L18,52 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
+  MAP_DATA.forEach(r => {
+    const cnt = counts[r.key] || 0;
+    svg += `<path d="${r.d}" fill="${heatColor(cnt)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="${r.key}" style="cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.75" onmouseout="this.style.opacity=1"/>`;
+    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">${r.label}</text>`;
+    if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${cnt}회</text>`;
+  });
+  const jeju = counts['제주'] || 0;
+  svg += `<ellipse cx="100" cy="390" rx="55" ry="20" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" style="cursor:pointer;"/>`;
+  svg += `<text x="100" y="394" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>`;
+  if (jeju > 0) svg += `<text x="100" y="406" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${jeju}회</text>`;
+  svg += '</svg>';
+  el.innerHTML = svg;
 }
 
 // ── 장소 ──
