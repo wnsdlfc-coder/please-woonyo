@@ -486,6 +486,18 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
     <div id="page-my" class="page">
       <div class="page-title">마이페이지</div>
 
+      <!-- 로그인 정보 카드 -->
+      <div class="card" style="margin-bottom:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <img id="profile-photo" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:none;border:2px solid var(--rose2);">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--rose4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;" id="profile-placeholder">👤</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:2px;">로그인 계정</div>
+            <div id="login-email-display" style="font-size:13px;font-weight:700;color:var(--text);word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- 방 정보 카드 -->
       <div class="card" style="margin-bottom:16px;">
         <!-- 방 제목 -->
@@ -514,6 +526,11 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         <div style="margin-bottom:14px;">
           <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:8px;">MEMBERS</div>
           <div id="room-members" style="display:flex;gap:8px;flex-wrap:wrap;min-height:28px;"></div>
+        </div>
+        <!-- 방 관리 버튼 -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button class="btn btn-outline btn-sm" id="join-other-room-btn" style="flex:1;">다른 방 입장</button>
+          <button class="btn btn-outline btn-sm" id="create-new-room-btn" style="flex:1;">새 방 만들기</button>
         </div>
         <!-- 방 통계 -->
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--border);padding-top:12px;">
@@ -651,6 +668,60 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
     <div class="modal-title" id="cal-detail-title"></div>
     <div id="cal-detail-content"></div>
     <button class="btn btn-outline btn-full" id="close-cal-detail-btn" style="margin-top:16px;">닫기</button>
+  </div>
+</div>
+
+<!-- 다른 방 입장 모달 -->
+<div class="modal-bg" id="modal-join-other">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title">다른 방 입장</div>
+    <div style="background:var(--rose4);border-left:3px solid var(--rose);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;">
+      현재 방 <strong id="join-other-current-code" style="letter-spacing:3px;font-family:monospace;color:var(--rose);"></strong> 에서 나가게 됩니다.
+    </div>
+    <div class="form-group">
+      <label class="form-label">새 커플 코드 (6자리)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="join-other-code-input" class="form-input" maxlength="6" placeholder="000000" style="flex:1;letter-spacing:4px;font-size:20px;font-weight:800;text-align:center;">
+        <button class="btn btn-outline btn-sm" id="join-other-verify-btn" style="white-space:nowrap;">확인</button>
+      </div>
+      <div class="err-msg" id="err-join-other">존재하지 않는 코드예요</div>
+    </div>
+    <div id="join-other-nick-section" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">닉네임 선택</label>
+        <select id="join-other-dropdown" class="form-input"><option value="">선택해주세요</option></select>
+        <input type="text" id="join-other-new-nick" class="form-input" placeholder="직접 입력" style="display:none;margin-top:8px;">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-outline btn-full" id="close-join-other-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="confirm-join-other-btn">입장하기 💕</button>
+    </div>
+  </div>
+</div>
+
+<!-- 새 방 만들기 모달 -->
+<div class="modal-bg" id="modal-create-new">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title">새 방 만들기</div>
+    <div style="background:var(--rose4);border-left:3px solid var(--rose);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;">
+      현재 방 <strong id="create-new-current-code" style="letter-spacing:3px;font-family:monospace;color:var(--rose);"></strong> 에서 나가게 됩니다.
+    </div>
+    <div class="couple-code-box" style="margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--text2);font-weight:700;letter-spacing:1px;margin-bottom:8px;">새 커플 코드</div>
+      <div id="new-room-generated-code" style="font-size:32px;font-weight:800;letter-spacing:8px;color:var(--rose);font-variant-numeric:tabular-nums;"></div>
+      <button class="btn btn-outline btn-sm" id="copy-new-room-code-btn" style="margin-top:10px;">복사 📋</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">내 닉네임</label>
+      <input type="text" id="new-room-nick-input" class="form-input" placeholder="이름 입력" maxlength="10">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-outline btn-full" id="close-create-new-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="confirm-create-new-btn">방 만들기 💕</button>
+    </div>
   </div>
 </div>
 
@@ -888,13 +959,16 @@ function showCoupleSection(id) {
 
 async function saveCoupleCode(code, nick) {
   try {
+    const email = currentUser.email || '';
+    const photoURL = currentUser.photoURL || '';
     // Firestore: UID 기반 (기기 간 동기화 - 메인)
     await setDoc(doc(db, 'users', currentUser.uid), {
-      uid: currentUser.uid, nickname: nick, coupleCode: code, updatedAt: serverTimestamp()
+      uid: currentUser.uid, nickname: nick, coupleCode: code,
+      email, photoURL, updatedAt: serverTimestamp()
     }, { merge: true });
     // Firestore: 닉네임 기반 (방 멤버 조회 호환)
     await setDoc(doc(db, 'users', nick), {
-      uid: currentUser.uid, nickname: nick, coupleCode: code
+      uid: currentUser.uid, nickname: nick, coupleCode: code, email, photoURL
     }, { merge: true });
     // localStorage: 캐시 (폴백용)
     localStorage.setItem('nick_' + currentUser.uid, nick);
@@ -969,6 +1043,88 @@ document.getElementById('enter-create-btn').addEventListener('click', () => {
 document.getElementById('join-member-dropdown').addEventListener('change', () => {
   const val = document.getElementById('join-member-dropdown').value;
   document.getElementById('join-new-nick').style.display = val === '__new__' ? 'block' : 'none';
+});
+
+// ── 방 전환 (다른 방 입장 / 새 방 만들기) ──
+let joinOtherStep = 'input';
+let joinOtherPendingCode = '';
+let newRoomPendingCode = '';
+
+// 다른 방 입장
+document.getElementById('join-other-room-btn').addEventListener('click', () => {
+  joinOtherStep = 'input';
+  joinOtherPendingCode = '';
+  document.getElementById('join-other-code-input').value = '';
+  document.getElementById('join-other-code-input').disabled = false;
+  document.getElementById('err-join-other').classList.remove('show');
+  document.getElementById('join-other-nick-section').style.display = 'none';
+  document.getElementById('join-other-current-code').textContent = currentCoupleCode;
+  document.getElementById('modal-join-other').classList.add('open');
+});
+
+document.getElementById('close-join-other-btn').addEventListener('click', () => {
+  document.getElementById('modal-join-other').classList.remove('open');
+});
+
+document.getElementById('join-other-verify-btn').addEventListener('click', async () => {
+  const code = document.getElementById('join-other-code-input').value.trim();
+  if (code.length !== 6) { showToast('6자리 코드를 입력해주세요', true); return; }
+  if (code === currentCoupleCode) { showToast('현재 방이에요', true); return; }
+  const errEl = document.getElementById('err-join-other');
+  const snap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', code)));
+  if (snap.empty) { errEl.classList.add('show'); return; }
+  errEl.classList.remove('show');
+  document.getElementById('join-other-code-input').disabled = true;
+  const seen2 = new Set();
+  const ms = snap.docs.map(d => d.data().nickname || d.id).filter(n => { if (seen2.has(n)) return false; seen2.add(n); return true; });
+  const dd = document.getElementById('join-other-dropdown');
+  dd.innerHTML = '<option value="">선택해주세요</option>' + ms.map(m => `<option value="${m}">${m}</option>`).join('') + '<option value="__new__">직접 입력...</option>';
+  document.getElementById('join-other-new-nick').style.display = 'none';
+  document.getElementById('join-other-nick-section').style.display = 'block';
+  joinOtherPendingCode = code;
+  joinOtherStep = 'nick';
+});
+
+document.getElementById('join-other-dropdown').addEventListener('change', () => {
+  document.getElementById('join-other-new-nick').style.display =
+    document.getElementById('join-other-dropdown').value === '__new__' ? 'block' : 'none';
+});
+
+document.getElementById('confirm-join-other-btn').addEventListener('click', async () => {
+  if (joinOtherStep === 'input') { document.getElementById('join-other-verify-btn').click(); return; }
+  let nick = document.getElementById('join-other-dropdown').value;
+  if (nick === '__new__') nick = document.getElementById('join-other-new-nick').value.trim();
+  if (!nick) { showToast('닉네임을 선택하거나 입력해주세요', true); return; }
+  document.getElementById('modal-join-other').classList.remove('open');
+  await saveCoupleCode(joinOtherPendingCode, nick);
+});
+
+document.getElementById('join-other-code-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('join-other-verify-btn').click();
+});
+
+// 새 방 만들기
+document.getElementById('create-new-room-btn').addEventListener('click', () => {
+  newRoomPendingCode = String(Math.floor(100000 + Math.random() * 900000));
+  document.getElementById('new-room-generated-code').textContent = newRoomPendingCode;
+  document.getElementById('new-room-nick-input').value = currentNick;
+  document.getElementById('create-new-current-code').textContent = currentCoupleCode;
+  document.getElementById('modal-create-new').classList.add('open');
+});
+
+document.getElementById('close-create-new-btn').addEventListener('click', () => {
+  document.getElementById('modal-create-new').classList.remove('open');
+});
+
+document.getElementById('copy-new-room-code-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(newRoomPendingCode).then(() => showToast('코드 복사됨! 📋')).catch(() => showToast(newRoomPendingCode));
+});
+
+document.getElementById('confirm-create-new-btn').addEventListener('click', async () => {
+  const nick = document.getElementById('new-room-nick-input').value.trim();
+  if (!nick) { showToast('닉네임을 입력해주세요', true); return; }
+  document.getElementById('modal-create-new').classList.remove('open');
+  await saveCoupleCode(newRoomPendingCode, nick);
 });
 
 document.getElementById('enter-join-btn').addEventListener('click', async () => {
@@ -1059,6 +1215,20 @@ function enterApp() {
   document.getElementById('hero-name').textContent = currentNick + '님';
   document.getElementById('hero-greeting').textContent = getGreeting();
   document.getElementById('a-date').value = new Date().toISOString().split('T')[0];
+  // 로그인 계정 정보 표시
+  if (currentUser) {
+    document.getElementById('login-email-display').textContent = currentUser.email || '(이메일 없음)';
+    const photoEl = document.getElementById('profile-photo');
+    const placeholderEl = document.getElementById('profile-placeholder');
+    if (currentUser.photoURL) {
+      photoEl.src = currentUser.photoURL;
+      photoEl.style.display = 'block';
+      placeholderEl.style.display = 'none';
+    } else {
+      photoEl.style.display = 'none';
+      placeholderEl.style.display = 'flex';
+    }
+  }
   loadRoomInfo();
   loadAll();
 }
@@ -1074,10 +1244,13 @@ async function loadRoomInfo() {
   const membersSnap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', currentCoupleCode)));
   const seen = new Set();
   const members = membersSnap.docs
-    .map(d => d.data().nickname || d.id)
-    .filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
+    .map(d => ({ nick: d.data().nickname || d.id, email: d.data().email || '' }))
+    .filter(m => { if (seen.has(m.nick)) return false; seen.add(m.nick); return true; });
   document.getElementById('room-members').innerHTML = members.length
-    ? members.map(m => `<div style="background:var(--rose4);color:var(--rose);padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;">${m}</div>`).join('')
+    ? members.map(m => `<div style="background:var(--rose4);border-radius:12px;padding:8px 12px;flex:1;min-width:120px;">
+        <div style="font-weight:800;font-size:14px;color:var(--rose);">${m.nick}</div>
+        ${m.email ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;word-break:break-all;">${m.email}</div>` : ''}
+      </div>`).join('')
     : '<div style="color:var(--text3);font-size:13px;">아직 멤버가 없어요</div>';
 
   // 신청 대상 드롭다운 업데이트 (본인 제외)
