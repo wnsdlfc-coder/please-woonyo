@@ -5,279 +5,219 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Please Woonyo</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
-  --rose: #E8748A; --rose2: #F4A0B0; --rose3: #FADADD; --rose4: #FFF5F6;
-  --yellow: #FFE08A; --yellow2: #FFF8DC; --peach: #FFD4A8;
-  --cream: #FDF8F0; --text: #3D2C2C; --text2: #7A5C5C; --text3: #B89898;
-  --shadow: 0 4px 24px rgba(232,116,138,0.15); --shadow2: 0 2px 12px rgba(232,116,138,0.08);
-  --bg: linear-gradient(145deg, #FFF0F2 0%, #FFF8DC 50%, #FFF0F6 100%);
+  --rose:#E8748A;--rose2:#F4A0B0;--rose3:#FADADD;--rose4:#FFF5F6;
+  --yellow:#FFE08A;--yellow2:#FFF8DC;--peach:#FFD4A8;
+  --cream:#FDF8F0;--text:#3D2C2C;--text2:#7A5C5C;--text3:#B89898;
+  --shadow:0 4px 24px rgba(232,116,138,0.15);--shadow2:0 2px 12px rgba(232,116,138,0.08);
+  --bg:linear-gradient(145deg,#FFF0F2 0%,#FFF8DC 50%,#FFF0F6 100%);
 }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Gowun Dodum','Noto Sans KR',sans-serif; background:var(--bg); min-height:100vh; color:var(--text); font-size:15px; }
-
-/* ── SCREENS ── */
-.screen { min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); }
-.auth-card { background:white; border-radius:32px; padding:52px 40px; width:90%; max-width:380px; box-shadow:0 20px 60px rgba(232,116,138,0.2); text-align:center; animation:fadeUp 0.5s ease; }
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-.auth-logo { font-size:48px; margin-bottom:12px; animation:bounce 2s infinite; }
-@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-.auth-title { font-family:'Nanum Myeongjo',serif; font-size:32px; font-weight:800; color:var(--rose); margin-bottom:6px; }
-.auth-sub { font-size:14px; color:var(--text3); margin-bottom:36px; line-height:1.8; }
-.google-btn {
-  width:100%; padding:16px; border-radius:16px; border:2px solid var(--rose3);
-  background:white; color:var(--text); font-size:15px; font-weight:700; font-family:inherit;
-  cursor:pointer; transition:all 0.3s; display:flex; align-items:center; justify-content:center; gap:10px;
-}
-.google-btn:hover { background:var(--rose4); border-color:var(--rose); transform:translateY(-2px); box-shadow:var(--shadow); }
-.google-btn:active { transform:translateY(0) scale(0.98); }
-.err-msg { font-size:13px; color:#C0392B; margin-top:10px; min-height:18px; }
-.auth-note { font-size:12px; color:var(--text3); margin-top:16px; }
-
-/* ── APP ── */
-#app { display:none; }
-.top-nav {
-  background:rgba(255,255,255,0.92); backdrop-filter:blur(10px);
-  padding:14px 20px; display:flex; align-items:center; justify-content:space-between;
-  box-shadow:0 1px 16px rgba(232,116,138,0.1); position:sticky; top:0; z-index:100;
-}
-.app-logo { display:flex; align-items:center; gap:8px; }
-.app-title { font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:800; color:var(--rose); }
-.user-chip { display:flex; align-items:center; gap:8px; background:var(--rose4); border-radius:20px; padding:7px 14px; }
-.user-dot { width:8px; height:8px; border-radius:50%; background:var(--rose); animation:pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.user-chip-name { font-size:13px; font-weight:700; color:var(--text2); }
-.logout-btn { background:none; border:none; font-size:12px; color:var(--text3); cursor:pointer; padding:4px 8px; border-radius:8px; transition:all 0.2s; }
-.logout-btn:hover { background:var(--rose3); color:var(--rose); }
-
-/* ── BOTTOM NAV ── */
-.bottom-nav { position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:10px 0 env(safe-area-inset-bottom); box-shadow:0 -1px 16px rgba(232,116,138,0.1); display:flex; z-index:100; }
-.nav-item { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; border:none; background:none; cursor:pointer; transition:all 0.2s; font-family:inherit; }
-.nav-icon { font-size:20px; line-height:1; transition:transform 0.2s; }
-.nav-label { font-size:10px; font-weight:700; color:var(--text3); transition:color 0.2s; }
-.nav-item.active .nav-label { color:var(--rose); }
-.nav-item.active .nav-icon { transform:scale(1.15); }
-.nav-dot { width:4px; height:4px; border-radius:50%; background:var(--rose); margin:0 auto; opacity:0; transition:opacity 0.2s; }
-.nav-item.active .nav-dot { opacity:1; }
-
-/* ── MAIN ── */
-main { max-width:480px; margin:0 auto; padding:20px 16px 90px; }
-.page { display:none; animation:fadeUp 0.25s ease; }
-.page.active { display:block; }
-.page-title { font-family:'Nanum Myeongjo',serif; font-size:22px; font-weight:800; margin-bottom:20px; }
-.section-label { font-size:11px; font-weight:700; color:var(--text3); letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; margin-top:24px; }
-
-/* ── CARDS ── */
-.card { background:white; border-radius:20px; padding:20px; margin-bottom:12px; box-shadow:var(--shadow2); transition:transform 0.2s, box-shadow 0.2s; }
-.card:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
-
-/* ── FORM ── */
-.form-group { margin-bottom:18px; }
-.form-label { font-size:13px; font-weight:700; color:var(--text2); margin-bottom:7px; display:block; }
-.form-input { width:100%; background:var(--rose4); border:1.5px solid transparent; color:var(--text); padding:12px 16px; border-radius:12px; font-size:15px; font-family:inherit; outline:none; transition:all 0.2s; }
-.form-input:focus { border-color:var(--rose); background:white; box-shadow:0 0 0 3px rgba(232,116,138,0.1); }
-textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.input-err { border-color:#E74C3C !important; background:white !important; }
-.err-hint { font-size:12px; color:#E74C3C; margin-top:4px; display:none; }
-.err-hint.show { display:block; }
-
-/* ── BUTTONS ── */
-.btn { padding:13px 24px; border-radius:16px; border:none; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; transition:all 0.25s; }
-.btn-rose {
-  background:linear-gradient(135deg,#E8748A,#D4637A); color:white;
-  box-shadow:0 4px 20px rgba(232,116,138,0.4);
-}
-.btn-rose:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(232,116,138,0.45); }
-.btn-rose:active { transform:translateY(0) scale(0.97); }
-.btn-yellow { background:linear-gradient(135deg,#FFE08A,#F4C842); color:#3D2C2C; box-shadow:0 4px 16px rgba(255,200,66,0.4); }
-.btn-yellow:hover { transform:translateY(-2px); }
-.btn-outline { background:white; border:1.5px solid var(--rose3); color:var(--rose); }
-.btn-outline:hover { background:var(--rose4); border-color:var(--rose); transform:translateY(-1px); }
-.btn-full { width:100%; }
-.btn-sm { padding:7px 14px; font-size:13px; border-radius:10px; }
-.btn-xs { padding:5px 10px; font-size:12px; border-radius:8px; }
-.please-btn {
-  width:100%; padding:16px; border-radius:18px; border:none;
-  background:linear-gradient(135deg,#E8748A 0%,#F4A0B0 50%,#E8748A 100%);
-  background-size:200% 100%; color:white; font-size:16px; font-weight:800;
-  font-family:'Nanum Myeongjo',serif; cursor:pointer;
-  box-shadow:0 6px 24px rgba(232,116,138,0.45);
-  transition:all 0.3s; animation:shimmer 3s infinite;
-  letter-spacing:0.5px;
-}
-@keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
-.please-btn:hover { transform:translateY(-3px); box-shadow:0 10px 32px rgba(232,116,138,0.5); }
-.please-btn:active { transform:translateY(0) scale(0.98); }
-
-/* ── THEME CHIPS ── */
-.theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.theme-chip { padding:12px 8px; border-radius:12px; border:1.5px solid var(--rose3); background:white; text-align:center; cursor:pointer; transition:all 0.2s; font-family:inherit; font-size:13px; font-weight:700; color:var(--text2); }
-.theme-chip:hover { border-color:var(--rose2); background:var(--rose4); }
-.theme-chip.selected { border-color:var(--rose); background:var(--rose4); color:var(--rose); transform:scale(1.03); }
-
-/* ── REGION ── */
-.region-wrap { position:relative; }
-.region-btn { width:100%; padding:12px 16px; border-radius:12px; border:1.5px solid transparent; background:var(--rose4); color:var(--text); font-size:15px; font-family:inherit; text-align:left; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all 0.2s; }
-.region-btn.open, .region-btn:hover { border-color:var(--rose); background:white; }
-.region-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:white; border-radius:16px; box-shadow:0 8px 40px rgba(0,0,0,0.12); z-index:50; max-height:260px; overflow-y:auto; padding:8px; border:1px solid var(--rose3); }
-.region-dropdown.open { display:block; animation:fadeUp 0.2s ease; }
-.region-group-title { font-size:11px; font-weight:700; color:var(--text3); padding:8px 10px 4px; text-transform:uppercase; letter-spacing:0.5px; }
-.region-opt { padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px; color:var(--text); transition:background 0.15s; }
-.region-opt:hover { background:var(--rose4); }
-.region-opt.selected { background:var(--rose4); color:var(--rose); font-weight:700; }
-
-/* ── CHECKLIST ── */
-.check-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--rose4); border-radius:12px; margin-bottom:8px; transition:all 0.2s; }
-.check-text { flex:1; font-size:14px; }
-.check-text.imp { font-weight:700; color:var(--rose); }
-.star-btn { background:none; border:none; font-size:15px; cursor:pointer; color:var(--text3); transition:all 0.2s; }
-.star-btn.on { color:#F4A300; transform:scale(1.2); }
-.del-btn { background:none; border:none; font-size:16px; cursor:pointer; color:var(--text3); transition:color 0.2s; }
-.del-btn:hover { color:var(--rose); }
-.add-row { display:flex; gap:8px; }
-
-/* ── MISSION CARD ── */
-.mission-card {
-  background:linear-gradient(135deg,#FFF8DC,#FFE4E8);
-  border:1.5px solid var(--rose3); border-radius:16px; padding:20px;
-  text-align:center; margin-bottom:8px; position:relative; overflow:hidden;
-}
-.mission-card::before { content:'✨'; font-size:40px; position:absolute; right:-5px; top:-5px; opacity:0.2; }
-.mission-label { font-size:11px; font-weight:700; color:var(--rose); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
-.mission-text { font-size:15px; font-weight:700; color:var(--text); line-height:1.6; }
-
-/* ── HERO ── */
-.hero {
-  background:linear-gradient(135deg,var(--rose) 0%,#C86B85 100%);
-  border-radius:24px; padding:28px 24px; margin-bottom:20px; color:white;
-  position:relative; overflow:hidden;
-}
-.hero::after { content:'♡'; font-size:120px; position:absolute; right:-20px; bottom:-30px; opacity:0.1; }
-.hero-greeting { font-size:14px; opacity:0.85; margin-bottom:4px; }
-.hero-name { font-family:'Nanum Myeongjo',serif; font-size:26px; font-weight:800; margin-bottom:16px; }
-.hero-stats { display:flex; gap:20px; }
-.h-val { font-family:'Nanum Myeongjo',serif; font-size:30px; font-weight:800; line-height:1; }
-.h-label { font-size:12px; opacity:0.8; margin-top:2px; }
-
-/* ── REQUEST CARDS ── */
-.req-card { background:white; border-radius:20px; padding:20px; margin-bottom:12px; box-shadow:var(--shadow2); border-left:4px solid var(--rose); transition:all 0.2s; }
-.req-card:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
-.req-from { font-size:12px; color:var(--text3); margin-bottom:4px; }
-.req-date-big { font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:700; margin-bottom:3px; }
-.req-info { font-size:13px; color:var(--text2); margin-bottom:12px; }
-.req-actions { display:flex; gap:8px; }
-.sbadge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; }
-.s-pending { background:#FEF3C7; color:#92400E; }
-.s-accepted { background:#D1FAE5; color:#065F46; }
-.s-rejected { background:#FFE4E6; color:#9F1239; }
-.s-canceled { background:#F3F4F6; color:#6B7280; }
-
-/* ── DATE CARDS ── */
-.date-card { background:white; border-radius:20px; padding:20px; margin-bottom:10px; box-shadow:var(--shadow2); transition:all 0.2s; }
-.date-card:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
-.date-card-date { font-family:'Nanum Myeongjo',serif; font-size:17px; font-weight:700; }
-.date-card-info { font-size:13px; color:var(--text2); margin:4px 0 10px; }
-.mini-item { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--rose4); border-radius:10px; margin-bottom:6px; cursor:pointer; transition:all 0.2s; }
-.mini-item:hover { background:var(--rose3); }
-.mini-chk { width:20px; height:20px; border-radius:7px; border:1.5px solid var(--rose3); background:white; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; transition:all 0.2s; }
-.mini-chk.done { background:var(--rose); border-color:var(--rose); color:white; }
-.mini-txt { font-size:13px; flex:1; }
-.mini-txt.done { text-decoration:line-through; color:var(--text3); }
-
-/* ── TAB NAV ── */
-.tab-nav { display:flex; gap:6px; margin-bottom:20px; overflow-x:auto; padding-bottom:2px; }
-.tab-btn { padding:8px 18px; border-radius:20px; border:1.5px solid var(--rose3); background:white; color:var(--text2); font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.2s; font-family:inherit; }
-.tab-btn:hover { border-color:var(--rose2); }
-.tab-btn.active { background:var(--rose); color:white; border-color:var(--rose); }
-
-/* ── DIARY ── */
-.diary-card { background:white; border-radius:20px; padding:22px; margin-bottom:10px; box-shadow:var(--shadow2); position:relative; overflow:hidden; transition:all 0.2s; }
-.diary-card:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
-.diary-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--rose),var(--rose2),var(--yellow)); }
-.diary-date-lbl { font-size:12px; color:var(--text3); margin-bottom:5px; }
-.diary-title { font-family:'Nanum Myeongjo',serif; font-size:18px; font-weight:700; margin-bottom:8px; }
-.diary-body { font-size:14px; color:var(--text2); line-height:1.7; }
-.diary-stars { font-size:15px; margin-top:8px; }
-.diary-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
-.diary-tag { padding:3px 10px; border-radius:10px; font-size:12px; background:var(--rose4); color:var(--rose); font-weight:700; }
-
-/* ── CALENDAR ── */
-.cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-.cal-month { font-family:'Nanum Myeongjo',serif; font-size:20px; font-weight:800; color:var(--text); }
-.cal-nav-btn { background:white; border:1.5px solid var(--rose3); color:var(--rose); width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
-.cal-nav-btn:hover { background:var(--rose4); border-color:var(--rose); }
-.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-.cal-day-label { text-align:center; font-size:11px; font-weight:700; color:var(--text3); padding:8px 0; }
-.cal-day-label:first-child { color:#E74C3C; }
-.cal-day-label:last-child { color:#4A90D9; }
-.cal-cell { aspect-ratio:1; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; padding:4px 2px; position:relative; background:transparent; border:none; font-family:inherit; }
-.cal-cell:hover { background:var(--rose4); }
-.cal-cell.today { background:var(--rose4); }
-.cal-cell.today .cal-num { color:var(--rose); font-weight:800; }
-.cal-cell.has-event { background:white; box-shadow:var(--shadow2); }
-.cal-cell.sunday .cal-num { color:#E74C3C; }
-.cal-cell.saturday .cal-num { color:#4A90D9; }
-.cal-cell.other-month .cal-num { color:var(--text3); }
-.cal-num { font-size:14px; font-weight:600; line-height:1; }
-.cal-dots { display:flex; gap:2px; margin-top:3px; flex-wrap:wrap; justify-content:center; }
-.cal-dot { width:5px; height:5px; border-radius:50%; }
-.cal-dot-date { background:var(--rose); }
-.cal-dot-pending { background:var(--yellow); border:1px solid #F4C842; }
-.cal-dot-anniversary { background:#A855F7; }
-.cal-legend { display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; }
-.cal-legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text2); }
-.cal-legend-dot { width:8px; height:8px; border-radius:50%; }
-
-/* ── ANNIVERSARY ── */
-.anni-card { background:white; border-radius:16px; padding:16px 18px; margin-bottom:8px; box-shadow:var(--shadow2); display:flex; align-items:center; gap:12px; transition:all 0.2s; }
-.anni-card:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
-.anni-icon { width:42px; height:42px; border-radius:14px; background:linear-gradient(135deg,var(--rose3),var(--yellow2)); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-.anni-name { font-weight:700; font-size:15px; }
-.anni-date { font-size:12px; color:var(--text3); }
-.anni-dday { font-family:'Nanum Myeongjo',serif; font-size:16px; font-weight:800; color:var(--rose); margin-left:auto; white-space:nowrap; }
-
-/* ── PLACES ── */
-.place-item { background:white; border-radius:16px; padding:16px 18px; margin-bottom:8px; box-shadow:var(--shadow2); display:flex; align-items:center; gap:14px; transition:all 0.2s; }
-.place-item:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
-.place-dot { width:10px; height:10px; border-radius:50%; background:var(--rose); flex-shrink:0; }
-.place-name-big { font-size:15px; font-weight:700; }
-.place-region-lbl { font-size:12px; color:var(--text3); }
-
-/* ── MODAL ── */
-.modal-bg { display:none; position:fixed; inset:0; background:rgba(61,44,44,0.4); backdrop-filter:blur(4px); z-index:300; align-items:flex-end; justify-content:center; }
-.modal-bg.open { display:flex; animation:fadeIn 0.2s ease; }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-.modal { background:white; border-radius:28px 28px 0 0; padding:24px 22px 40px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; animation:slideUp 0.3s ease; }
-.modal-center { border-radius:24px; max-width:360px; margin:auto; align-self:center; }
-@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
-.modal-bar { width:36px; height:4px; background:var(--rose3); border-radius:2px; margin:0 auto 20px; }
-.modal-title { font-family:'Nanum Myeongjo',serif; font-size:20px; font-weight:800; margin-bottom:20px; }
-
-/* ── TOAST ── */
-.toast { position:fixed; bottom:88px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--text); color:white; padding:12px 24px; border-radius:20px; font-size:14px; font-weight:700; opacity:0; transition:all 0.3s; z-index:999; white-space:nowrap; pointer-events:none; }
-.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-.empty-state { text-align:center; padding:40px 20px; color:var(--text3); font-size:14px; line-height:2; }
-.imp-badge { font-size:12px; background:var(--rose3); color:var(--rose); padding:2px 8px; border-radius:6px; font-weight:700; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Gowun Dodum','Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);font-size:15px;}
+.screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+.auth-card{background:white;border-radius:32px;padding:52px 40px;width:90%;max-width:380px;box-shadow:0 20px 60px rgba(232,116,138,0.2);text-align:center;animation:fadeUp 0.5s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{font-size:48px;margin-bottom:12px;animation:bounce 2s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.auth-title{font-family:'Nanum Myeongjo',serif;font-size:32px;font-weight:800;color:var(--rose);margin-bottom:6px;}
+.auth-sub{font-size:14px;color:var(--text3);margin-bottom:36px;line-height:1.8;}
+.google-btn{width:100%;padding:16px;border-radius:16px;border:2px solid var(--rose3);background:white;color:var(--text);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.google-btn:hover{background:var(--rose4);border-color:var(--rose);transform:translateY(-2px);box-shadow:var(--shadow);}
+.err-msg{font-size:13px;color:#C0392B;margin-top:10px;min-height:18px;}
+.auth-note{font-size:12px;color:var(--text3);margin-top:16px;}
+#app{display:none;}
+.top-nav{background:rgba(255,255,255,0.92);backdrop-filter:blur(10px);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 16px rgba(232,116,138,0.1);position:sticky;top:0;z-index:100;}
+.app-logo{display:flex;align-items:center;gap:8px;}
+.app-title{font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:800;color:var(--rose);}
+.user-chip{display:flex;align-items:center;gap:8px;background:var(--rose4);border-radius:20px;padding:7px 14px;}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--rose);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.user-chip-name{font-size:13px;font-weight:700;color:var(--text2);}
+.logout-btn{background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:8px;transition:all 0.2s;}
+.logout-btn:hover{background:var(--rose3);color:var(--rose);}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);padding:10px 0 env(safe-area-inset-bottom);box-shadow:0 -1px 16px rgba(232,116,138,0.1);display:flex;z-index:100;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border:none;background:none;cursor:pointer;transition:all 0.2s;font-family:inherit;}
+.nav-icon{font-size:20px;line-height:1;transition:transform 0.2s;}
+.nav-label{font-size:10px;font-weight:700;color:var(--text3);transition:color 0.2s;}
+.nav-item.active .nav-label{color:var(--rose);}
+.nav-item.active .nav-icon{transform:scale(1.15);}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--rose);margin:0 auto;opacity:0;transition:opacity 0.2s;}
+.nav-item.active .nav-dot{opacity:1;}
+main{max-width:480px;margin:0 auto;padding:20px 16px 90px;}
+.page{display:none;animation:fadeUp 0.25s ease;}
+.page.active{display:block;}
+.page-title{font-family:'Nanum Myeongjo',serif;font-size:22px;font-weight:800;margin-bottom:20px;}
+.section-label{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;margin-top:24px;}
+.card{background:white;border-radius:20px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow2);transition:transform 0.2s,box-shadow 0.2s;}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.form-group{margin-bottom:18px;}
+.form-label{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:7px;display:block;}
+.form-input{width:100%;background:var(--rose4);border:1.5px solid transparent;color:var(--text);padding:12px 16px;border-radius:12px;font-size:15px;font-family:inherit;outline:none;transition:all 0.2s;}
+.form-input:focus{border-color:var(--rose);background:white;box-shadow:0 0 0 3px rgba(232,116,138,0.1);}
+textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.input-err{border-color:#E74C3C!important;background:white!important;}
+.err-hint{font-size:12px;color:#E74C3C;margin-top:4px;display:none;}
+.err-hint.show{display:block;}
+.btn{padding:13px 24px;border-radius:16px;border:none;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.25s;}
+.btn-rose{background:linear-gradient(135deg,#E8748A,#D4637A);color:white;box-shadow:0 4px 20px rgba(232,116,138,0.4);}
+.btn-rose:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,116,138,0.45);}
+.btn-rose:active{transform:translateY(0) scale(0.97);}
+.btn-yellow{background:linear-gradient(135deg,#FFE08A,#F4C842);color:#3D2C2C;box-shadow:0 4px 16px rgba(255,200,66,0.4);}
+.btn-yellow:hover{transform:translateY(-2px);}
+.btn-outline{background:white;border:1.5px solid var(--rose3);color:var(--rose);}
+.btn-outline:hover{background:var(--rose4);border-color:var(--rose);transform:translateY(-1px);}
+.btn-full{width:100%;}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:10px;}
+.btn-xs{padding:5px 10px;font-size:12px;border-radius:8px;}
+.please-btn{width:100%;padding:16px;border-radius:18px;border:none;background:linear-gradient(135deg,#E8748A 0%,#F4A0B0 50%,#E8748A 100%);background-size:200% 100%;color:white;font-size:16px;font-weight:800;font-family:'Nanum Myeongjo',serif;cursor:pointer;box-shadow:0 6px 24px rgba(232,116,138,0.45);transition:all 0.3s;animation:shimmer 3s infinite;letter-spacing:0.5px;}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.please-btn:hover{transform:translateY(-3px);box-shadow:0 10px 32px rgba(232,116,138,0.5);}
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.theme-chip{padding:12px 8px;border-radius:12px;border:1.5px solid var(--rose3);background:white;text-align:center;cursor:pointer;transition:all 0.2s;font-family:inherit;font-size:13px;font-weight:700;color:var(--text2);}
+.theme-chip:hover{border-color:var(--rose2);background:var(--rose4);}
+.theme-chip.selected{border-color:var(--rose);background:var(--rose4);color:var(--rose);transform:scale(1.03);}
+.region-wrap{position:relative;}
+.region-btn{width:100%;padding:12px 16px;border-radius:12px;border:1.5px solid transparent;background:var(--rose4);color:var(--text);font-size:15px;font-family:inherit;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all 0.2s;}
+.region-btn.open,.region-btn:hover{border-color:var(--rose);background:white;}
+.region-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.12);z-index:50;max-height:260px;overflow-y:auto;padding:8px;border:1px solid var(--rose3);}
+.region-dropdown.open{display:block;animation:fadeUp 0.2s ease;}
+.region-group-title{font-size:11px;font-weight:700;color:var(--text3);padding:8px 10px 4px;text-transform:uppercase;letter-spacing:0.5px;}
+.region-opt{padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--text);transition:background 0.15s;}
+.region-opt:hover{background:var(--rose4);}
+.region-opt.selected{background:var(--rose4);color:var(--rose);font-weight:700;}
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--rose4);border-radius:12px;margin-bottom:8px;}
+.check-text{flex:1;font-size:14px;}
+.check-text.imp{font-weight:700;color:var(--rose);}
+.star-btn{background:none;border:none;font-size:15px;cursor:pointer;color:var(--text3);transition:all 0.2s;}
+.star-btn.on{color:#F4A300;transform:scale(1.2);}
+.del-btn{background:none;border:none;font-size:16px;cursor:pointer;color:var(--text3);transition:color 0.2s;}
+.del-btn:hover{color:var(--rose);}
+.add-row{display:flex;gap:8px;}
+.mission-card{background:linear-gradient(135deg,#FFF8DC,#FFE4E8);border:1.5px solid var(--rose3);border-radius:16px;padding:20px;text-align:center;margin-bottom:8px;position:relative;overflow:hidden;}
+.mission-card::before{content:'✨';font-size:40px;position:absolute;right:-5px;top:-5px;opacity:0.2;}
+.mission-label{font-size:11px;font-weight:700;color:var(--rose);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.mission-text{font-size:15px;font-weight:700;color:var(--text);line-height:1.6;}
+.hero{background:linear-gradient(135deg,var(--rose) 0%,#C86B85 100%);border-radius:24px;padding:28px 24px;margin-bottom:20px;color:white;position:relative;overflow:hidden;}
+.hero::after{content:'♡';font-size:120px;position:absolute;right:-20px;bottom:-30px;opacity:0.1;}
+.hero-greeting{font-size:14px;opacity:0.85;margin-bottom:4px;}
+.hero-name{font-family:'Nanum Myeongjo',serif;font-size:26px;font-weight:800;margin-bottom:16px;}
+.hero-stats{display:flex;gap:20px;}
+.h-val{font-family:'Nanum Myeongjo',serif;font-size:30px;font-weight:800;line-height:1;}
+.h-label{font-size:12px;opacity:0.8;margin-top:2px;}
+.req-card{background:white;border-radius:20px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow2);border-left:4px solid var(--rose);transition:all 0.2s;}
+.req-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.req-from{font-size:12px;color:var(--text3);margin-bottom:4px;}
+.req-date-big{font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;margin-bottom:3px;}
+.req-info{font-size:13px;color:var(--text2);margin-bottom:12px;}
+.req-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.sbadge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.s-pending{background:#FEF3C7;color:#92400E;}
+.s-accepted{background:#D1FAE5;color:#065F46;}
+.s-rejected{background:#FFE4E6;color:#9F1239;}
+.s-canceled{background:#F3F4F6;color:#6B7280;}
+.s-returned{background:#EDE9FE;color:#5B21B6;}
+.date-card{background:white;border-radius:20px;padding:20px;margin-bottom:10px;box-shadow:var(--shadow2);transition:all 0.2s;}
+.date-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.date-card-date{font-family:'Nanum Myeongjo',serif;font-size:17px;font-weight:700;}
+.date-card-info{font-size:13px;color:var(--text2);margin:4px 0 10px;}
+.mini-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--rose4);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all 0.2s;}
+.mini-item:hover{background:var(--rose3);}
+.mini-chk{width:20px;height:20px;border-radius:7px;border:1.5px solid var(--rose3);background:white;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.2s;}
+.mini-chk.done{background:var(--rose);border-color:var(--rose);color:white;}
+.mini-txt{font-size:13px;flex:1;}
+.mini-txt.done{text-decoration:line-through;color:var(--text3);}
+.tab-nav{display:flex;gap:6px;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;}
+.tab-btn{padding:8px 18px;border-radius:20px;border:1.5px solid var(--rose3);background:white;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit;}
+.tab-btn:hover{border-color:var(--rose2);}
+.tab-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
+.diary-card{background:white;border-radius:20px;padding:22px;margin-bottom:10px;box-shadow:var(--shadow2);position:relative;overflow:hidden;transition:all 0.2s;}
+.diary-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.diary-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--rose),var(--rose2),var(--yellow));}
+.diary-date-lbl{font-size:12px;color:var(--text3);margin-bottom:5px;}
+.diary-title{font-family:'Nanum Myeongjo',serif;font-size:18px;font-weight:700;margin-bottom:8px;}
+.diary-body{font-size:14px;color:var(--text2);line-height:1.7;}
+.diary-stars{font-size:15px;margin-top:8px;}
+.diary-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.diary-tag{padding:3px 10px;border-radius:10px;font-size:12px;background:var(--rose4);color:var(--rose);font-weight:700;}
+.comment-area{border-top:1px solid var(--rose3);margin-top:14px;padding-top:12px;}
+.comment-item{display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;}
+.comment-author{font-size:12px;font-weight:700;color:var(--rose);white-space:nowrap;}
+.comment-text{font-size:13px;color:var(--text2);flex:1;line-height:1.5;}
+.comment-row{display:flex;gap:8px;margin-top:10px;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-month{font-family:'Nanum Myeongjo',serif;font-size:20px;font-weight:800;color:var(--text);}
+.cal-nav-btn{background:white;border:1.5px solid var(--rose3);color:var(--rose);width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.cal-nav-btn:hover{background:var(--rose4);border-color:var(--rose);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-day-label{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:8px 0;}
+.cal-day-label:first-child{color:#E74C3C;}
+.cal-day-label:last-child{color:#4A90D9;}
+.cal-cell{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;padding:4px 2px;position:relative;background:transparent;border:none;font-family:inherit;}
+.cal-cell:hover{background:var(--rose4);}
+.cal-cell.today{background:var(--rose4);}
+.cal-cell.today .cal-num{color:var(--rose);font-weight:800;}
+.cal-cell.has-event{background:white;box-shadow:var(--shadow2);}
+.cal-cell.sunday .cal-num{color:#E74C3C;}
+.cal-cell.saturday .cal-num{color:#4A90D9;}
+.cal-cell.other-month .cal-num{color:var(--text3);}
+.cal-num{font-size:14px;font-weight:600;line-height:1;}
+.cal-dots{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;justify-content:center;}
+.cal-dot{width:5px;height:5px;border-radius:50%;}
+.cal-dot-date{background:var(--rose);}
+.cal-dot-pending{background:var(--yellow);border:1px solid #F4C842;}
+.cal-dot-anniversary{background:#A855F7;}
+.cal-legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+.cal-legend-dot{width:8px;height:8px;border-radius:50%;}
+.anni-card{background:white;border-radius:16px;padding:16px 18px;margin-bottom:8px;box-shadow:var(--shadow2);display:flex;align-items:center;gap:12px;transition:all 0.2s;}
+.anni-card:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.anni-icon{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--rose3),var(--yellow2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.anni-name{font-weight:700;font-size:15px;}
+.anni-date{font-size:12px;color:var(--text3);}
+.anni-dday{font-family:'Nanum Myeongjo',serif;font-size:16px;font-weight:800;color:var(--rose);margin-left:auto;white-space:nowrap;}
+.map-wrap{border-radius:20px;overflow:hidden;background:white;box-shadow:var(--shadow2);margin-bottom:20px;padding:16px;}
+.map-wrap svg{width:100%;height:auto;display:block;}
+.map-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center;}
+.map-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);}
+.map-legend-dot{width:10px;height:10px;border-radius:3px;}
+.place-item{background:white;border-radius:16px;padding:16px 18px;margin-bottom:8px;box-shadow:var(--shadow2);display:flex;align-items:center;gap:14px;transition:all 0.2s;}
+.place-item:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.place-dot{width:10px;height:10px;border-radius:50%;background:var(--rose);flex-shrink:0;}
+.place-name-big{font-size:15px;font-weight:700;}
+.place-region-lbl{font-size:12px;color:var(--text3);}
+.note-item{background:white;border-radius:16px;padding:16px;margin-bottom:8px;box-shadow:var(--shadow2);transition:all 0.2s;}
+.note-item.unread{border-left:3px solid var(--rose);}
+.note-from{font-size:12px;color:var(--text3);margin-bottom:4px;}
+.note-text{font-size:14px;color:var(--text);line-height:1.6;}
+.note-time{font-size:11px;color:var(--text3);margin-top:6px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(61,44,44,0.4);backdrop-filter:blur(4px);z-index:300;align-items:flex-end;justify-content:center;}
+.modal-bg.open{display:flex;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:white;border-radius:28px 28px 0 0;padding:24px 22px 40px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease;}
+.modal-center{border-radius:24px;max-width:360px;margin:auto;align-self:center;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-bar{width:36px;height:4px;background:var(--rose3);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-family:'Nanum Myeongjo',serif;font-size:20px;font-weight:800;margin-bottom:20px;}
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:white;padding:12px 24px;border-radius:20px;font-size:14px;font-weight:700;opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;line-height:2;}
+.imp-badge{font-size:12px;background:var(--rose3);color:var(--rose);padding:2px 8px;border-radius:6px;font-weight:700;}
+.filter-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:2px;}
+.filter-btn{padding:6px 14px;border-radius:16px;border:1.5px solid var(--rose3);background:white;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit;}
+.filter-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
 </style>
 </head>
 <body>
 
-<!-- 로그인 -->
 <div id="login-screen" class="screen">
   <div class="auth-card">
     <div class="auth-logo">💕</div>
     <div class="auth-title">Please Woonyo</div>
     <div class="auth-sub">우뇨야, 데이트를 받아줘<br>우리만의 공간이에요 🌸</div>
     <button class="google-btn" id="google-btn">
-      <svg width="18" height="18" viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       Google로 로그인
     </button>
     <div class="err-msg" id="login-err"></div>
@@ -285,21 +225,32 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
   </div>
 </div>
 
-<!-- 닉네임 설정 -->
 <div id="nick-screen" class="screen" style="display:none;">
   <div class="auth-card">
     <div class="auth-logo">🌸</div>
     <div class="auth-title">닉네임 설정</div>
-    <div class="auth-sub">앱에서 사용할 이름을 입력해주세요<br>상대방이 신청할 때 이 이름으로 보여요</div>
+    <div class="auth-sub">앱에서 사용할 이름을 입력해주세요</div>
     <div class="form-group" style="text-align:left;">
       <label class="form-label">닉네임 (최대 10자)</label>
       <input type="text" id="nick-input" class="form-input" placeholder="예) 우뇨, 올드맨..." maxlength="10">
     </div>
-    <button class="btn btn-rose btn-full" id="nick-save-btn">시작하기 💕</button>
+    <button class="btn btn-rose btn-full" id="nick-save-btn">다음 💕</button>
   </div>
 </div>
 
-<!-- 앱 -->
+<div id="couple-screen" class="screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">💑</div>
+    <div class="auth-title">커플 코드</div>
+    <div class="auth-sub">상대방과 동일한 코드를 입력해야<br>데이터를 함께 볼 수 있어요 🔑</div>
+    <div class="form-group" style="text-align:left;">
+      <label class="form-label">커플 코드 (영문+숫자)</label>
+      <input type="text" id="couple-input" class="form-input" placeholder="예) woonyo2025" maxlength="20">
+    </div>
+    <button class="btn btn-rose btn-full" id="couple-save-btn">입장하기 💕</button>
+  </div>
+</div>
+
 <div id="app">
   <div class="top-nav">
     <div class="app-logo">
@@ -316,14 +267,13 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
   </div>
 
   <main>
-    <!-- 홈 -->
     <div id="page-home" class="page active">
       <div class="hero">
         <div class="hero-greeting" id="hero-greeting">안녕하세요</div>
         <div class="hero-name" id="hero-name">-</div>
         <div class="hero-stats">
           <div><div class="h-val" id="stat-total">0</div><div class="h-label">함께한 데이트</div></div>
-          <div><div class="h-val" id="stat-pending">0</div><div class="h-label">대기중인 신청</div></div>
+          <div><div class="h-val" id="stat-pending">0</div><div class="h-label">대기중 신청</div></div>
           <div><div class="h-val" id="stat-diary">0</div><div class="h-label">일기</div></div>
         </div>
       </div>
@@ -333,20 +283,19 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
       <div id="home-upcoming"></div>
     </div>
 
-    <!-- 신청 -->
     <div id="page-apply" class="page">
       <div class="page-title">데이트 신청 💌</div>
       <div class="card">
         <div class="form-group">
           <label class="form-label">누구에게 신청할까요?</label>
-          <input type="text" id="a-recipient" class="form-input" placeholder="상대방 닉네임을 입력하세요">
-          <div class="err-hint" id="err-recipient">존재하지 않는 우뇨입니다!</div>
+          <input type="text" id="a-recipient" class="form-input" placeholder="상대방 닉네임">
+          <div class="err-hint" id="err-recipient">존재하지 않는 닉네임이에요</div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">날짜</label>
             <input type="date" id="a-date" class="form-input">
-            <div class="err-hint" id="err-date">데이트할 날짜를 골라주세요!</div>
+            <div class="err-hint" id="err-date">날짜를 골라주세요</div>
           </div>
           <div class="form-group">
             <label class="form-label">시간</label>
@@ -363,7 +312,7 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
             <button class="theme-chip" data-theme="문화생활">문화생활</button>
             <button class="theme-chip" data-theme="드라이브">드라이브</button>
           </div>
-          <div class="err-hint" id="err-theme">오늘의 데이트 테마는 무엇인가요?</div>
+          <div class="err-hint" id="err-theme">테마를 골라주세요</div>
         </div>
         <div class="form-group">
           <label class="form-label">지역</label>
@@ -371,7 +320,7 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
             <button class="region-btn" id="region-btn"><span id="region-btn-text">지역을 선택하세요</span><span>▾</span></button>
             <div class="region-dropdown" id="region-dropdown"></div>
           </div>
-          <div class="err-hint" id="err-region">어디서 만날지 알려주세요!</div>
+          <div class="err-hint" id="err-region">지역을 선택해주세요</div>
         </div>
         <div class="form-group">
           <label class="form-label">세부 장소</label>
@@ -379,10 +328,9 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
             <input type="text" id="a-subloc" class="form-input" placeholder="예) 수성못, 동성로">
             <button class="btn btn-outline btn-sm" id="save-subloc-btn" style="white-space:nowrap;">저장</button>
           </div>
-          <div style="font-size:12px;color:var(--text3);margin-top:5px;">저장 버튼을 누르면 장소 목록에 추가돼요</div>
         </div>
         <div class="form-group">
-          <label class="form-label">체크리스트 <span style="color:var(--text3);font-weight:400;font-size:12px;">(별표 중요표시 최대 3개)</span></label>
+          <label class="form-label">체크리스트 <span style="color:var(--text3);font-weight:400;font-size:12px;">(별표 최대 3개)</span></label>
           <div id="checklist-items"></div>
           <div class="add-row">
             <input type="text" id="new-check" class="form-input" placeholder="할 것 추가...">
@@ -396,20 +344,17 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
         </div>
         <div class="form-group">
           <label class="form-label">한마디</label>
-          <textarea id="a-message" class="form-input" placeholder="전하고 싶은 말을 적어요 💕"></textarea>
+          <textarea id="a-message" class="form-input" placeholder="전하고 싶은 말 💕"></textarea>
         </div>
         <button class="please-btn" id="submit-btn">Please Woonyo! 💕</button>
       </div>
     </div>
 
-    <!-- 달력 -->
     <div id="page-calendar" class="page">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div class="page-title" style="margin:0;">달력 📅</div>
         <button class="btn btn-rose btn-sm" id="open-anni-modal-btn">기념일 추가</button>
       </div>
-
-      <!-- 달력 -->
       <div class="card">
         <div class="cal-header">
           <button class="cal-nav-btn" id="cal-prev">‹</button>
@@ -418,27 +363,29 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
         </div>
         <div class="cal-grid" id="cal-grid"></div>
         <div class="cal-legend">
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-date"></div> 확정 데이트</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-pending"></div> 대기중</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-date"></div> 확정</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-pending"></div> 대기</div>
           <div class="cal-legend-item"><div class="cal-legend-dot cal-dot-anniversary"></div> 기념일</div>
         </div>
       </div>
-
-      <!-- 기념일 목록 -->
       <div class="section-label">기념일</div>
       <div id="anni-list"></div>
     </div>
 
-    <!-- 장소 -->
-    <div id="page-places" class="page">
-      <div class="page-title">우리의 장소 📍</div>
-      <div class="section-label">지역별 데이트 횟수</div>
-      <div class="card" style="padding:16px;">
-        <canvas id="region-chart" height="200"></canvas>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;margin-bottom:10px;">
-        <div class="section-label" style="margin:0;">저장된 장소</div>
+    <div id="page-map" class="page">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="page-title" style="margin:0;">우리의 장소 🗺️</div>
         <button class="btn btn-rose btn-sm" id="open-place-modal-btn">추가</button>
+      </div>
+      <div class="map-wrap">
+        <div id="korea-map"></div>
+        <div class="map-legend">
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#EFEFEF;border:1px solid #ccc;"></div>0회</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FFD6DF;"></div>1-2</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF8FA3;"></div>3-6</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8748A;"></div>7-9</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#C0392B;"></div>10+</div>
+        </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <button class="tab-btn active" id="place-tab-visited">가봤던 곳</button>
@@ -447,7 +394,6 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
       <div id="places-list"></div>
     </div>
 
-    <!-- 마이페이지 -->
     <div id="page-my" class="page">
       <div class="page-title">마이페이지 ☺</div>
       <div class="tab-nav">
@@ -455,6 +401,13 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
         <button class="tab-btn" data-mytab="sent">보낸 신청</button>
         <button class="tab-btn" data-mytab="dates">데이트 기록</button>
         <button class="tab-btn" data-mytab="diaries">일기</button>
+        <button class="tab-btn" data-mytab="notes">쪽지 💌</button>
+      </div>
+      <div id="my-filter" class="filter-row" style="display:none;">
+        <button class="filter-btn active" data-filter="전체">전체</button>
+        <button class="filter-btn" data-filter="대기">대기</button>
+        <button class="filter-btn" data-filter="수락">수락</button>
+        <button class="filter-btn" data-filter="반려">반려</button>
       </div>
       <div id="my-content"></div>
     </div>
@@ -464,12 +417,12 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
     <button class="nav-item active" data-page="home"><div class="nav-icon">♡</div><div class="nav-label">홈</div><div class="nav-dot"></div></button>
     <button class="nav-item" data-page="apply"><div class="nav-icon">✉</div><div class="nav-label">신청</div><div class="nav-dot"></div></button>
     <button class="nav-item" data-page="calendar"><div class="nav-icon">◫</div><div class="nav-label">달력</div><div class="nav-dot"></div></button>
-    <button class="nav-item" data-page="places"><div class="nav-icon">◎</div><div class="nav-label">장소</div><div class="nav-dot"></div></button>
+    <button class="nav-item" data-page="map"><div class="nav-icon">◎</div><div class="nav-label">지도</div><div class="nav-dot"></div></button>
     <button class="nav-item" data-page="my"><div class="nav-icon">☺</div><div class="nav-label">마이</div><div class="nav-dot"></div></button>
   </div>
 </div>
 
-<!-- 장소 추가 모달 -->
+<!-- 장소 모달 -->
 <div class="modal-bg" id="modal-place">
   <div class="modal">
     <div class="modal-bar"></div>
@@ -503,14 +456,14 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
   </div>
 </div>
 
-<!-- 기념일 추가 모달 -->
+<!-- 기념일 모달 -->
 <div class="modal-bg" id="modal-anni">
   <div class="modal">
     <div class="modal-bar"></div>
     <div class="modal-title">기념일 추가 🎂</div>
     <div class="form-group">
       <label class="form-label">기념일 이름</label>
-      <input type="text" id="anni-name" class="form-input" placeholder="예) 100일, 첫 만남, 생일">
+      <input type="text" id="anni-name" class="form-input" placeholder="예) 100일, 첫 만남">
     </div>
     <div class="form-group">
       <label class="form-label">날짜</label>
@@ -531,7 +484,7 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
   </div>
 </div>
 
-<!-- 달력 날짜 상세 모달 -->
+<!-- 달력 상세 모달 -->
 <div class="modal-bg" id="modal-cal-detail">
   <div class="modal">
     <div class="modal-bar"></div>
@@ -570,12 +523,39 @@ textarea.form-input { resize:none; min-height:90px; line-height:1.6; }
   </div>
 </div>
 
+<!-- 쪽지 보내기 모달 -->
+<div class="modal-bg" id="modal-note">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title">쪽지 보내기 💌</div>
+    <div class="form-group">
+      <label class="form-label">내용 (최대 100자)</label>
+      <textarea id="note-content" class="form-input" placeholder="하고 싶은 말을 적어봐요..." maxlength="100" style="min-height:80px;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline btn-full" id="close-note-modal-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="send-note-btn">보내기 💕</button>
+    </div>
+  </div>
+</div>
+
+<!-- 커스텀 확인 모달 -->
+<div class="modal-bg" id="modal-confirm">
+  <div class="modal modal-center" style="padding:28px 24px 28px;">
+    <div class="modal-title" id="confirm-msg" style="font-size:16px;text-align:center;margin-bottom:20px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline btn-full" id="confirm-cancel-btn">취소</button>
+      <button class="btn btn-rose btn-full" id="confirm-ok-btn">확인</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBamsaFwG14Va2PAAUDuZw1qZpF7YzB68U",
@@ -592,52 +572,86 @@ const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
 
 const REGIONS = {
-  '수도권': ['서울 강남','서울 홍대','서울 이태원','서울 종로','서울 한강','서울 성수','인천','수원','성남','용인','고양','남양주시','의정부','파주','김포','안양','부천','구리'],
-  '충청': ['대전','청주','천안','공주','세종','충주','아산'],
-  '경상': ['대구','대구 수성못','대구 동성로','대구 앞산','부산','부산 해운대','부산 광안리','부산 남포동','울산','경주','포항','안동','구미','창원','진주','통영','거제','양산'],
-  '전라': ['광주','전주','여수','순천','목포','남원','군산'],
-  '강원': ['강릉','춘천','속초','원주','평창','정선','동해','삼척','태백'],
-  '제주': ['제주시','서귀포','애월','성산','중문','협재'],
-  '기타': ['기타']
+  '수도권':['서울 강남','서울 홍대','서울 이태원','서울 종로','서울 한강','서울 성수','인천','수원','성남','용인','고양','남양주시','의정부','파주','김포','안양','부천','구리'],
+  '충청':['대전','청주','천안','공주','세종','충주','아산'],
+  '경상':['대구','대구 수성못','대구 동성로','대구 앞산','부산','부산 해운대','부산 광안리','부산 남포동','울산','경주','포항','안동','구미','창원','진주','통영','거제','양산'],
+  '전라':['광주','전주','여수','순천','목포','남원','군산'],
+  '강원':['강릉','춘천','속초','원주','평창','정선','동해','삼척','태백'],
+  '제주':['제주시','서귀포','애월','성산','중문','협재'],
+  '기타':['기타']
 };
 
 const MISSIONS = [
-  '오늘 하루 상대방이 모든 것을 결정하기',
-  '처음 가보는 골목 함께 탐험하기',
-  '서로 어릴 적 추억 하나씩 이야기하기',
-  '오늘 가장 예쁜 장면 사진으로 남기기',
-  '서로에게 칭찬 5가지씩 말해주기',
-  '하늘 보면서 10분간 아무 말 없이 있기',
-  '오늘 새로운 것 하나 함께 도전하기',
-  '서로 손잡고 10분 이상 걷기',
-  '오늘 데이트를 한 문장으로 표현해보기',
-  '눈에 띄는 것 사진 찍기 대결하기',
-  '서로 좋아하는 노래 한 곡씩 들려주기',
-  '오늘 가장 행복했던 순간 말해주기',
-  '서로에게 편지 한 줄씩 써주기',
-  '공원에서 함께 일몰 보기',
-  '지금 느끼는 감정 솔직히 말하기',
-  '서로의 버킷리스트 하나씩 공유하기',
-  '편의점에서 간식 서로 골라주기',
-  '카페에서 서로 음료 골라주기',
-  '오늘 웃겼던 것 하나씩 꼽기',
-  '걷다가 마음에 드는 벤치에 앉아 쉬기',
+  '오늘 하루 상대방이 모든 것을 결정하기','처음 가보는 골목 함께 탐험하기',
+  '서로 어릴 적 추억 하나씩 이야기하기','오늘 가장 예쁜 장면 사진으로 남기기',
+  '서로에게 칭찬 5가지씩 말해주기','하늘 보면서 10분간 아무 말 없이 있기',
+  '오늘 새로운 것 하나 함께 도전하기','서로 손잡고 10분 이상 걷기',
+  '오늘 데이트를 한 문장으로 표현해보기','눈에 띄는 것 사진 찍기 대결하기',
+  '서로 좋아하는 노래 한 곡씩 들려주기','오늘 가장 행복했던 순간 말해주기',
+  '서로에게 편지 한 줄씩 써주기','공원에서 함께 일몰 보기',
+  '지금 느끼는 감정 솔직히 말하기','서로의 버킷리스트 하나씩 공유하기',
+  '편의점에서 간식 서로 골라주기','카페에서 서로 음료 골라주기',
+  '오늘 웃겼던 것 하나씩 꼽기','걷다가 마음에 드는 벤치에 앉아 쉬기',
 ];
 
-let currentUser = null, currentNick = '';
-let checkItems = [], selTheme = '', selRegion = '', selPlaceRegion = '';
-let diaryStar = 5, placeFilter = 'visited', myTab = 'received';
-let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [];
-let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
-let regionChart = null;
+// SVG 한국 지도 권역 데이터 (간략화 도형)
+const MAP_DATA = [
+  { key:'수도권', label:'수도권', tx:65,  ty:95,
+    d:'M8,18 L125,16 L128,152 L80,162 L8,150 Z' },
+  { key:'강원',  label:'강원',  tx:200, ty:88,
+    d:'M125,16 L262,18 L262,155 L128,152 Z' },
+  { key:'충청',  label:'충청',  tx:70,  ty:200,
+    d:'M8,150 L80,162 L128,155 L132,230 L72,242 L8,225 Z' },
+  { key:'경상',  label:'경상',  tx:205, ty:238,
+    d:'M128,152 L262,155 L260,325 L172,338 L128,318 Z' },
+  { key:'전라',  label:'전라',  tx:70,  ty:288,
+    d:'M8,225 L72,242 L132,233 L132,320 L150,338 L52,350 L8,322 Z' },
+  { key:'제주',  label:'제주',  tx:100, ty:382,
+    d:'M42,368 L162,368 L160,394 L44,394 Z' },
+];
 
-// ── 유틸 ──
+function heatColor(n) {
+  if (!n) return '#EFEFEF';
+  if (n <= 2) return '#FFD6DF';
+  if (n <= 4) return '#FFB3C1';
+  if (n <= 6) return '#FF8FA3';
+  if (n <= 8) return '#E8748A';
+  if (n <= 10) return '#C95B70';
+  return '#C0392B';
+}
+
+function getRegionGroup(city) {
+  for (const [g, cities] of Object.entries(REGIONS)) {
+    if (cities.includes(city)) return g;
+  }
+  return '기타';
+}
+
+let currentUser = null, currentNick = '', currentCoupleCode = '';
+let checkItems = [], selTheme = '', selRegion = '', selPlaceRegion = '';
+let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전체';
+let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [];
+let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+let unsubscribers = [];
+
 function showToast(msg, isErr) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.style.background = isErr ? '#C0392B' : '#3D2C2C';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function showConfirm(msg, onOk) {
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('modal-confirm').classList.add('open');
+  document.getElementById('confirm-ok-btn').onclick = () => {
+    document.getElementById('modal-confirm').classList.remove('open');
+    onOk();
+  };
+  document.getElementById('confirm-cancel-btn').onclick = () => {
+    document.getElementById('modal-confirm').classList.remove('open');
+  };
 }
 
 function getGreeting() {
@@ -660,7 +674,6 @@ function getDday(dateStr, repeat) {
   return 'D+' + Math.abs(diff);
 }
 
-// ── 지역 드롭다운 ──
 function buildDropdown(ddId, onSelect) {
   const dd = document.getElementById(ddId);
   let html = '';
@@ -685,25 +698,21 @@ document.getElementById('place-region-btn').addEventListener('click', () => {
   document.getElementById('place-region-btn').classList.toggle('open');
 });
 
-buildDropdown('region-dropdown', (city) => {
+buildDropdown('region-dropdown', city => {
   selRegion = city;
   document.getElementById('region-btn-text').textContent = city;
   document.getElementById('region-dropdown').classList.remove('open');
   document.getElementById('region-btn').classList.remove('open');
   document.getElementById('err-region').classList.remove('show');
-  document.getElementById('region-dropdown').querySelectorAll('.region-opt').forEach(o => {
-    o.classList.toggle('selected', o.dataset.city === city);
-  });
+  document.getElementById('region-dropdown').querySelectorAll('.region-opt').forEach(o => o.classList.toggle('selected', o.dataset.city === city));
 });
 
-buildDropdown('place-region-dropdown', (city) => {
+buildDropdown('place-region-dropdown', city => {
   selPlaceRegion = city;
   document.getElementById('place-region-text').textContent = city;
   document.getElementById('place-region-dropdown').classList.remove('open');
   document.getElementById('place-region-btn').classList.remove('open');
-  document.getElementById('place-region-dropdown').querySelectorAll('.region-opt').forEach(o => {
-    o.classList.toggle('selected', o.dataset.city === city);
-  });
+  document.getElementById('place-region-dropdown').querySelectorAll('.region-opt').forEach(o => o.classList.toggle('selected', o.dataset.city === city));
 });
 
 // ── 로그인 ──
@@ -715,7 +724,7 @@ document.getElementById('google-btn').addEventListener('click', async () => {
   } catch(e) {
     document.getElementById('google-btn').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Google로 로그인';
     if (e.code === 'auth/popup-blocked') {
-      document.getElementById('login-err').textContent = '팝업이 차단됐어요. 팝업을 허용해주세요.';
+      document.getElementById('login-err').textContent = '팝업이 차단됐어요.';
       await signInWithRedirect(auth, provider);
     } else if (e.code !== 'auth/popup-closed-by-user') {
       document.getElementById('login-err').textContent = '오류: ' + e.code;
@@ -724,10 +733,12 @@ document.getElementById('google-btn').addEventListener('click', async () => {
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
+  unsubscribers.forEach(u => u());
+  unsubscribers = [];
   await signOut(auth);
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
-  currentUser = null; currentNick = '';
+  currentUser = null; currentNick = ''; currentCoupleCode = '';
 });
 
 document.getElementById('nick-save-btn').addEventListener('click', async () => {
@@ -737,22 +748,42 @@ document.getElementById('nick-save-btn').addEventListener('click', async () => {
   await setDoc(doc(db, 'users', nick), { uid: currentUser.uid, nickname: nick, createdAt: serverTimestamp() });
   currentNick = nick;
   document.getElementById('nick-screen').style.display = 'none';
-  enterApp();
+  document.getElementById('couple-screen').style.display = 'flex';
 });
 
 document.getElementById('nick-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('nick-save-btn').click();
 });
 
-onAuthStateChanged(auth, user => {
+document.getElementById('couple-save-btn').addEventListener('click', async () => {
+  const code = document.getElementById('couple-input').value.trim();
+  if (!code) { showToast('커플 코드를 입력해주세요', true); return; }
+  localStorage.setItem('couple_' + currentUser.uid, code);
+  await updateDoc(doc(db, 'users', currentNick), { coupleCode: code });
+  currentCoupleCode = code;
+  document.getElementById('couple-screen').style.display = 'none';
+  enterApp();
+});
+
+document.getElementById('couple-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('couple-save-btn').click();
+});
+
+onAuthStateChanged(auth, async user => {
   if (user) {
     currentUser = user;
-    const saved = localStorage.getItem('nick_' + user.uid);
-    if (!saved) {
+    const savedNick = localStorage.getItem('nick_' + user.uid);
+    const savedCouple = localStorage.getItem('couple_' + user.uid);
+    if (!savedNick) {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('nick-screen').style.display = 'flex';
+    } else if (!savedCouple) {
+      currentNick = savedNick;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('couple-screen').style.display = 'flex';
     } else {
-      currentNick = saved;
+      currentNick = savedNick;
+      currentCoupleCode = savedCouple;
       enterApp();
     }
   }
@@ -763,6 +794,7 @@ getRedirectResult(auth).catch(() => {});
 function enterApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('nick-screen').style.display = 'none';
+  document.getElementById('couple-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-name-display').textContent = currentNick;
   document.getElementById('hero-name').textContent = currentNick + '님';
@@ -773,23 +805,41 @@ function enterApp() {
 
 // ── 데이터 로드 ──
 function loadAll() {
-  onSnapshot(query(collection(db, 'requests'), orderBy('createdAt', 'desc')), snap => {
-    allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  unsubscribers.forEach(u => u());
+  unsubscribers = [];
+
+  const u1 = onSnapshot(query(collection(db, 'requests'), where('coupleCode', '==', currentCoupleCode)), snap => {
+    allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     renderHome(); renderMyContent(); renderCalendar();
   });
-  onSnapshot(query(collection(db, 'places'), orderBy('createdAt', 'desc')), snap => {
-    allPlaces = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderPlaces();
+
+  const u2 = onSnapshot(query(collection(db, 'places'), where('coupleCode', '==', currentCoupleCode)), snap => {
+    allPlaces = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    renderPlaces(); renderMap();
   });
-  onSnapshot(query(collection(db, 'diaries'), orderBy('date', 'desc')), snap => {
-    allDiaries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const u3 = onSnapshot(query(collection(db, 'diaries'), where('coupleCode', '==', currentCoupleCode)), snap => {
+    allDiaries = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     document.getElementById('stat-diary').textContent = allDiaries.length;
     if (myTab === 'diaries') renderMyContent();
   });
-  onSnapshot(query(collection(db, 'anniversaries'), orderBy('date', 'asc')), snap => {
-    allAnniversaries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const u4 = onSnapshot(query(collection(db, 'anniversaries'), where('coupleCode', '==', currentCoupleCode)), snap => {
+    allAnniversaries = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     renderAnniversaries(); renderCalendar();
   });
+
+  const u5 = onSnapshot(query(collection(db, 'notes'), where('coupleCode', '==', currentCoupleCode)), snap => {
+    allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    if (myTab === 'notes') renderMyContent();
+  });
+
+  unsubscribers = [u1, u2, u3, u4, u5];
 }
 
 // ── 홈 ──
@@ -811,16 +861,31 @@ function renderHome() {
     : '<div class="empty-state">예정된 데이트가 없어요 🌸</div>';
 }
 
+function statusBadge(status) {
+  const map = { '대기':'s-pending','수락':'s-accepted','거절':'s-rejected','취소':'s-canceled','반려':'s-returned' };
+  return '<span class="sbadge ' + (map[status] || 's-pending') + '">' + status + '</span>';
+}
+
 function reqCardHTML(r, showActions) {
+  let actions = statusBadge(r.status);
+  if (showActions && r.status === '대기') {
+    actions = '<div class="req-actions">'
+      + '<button class="btn btn-rose btn-sm" data-accept="' + r.id + '">수락 💕</button>'
+      + '<button class="btn btn-outline btn-sm" data-reject="' + r.id + '">거절</button>'
+      + '</div>';
+  } else if (r.status === '수락' && r.toUser === currentNick) {
+    actions = '<div class="req-actions">'
+      + statusBadge(r.status)
+      + '<button class="btn btn-outline btn-xs" data-return="' + r.id + '" style="margin-left:8px;">반려</button>'
+      + '</div>';
+  }
   return '<div class="req-card">'
     + '<div class="req-from">' + r.fromUser + ' → ' + r.toUser + '</div>'
     + '<div class="req-date-big">' + r.date + ' ' + r.time + '</div>'
     + '<div class="req-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
     + (r.message ? '<div style="font-size:13px;color:var(--text2);font-style:italic;margin-bottom:10px;padding:10px 12px;background:var(--rose4);border-radius:10px;">"' + r.message + '"</div>' : '')
-    + (r.mission ? '<div class="mission-card" style="margin-bottom:12px;"><div class="mission-label">오늘의 미션 🎲</div><div class="mission-text">' + r.mission + '</div></div>' : '')
-    + (showActions
-      ? '<div class="req-actions"><button class="btn btn-rose btn-sm" data-accept="' + r.id + '">수락 💕</button><button class="btn btn-outline btn-sm" data-reject="' + r.id + '">거절</button></div>'
-      : '<span class="sbadge ' + (r.status === '수락' ? 's-accepted' : r.status === '거절' ? 's-rejected' : r.status === '취소' ? 's-canceled' : 's-pending') + '">' + r.status + '</span>')
+    + (r.mission ? '<div class="mission-card" style="margin-bottom:12px;"><div class="mission-label">미션 🎲</div><div class="mission-text">' + r.mission + '</div></div>' : '')
+    + actions
     + '</div>';
 }
 
@@ -844,14 +909,11 @@ function dateCardHTML(r) {
 function renderCalendar() {
   const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('cal-month-label').textContent = calYear + '년 ' + months[calMonth];
-
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date(); today.setHours(0,0,0,0);
-
   const acceptedDates = new Set(allRequests.filter(r => r.status === '수락').map(r => r.date));
   const pendingDates = new Set(allRequests.filter(r => r.status === '대기').map(r => r.date));
-
   const anniDates = {};
   allAnniversaries.forEach(a => {
     let d = new Date(a.date);
@@ -860,45 +922,31 @@ function renderCalendar() {
     if (!anniDates[key]) anniDates[key] = [];
     anniDates[key].push(a);
   });
-
   const days = ['일','월','화','수','목','금','토'];
   let html = days.map(d => '<div class="cal-day-label">' + d + '</div>').join('');
-
-  // 이전달 빈칸
   for (let i = 0; i < firstDay; i++) {
     const prevDate = new Date(calYear, calMonth, -firstDay + i + 1);
     html += '<button class="cal-cell other-month" disabled><span class="cal-num">' + prevDate.getDate() + '</span></button>';
   }
-
   for (let d = 1; d <= lastDate; d++) {
-    const dateStr = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const dateStr = calYear + '-' + String(calMonth + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
     const cellDate = new Date(calYear, calMonth, d);
-    const isToday = cellDate.getTime() === today.getTime();
     const dow = cellDate.getDay();
+    const isToday = cellDate.getTime() === today.getTime();
     const hasAccepted = acceptedDates.has(dateStr);
     const hasPending = pendingDates.has(dateStr);
     const hasAnni = anniDates[dateStr];
     const hasEvent = hasAccepted || hasPending || hasAnni;
-
-    let classes = 'cal-cell';
-    if (isToday) classes += ' today';
-    if (hasEvent) classes += ' has-event';
-    if (dow === 0) classes += ' sunday';
-    if (dow === 6) classes += ' saturday';
-
-    let dots = '';
-    if (hasAccepted) dots += '<div class="cal-dot cal-dot-date"></div>';
-    if (hasPending) dots += '<div class="cal-dot cal-dot-pending"></div>';
-    if (hasAnni) dots += '<div class="cal-dot cal-dot-anniversary"></div>';
-
-    html += '<button class="' + classes + '" data-caldate="' + dateStr + '">'
+    let cls = 'cal-cell' + (isToday ? ' today' : '') + (hasEvent ? ' has-event' : '') + (dow === 0 ? ' sunday' : '') + (dow === 6 ? ' saturday' : '');
+    let dots = (hasAccepted ? '<div class="cal-dot cal-dot-date"></div>' : '')
+      + (hasPending ? '<div class="cal-dot cal-dot-pending"></div>' : '')
+      + (hasAnni ? '<div class="cal-dot cal-dot-anniversary"></div>' : '');
+    html += '<button class="' + cls + '" data-caldate="' + dateStr + '">'
       + '<span class="cal-num">' + d + '</span>'
       + (dots ? '<div class="cal-dots">' + dots + '</div>' : '')
       + '</button>';
   }
-
   document.getElementById('cal-grid').innerHTML = html;
-
   document.querySelectorAll('[data-caldate]').forEach(btn => {
     btn.addEventListener('click', () => showCalDetail(btn.dataset.caldate, acceptedDates, pendingDates, anniDates));
   });
@@ -908,42 +956,26 @@ function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates) {
   const [y, m, d] = dateStr.split('-');
   document.getElementById('cal-detail-title').textContent = y + '년 ' + parseInt(m) + '월 ' + parseInt(d) + '일';
   let html = '';
-
-  const dayRequests = allRequests.filter(r => r.date === dateStr && r.status === '수락');
-  if (dayRequests.length) {
-    html += '<div class="section-label">확정된 데이트</div>';
-    html += dayRequests.map(r =>
-      '<div class="card" style="margin-bottom:8px;">'
+  allRequests.filter(r => r.date === dateStr && r.status === '수락').forEach(r => {
+    const diary = allDiaries.find(x => x.reqId === r.id);
+    html += '<div class="card" style="margin-bottom:8px;">'
       + '<div style="font-weight:700;font-size:15px;">' + r.time + ' · ' + r.theme + '</div>'
       + '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
-      + '</div>'
-    ).join('');
-  }
-
-  const dayPending = allRequests.filter(r => r.date === dateStr && r.status === '대기');
-  if (dayPending.length) {
-    html += '<div class="section-label">대기중인 신청</div>';
-    html += dayPending.map(r =>
-      '<div class="card" style="margin-bottom:8px;border-left:3px solid var(--yellow);">'
-      + '<div style="font-weight:700;font-size:15px;">' + r.time + ' · ' + r.theme + '</div>'
-      + '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + r.fromUser + ' → ' + r.toUser + '</div>'
-      + '</div>'
-    ).join('');
-  }
-
-  const dayAnni = anniDates[dateStr];
-  if (dayAnni) {
-    html += '<div class="section-label">기념일</div>';
-    html += dayAnni.map(a =>
-      '<div class="anni-card" style="margin-bottom:8px;">'
-      + '<div class="anni-icon">' + a.emoji + '</div>'
-      + '<div><div class="anni-name">' + a.name + '</div></div>'
-      + '</div>'
-    ).join('');
-  }
-
+      + (diary
+        ? '<div style="margin-top:10px;padding:10px;background:var(--rose4);border-radius:10px;font-size:13px;"><b>📔 ' + diary.title + '</b><br><span style="color:var(--text2);">' + diary.content + '</span></div>'
+        : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
+      + '</div>';
+  });
+  allRequests.filter(r => r.date === dateStr && r.status === '대기').forEach(r => {
+    html += '<div class="card" style="border-left:3px solid var(--yellow);margin-bottom:8px;">'
+      + '<div style="font-weight:700;">' + r.time + ' · ' + r.theme + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);">' + r.fromUser + ' → ' + r.toUser + '</div>'
+      + '</div>';
+  });
+  (anniDates[dateStr] || []).forEach(a => {
+    html += '<div class="anni-card" style="margin-bottom:8px;"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
+  });
   if (!html) html = '<div class="empty-state">이 날에는 일정이 없어요</div>';
-
   document.getElementById('cal-detail-content').innerHTML = html;
   document.getElementById('modal-cal-detail').classList.add('open');
 }
@@ -962,8 +994,7 @@ document.getElementById('close-cal-detail-btn').addEventListener('click', () => 
 
 // ── 기념일 ──
 function renderAnniversaries() {
-  const el = document.getElementById('anni-list');
-  el.innerHTML = allAnniversaries.length
+  document.getElementById('anni-list').innerHTML = allAnniversaries.length
     ? allAnniversaries.map(a =>
       '<div class="anni-card">'
       + '<div class="anni-icon">' + a.emoji + '</div>'
@@ -976,67 +1007,66 @@ function renderAnniversaries() {
     : '<div class="empty-state">기념일을 추가해봐요 🎂</div>';
 }
 
-document.getElementById('open-anni-modal-btn').addEventListener('click', () => {
-  document.getElementById('modal-anni').classList.add('open');
-});
-document.getElementById('close-anni-modal-btn').addEventListener('click', () => {
-  document.getElementById('modal-anni').classList.remove('open');
-});
+document.getElementById('open-anni-modal-btn').addEventListener('click', () => document.getElementById('modal-anni').classList.add('open'));
+document.getElementById('close-anni-modal-btn').addEventListener('click', () => document.getElementById('modal-anni').classList.remove('open'));
 document.getElementById('save-anni-btn').addEventListener('click', async () => {
   const name = document.getElementById('anni-name').value.trim();
   const date = document.getElementById('anni-date').value;
-  const emoji = document.getElementById('anni-emoji').value || '🎂';
-  const repeat = document.getElementById('anni-repeat').checked;
   if (!name || !date) { showToast('이름과 날짜를 입력해주세요', true); return; }
-  await addDoc(collection(db, 'anniversaries'), { name, date, emoji, repeat, createdAt: serverTimestamp() });
+  await addDoc(collection(db, 'anniversaries'), {
+    name, date,
+    emoji: document.getElementById('anni-emoji').value || '🎂',
+    repeat: document.getElementById('anni-repeat').checked,
+    coupleCode: currentCoupleCode, createdAt: serverTimestamp()
+  });
   document.getElementById('modal-anni').classList.remove('open');
-  document.getElementById('anni-name').value = '';
-  document.getElementById('anni-date').value = '';
+  ['anni-name','anni-date'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('anni-emoji').value = '🎂';
   document.getElementById('anni-repeat').checked = false;
   showToast('기념일이 저장됐어요! 🎂');
 });
 
-// ── 장소 ──
-function renderPlaces() {
-  const regionCount = {};
+// ── 지도 ──
+function renderMap() {
+  const counts = {};
   allPlaces.filter(p => p.category === 'visited').forEach(p => {
-    const key = (p.region || '기타').split(' ')[0];
-    regionCount[key] = (regionCount[key] || 0) + 1;
+    const g = getRegionGroup(p.region || '기타');
+    counts[g] = (counts[g] || 0) + 1;
   });
 
-  const labels = Object.keys(regionCount);
-  const data = Object.values(regionCount);
+  let svg = '<svg viewBox="0 0 278 408" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<rect width="278" height="408" fill="#C8E6F5" rx="12"/>';
+  svg += '<path d="M8,18 L262,18 L260,325 L172,338 L150,338 L52,350 L8,322 Z" fill="#EAE4DA" stroke="#ccc" stroke-width="0.5"/>';
 
-  if (regionChart) regionChart.destroy();
-  if (labels.length) {
-    const ctx = document.getElementById('region-chart').getContext('2d');
-    regionChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          data,
-          backgroundColor: labels.map((_, i) => 'rgba(232,116,138,' + (0.4 + i * 0.1) + ')'),
-          borderColor: '#E8748A',
-          borderWidth: 1.5,
-          borderRadius: 8,
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(232,116,138,0.1)' } },
-          x: { grid: { display: false } }
-        }
-      }
+  MAP_DATA.forEach(r => {
+    const cnt = counts[r.key] || 0;
+    const fill = heatColor(cnt);
+    svg += `<path d="${r.d}" fill="${fill}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="${r.key}" style="cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"/>`;
+    svg += `<text x="${r.tx}" y="${r.ty}" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">${r.label}</text>`;
+    if (cnt > 0) svg += `<text x="${r.tx}" y="${r.ty+13}" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${cnt}회</text>`;
+  });
+
+  svg += '<text x="42" y="360" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>';
+  const jeju = counts['제주'] || 0;
+  svg += `<ellipse cx="100" cy="380" rx="52" ry="17" fill="${heatColor(jeju)}" stroke="white" stroke-width="1.5" class="map-region" data-rkey="제주" style="cursor:pointer;"/>`;
+  svg += `<text x="100" y="384" text-anchor="middle" font-size="10" font-weight="700" fill="#444" pointer-events="none">제주</text>`;
+  if (jeju > 0) svg += `<text x="100" y="397" text-anchor="middle" font-size="9" fill="#666" pointer-events="none">${jeju}회</text>`;
+
+  svg += '</svg>';
+  document.getElementById('korea-map').innerHTML = svg;
+
+  document.querySelectorAll('.map-region').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.rkey;
+      const cities = REGIONS[key] || [];
+      const filtered = allPlaces.filter(p => cities.includes(p.region));
+      showToast(key + ': ' + (counts[key] || 0) + '곳 방문');
     });
-  } else {
-    const ctx = document.getElementById('region-chart').getContext('2d');
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  }
+  });
+}
 
+// ── 장소 ──
+function renderPlaces() {
   const filtered = allPlaces.filter(p => p.category === placeFilter);
   document.getElementById('places-list').innerHTML = filtered.length
     ? filtered.map(p =>
@@ -1062,13 +1092,8 @@ document.getElementById('place-tab-wanna').addEventListener('click', () => {
   document.getElementById('place-tab-visited').classList.remove('active');
   renderPlaces();
 });
-
-document.getElementById('open-place-modal-btn').addEventListener('click', () => {
-  document.getElementById('modal-place').classList.add('open');
-});
-document.getElementById('close-place-modal-btn').addEventListener('click', () => {
-  document.getElementById('modal-place').classList.remove('open');
-});
+document.getElementById('open-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.add('open'));
+document.getElementById('close-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.remove('open'));
 document.getElementById('save-place-btn').addEventListener('click', async () => {
   const name = document.getElementById('p-name').value.trim();
   if (!name || !selPlaceRegion) { showToast('지역과 장소명을 입력해주세요', true); return; }
@@ -1076,7 +1101,7 @@ document.getElementById('save-place-btn').addEventListener('click', async () => 
     name, region: selPlaceRegion,
     memo: document.getElementById('p-memo').value,
     category: document.getElementById('p-cat').value,
-    createdAt: serverTimestamp()
+    coupleCode: currentCoupleCode, createdAt: serverTimestamp()
   });
   document.getElementById('modal-place').classList.remove('open');
   document.getElementById('p-name').value = '';
@@ -1089,53 +1114,113 @@ document.getElementById('save-place-btn').addEventListener('click', async () => 
 // ── 마이페이지 ──
 function renderMyContent() {
   const el = document.getElementById('my-content');
+  const filterRow = document.getElementById('my-filter');
+  filterRow.style.display = (myTab === 'received' || myTab === 'sent') ? 'flex' : 'none';
+
   if (myTab === 'received') {
-    const mine = allRequests.filter(r => r.toUser === currentNick);
-    el.innerHTML = mine.length ? mine.map(r => reqCardHTML(r, r.status === '대기')).join('') : '<div class="empty-state">받은 신청이 없어요</div>';
+    let list = allRequests.filter(r => r.toUser === currentNick);
+    if (myFilter !== '전체') list = list.filter(r => r.status === myFilter);
+    el.innerHTML = list.length
+      ? list.map(r => reqCardHTML(r, r.status === '대기')).join('')
+      : '<div class="empty-state">받은 신청이 없어요</div>';
   } else if (myTab === 'sent') {
-    const mine = allRequests.filter(r => r.fromUser === currentNick);
-    el.innerHTML = mine.length ? mine.map(r => {
-      const card = reqCardHTML(r, false);
-      if (r.status === '대기') {
-        return card.replace('</div>', '<button class="btn btn-outline btn-sm" data-cancel="' + r.id + '" style="margin-top:8px;width:100%;">신청 취소</button></div>');
-      }
-      return card;
-    }).join('') : '<div class="empty-state">보낸 신청이 없어요</div>';
+    let list = allRequests.filter(r => r.fromUser === currentNick);
+    if (myFilter !== '전체') list = list.filter(r => r.status === myFilter);
+    el.innerHTML = list.length
+      ? list.map(r => {
+        let card = reqCardHTML(r, false);
+        if (r.status === '대기') {
+          card = card.replace('</div>', '<button class="btn btn-outline btn-sm" data-cancel="' + r.id + '" style="margin-top:8px;width:100%;">신청 취소</button></div>');
+        }
+        return card;
+      }).join('')
+      : '<div class="empty-state">보낸 신청이 없어요</div>';
   } else if (myTab === 'dates') {
-    const accepted = allRequests.filter(r => r.status === '수락').sort((a, b) => b.date.localeCompare(a.date));
-    el.innerHTML = accepted.length ? accepted.map(r => {
-      const d = allDiaries.find(x => x.reqId === r.id);
-      const checks = (r.checklist || []).map((c, i) =>
-        '<div class="mini-item" data-reqid="' + r.id + '" data-idx="' + i + '">'
-        + '<div class="mini-chk' + (c.done ? ' done' : '') + '">' + (c.done ? '✓' : '') + '</div>'
-        + '<span class="mini-txt' + (c.done ? ' done' : '') + '">' + (c.important ? '<span style="color:#F4A300;">★</span> ' : '') + c.text + '</span>'
-        + '</div>'
-      ).join('');
-      return '<div class="date-card">'
-        + '<div class="date-card-date">' + r.date + ' ' + r.time + '</div>'
-        + '<div class="date-card-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
-        + (checks ? '<div>' + checks + '</div>' : '')
-        + (d ? '<div style="background:var(--rose4);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text2);margin-top:8px;">📔 일기: ' + d.title + '</div>'
-          : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
-        + '</div>';
-    }).join('') : '<div class="empty-state">데이트 기록이 없어요</div>';
+    const list = allRequests.filter(r => r.status === '수락').sort((a,b) => b.date.localeCompare(a.date));
+    el.innerHTML = list.length
+      ? list.map(r => {
+        const d = allDiaries.find(x => x.reqId === r.id);
+        const checks = (r.checklist || []).map((c,i) =>
+          '<div class="mini-item" data-reqid="' + r.id + '" data-idx="' + i + '">'
+          + '<div class="mini-chk' + (c.done ? ' done' : '') + '">' + (c.done ? '✓' : '') + '</div>'
+          + '<span class="mini-txt' + (c.done ? ' done' : '') + '">' + (c.important ? '<span style="color:#F4A300;">★</span> ' : '') + c.text + '</span>'
+          + '</div>'
+        ).join('');
+        return '<div class="date-card">'
+          + '<div class="date-card-date">' + r.date + ' ' + r.time + '</div>'
+          + '<div class="date-card-info">' + r.theme + ' · ' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
+          + (checks ? '<div>' + checks + '</div>' : '')
+          + (d
+            ? '<div style="background:var(--rose4);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text2);margin-top:8px;">📔 ' + d.title + '</div>'
+            : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
+          + '</div>';
+      }).join('')
+      : '<div class="empty-state">데이트 기록이 없어요</div>';
   } else if (myTab === 'diaries') {
-    el.innerHTML = allDiaries.length ? allDiaries.map(d =>
-      '<div class="diary-card">'
-      + '<div class="diary-date-lbl">' + d.date + ' · ' + (d.author || '') + '</div>'
-      + '<div class="diary-title">' + d.title + '</div>'
-      + '<div class="diary-body">' + d.content + '</div>'
-      + '<div class="diary-stars">' + '★'.repeat(d.star || 5) + '☆'.repeat(5 - (d.star || 5)) + '</div>'
-      + (d.tags && d.tags.length ? '<div class="diary-tags">' + d.tags.map(t => '<span class="diary-tag">#' + t.trim() + '</span>').join('') + '</div>' : '')
-      + '</div>'
-    ).join('') : '<div class="empty-state">아직 일기가 없어요 📔</div>';
+    el.innerHTML = allDiaries.length
+      ? allDiaries.map(d => diaryCardHTML(d)).join('')
+      : '<div class="empty-state">아직 일기가 없어요 📔</div>';
+  } else if (myTab === 'notes') {
+    el.innerHTML = '<div style="text-align:right;margin-bottom:12px;"><button class="btn btn-rose btn-sm" id="open-note-modal-btn">쪽지 보내기 💌</button></div>'
+      + (allNotes.length
+        ? allNotes.map(n =>
+          '<div class="note-item' + (n.toUser === currentNick && !n.read ? ' unread' : '') + '">'
+          + '<div class="note-from">' + (n.fromUser === currentNick ? '내가 보냄 → ' + n.toUser : n.fromUser + ' → 나') + '</div>'
+          + '<div class="note-text">' + n.text + '</div>'
+          + '<div class="note-time">' + formatTime(n.createdAt) + '</div>'
+          + '</div>'
+        ).join('')
+        : '<div class="empty-state">쪽지가 없어요 💌<br>상대방에게 쪽지를 보내봐요</div>');
+
+    setTimeout(() => {
+      const btn = document.getElementById('open-note-modal-btn');
+      if (btn) btn.addEventListener('click', () => document.getElementById('modal-note').classList.add('open'));
+      // 읽지 않은 쪽지 읽음 처리
+      allNotes.filter(n => n.toUser === currentNick && !n.read).forEach(n => {
+        updateDoc(doc(db, 'notes', n.id), { read: true });
+      });
+    }, 0);
   }
+}
+
+function diaryCardHTML(d) {
+  const comments = (d.comments || []).map(c =>
+    '<div class="comment-item"><span class="comment-author">' + c.author + '</span><span class="comment-text">' + c.text + '</span></div>'
+  ).join('');
+  return '<div class="diary-card">'
+    + '<div class="diary-date-lbl">' + d.date + ' · ' + (d.author || '') + '</div>'
+    + '<div class="diary-title">' + d.title + '</div>'
+    + '<div class="diary-body">' + d.content + '</div>'
+    + '<div class="diary-stars">' + '★'.repeat(d.star || 5) + '☆'.repeat(5 - (d.star || 5)) + '</div>'
+    + (d.tags && d.tags.length ? '<div class="diary-tags">' + d.tags.map(t => '<span class="diary-tag">#' + t.trim() + '</span>').join('') + '</div>' : '')
+    + '<div class="comment-area">'
+    + (comments || '')
+    + '<div class="comment-row">'
+    + '<input type="text" class="form-input comment-input" data-diary-id="' + d.id + '" placeholder="댓글 달기..." style="font-size:13px;padding:8px 12px;">'
+    + '<button class="btn btn-rose btn-sm comment-send-btn" data-diary-id="' + d.id + '">↑</button>'
+    + '</div></div>'
+    + '</div>';
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
 document.querySelectorAll('[data-mytab]').forEach(btn => {
   btn.addEventListener('click', () => {
     myTab = btn.dataset.mytab;
     document.querySelectorAll('[data-mytab]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderMyContent();
+  });
+});
+
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    myFilter = btn.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderMyContent();
   });
@@ -1172,8 +1257,7 @@ document.getElementById('checklist-items').addEventListener('click', e => {
   const d = e.target.closest('[data-del]');
   if (s) {
     const i = parseInt(s.dataset.star);
-    const cnt = checkItems.filter(c => c.important).length;
-    if (!checkItems[i].important && cnt >= 3) { showToast('중요 표시는 최대 3개까지', true); return; }
+    if (!checkItems[i].important && checkItems.filter(c => c.important).length >= 3) { showToast('중요 표시는 최대 3개', true); return; }
     checkItems[i].important = !checkItems[i].important;
     renderCheckItems();
   }
@@ -1201,8 +1285,8 @@ document.getElementById('draw-mission-btn').addEventListener('click', () => {
 // ── 세부장소 저장 ──
 document.getElementById('save-subloc-btn').addEventListener('click', async () => {
   const name = document.getElementById('a-subloc').value.trim();
-  if (!name || !selRegion) { showToast('지역과 세부 장소를 먼저 입력해주세요', true); return; }
-  await addDoc(collection(db, 'places'), { name, region: selRegion, memo: '', category: 'visited', createdAt: serverTimestamp() });
+  if (!name || !selRegion) { showToast('지역과 세부 장소를 입력해주세요', true); return; }
+  await addDoc(collection(db, 'places'), { name, region: selRegion, memo: '', category: 'visited', coupleCode: currentCoupleCode, createdAt: serverTimestamp() });
   showToast('장소가 저장됐어요! 📍');
 });
 
@@ -1212,7 +1296,6 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
   const date = document.getElementById('a-date').value;
   let valid = true;
 
-  // 닉네임 검증
   if (!recipient) {
     document.getElementById('err-recipient').textContent = '받는 사람을 입력해주세요';
     document.getElementById('err-recipient').classList.add('show');
@@ -1224,10 +1307,9 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     document.getElementById('a-recipient').classList.add('input-err');
     valid = false;
   } else {
-    // Firestore users 컬렉션에서 닉네임 확인
     const userDoc = await getDoc(doc(db, 'users', recipient));
     if (!userDoc.exists()) {
-      document.getElementById('err-recipient').textContent = '존재하지 않는 우뇨입니다!';
+      document.getElementById('err-recipient').textContent = '존재하지 않는 닉네임이에요';
       document.getElementById('err-recipient').classList.add('show');
       document.getElementById('a-recipient').classList.add('input-err');
       valid = false;
@@ -1246,16 +1328,8 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     document.getElementById('a-date').classList.remove('input-err');
   }
 
-  if (!selTheme) {
-    document.getElementById('err-theme').classList.add('show');
-    valid = false;
-  }
-
-  if (!selRegion) {
-    document.getElementById('err-region').classList.add('show');
-    valid = false;
-  }
-
+  if (!selTheme) { document.getElementById('err-theme').classList.add('show'); valid = false; }
+  if (!selRegion) { document.getElementById('err-region').classList.add('show'); valid = false; }
   if (!valid) return;
 
   await addDoc(collection(db, 'requests'), {
@@ -1266,16 +1340,14 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     checklist: checkItems.map(c => ({ ...c })),
     mission: document.getElementById('mission-display').dataset.mission || '',
     message: document.getElementById('a-message').value,
-    status: '대기', createdAt: serverTimestamp()
+    status: '대기', coupleCode: currentCoupleCode, createdAt: serverTimestamp()
   });
 
   showToast('Please Woonyo! 신청 완료 💕');
   checkItems = []; renderCheckItems(); selTheme = ''; selRegion = '';
   document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('region-btn-text').textContent = '지역을 선택하세요';
-  document.getElementById('a-recipient').value = '';
-  document.getElementById('a-subloc').value = '';
-  document.getElementById('a-message').value = '';
+  ['a-recipient','a-subloc','a-message'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('mission-display').innerHTML = '';
   showPage('home');
 });
@@ -1293,9 +1365,7 @@ document.getElementById('diary-stars').addEventListener('click', e => {
   if (s) { diaryStar = parseInt(s.dataset.star); updateDiaryStars(); }
 });
 
-document.getElementById('close-diary-modal-btn').addEventListener('click', () => {
-  document.getElementById('modal-diary').classList.remove('open');
-});
+document.getElementById('close-diary-modal-btn').addEventListener('click', () => document.getElementById('modal-diary').classList.remove('open'));
 document.getElementById('save-diary-btn').addEventListener('click', async () => {
   const title = document.getElementById('d-title').value.trim();
   const content = document.getElementById('d-content').value.trim();
@@ -1307,41 +1377,70 @@ document.getElementById('save-diary-btn').addEventListener('click', async () => 
     date: req ? req.date : new Date().toISOString().split('T')[0],
     star: diaryStar,
     tags: document.getElementById('d-tags').value.split(',').filter(t => t.trim()),
-    author: currentNick, createdAt: serverTimestamp()
+    author: currentNick, comments: [],
+    coupleCode: currentCoupleCode, createdAt: serverTimestamp()
   });
   document.getElementById('modal-diary').classList.remove('open');
-  document.getElementById('d-title').value = '';
-  document.getElementById('d-content').value = '';
-  document.getElementById('d-tags').value = '';
+  ['d-title','d-content','d-tags'].forEach(id => document.getElementById(id).value = '');
   diaryStar = 5; updateDiaryStars();
   showToast('일기가 저장됐어요! 📔');
-  myTab = 'dates';
-  document.querySelectorAll('[data-mytab]').forEach(b => b.classList.toggle('active', b.dataset.mytab === 'dates'));
+  myTab = 'diaries';
+  document.querySelectorAll('[data-mytab]').forEach(b => b.classList.toggle('active', b.dataset.mytab === 'diaries'));
   renderMyContent();
+});
+
+// ── 쪽지 ──
+document.getElementById('close-note-modal-btn').addEventListener('click', () => document.getElementById('modal-note').classList.remove('open'));
+document.getElementById('send-note-btn').addEventListener('click', async () => {
+  const text = document.getElementById('note-content').value.trim();
+  if (!text) { showToast('내용을 입력해주세요', true); return; }
+  const partner = allRequests.find(r => r.fromUser !== currentNick || r.toUser !== currentNick);
+  const toUser = allRequests.find(r => r.fromUser === currentNick)?.toUser
+    || allRequests.find(r => r.toUser === currentNick)?.fromUser
+    || '상대방';
+  await addDoc(collection(db, 'notes'), {
+    fromUser: currentNick, toUser,
+    text, read: false,
+    coupleCode: currentCoupleCode, createdAt: serverTimestamp()
+  });
+  document.getElementById('note-content').value = '';
+  document.getElementById('modal-note').classList.remove('open');
+  showToast('쪽지를 보냈어요 💌');
 });
 
 // ── 이벤트 위임 ──
 document.addEventListener('click', async e => {
   const acceptBtn = e.target.closest('[data-accept]');
   const rejectBtn = e.target.closest('[data-reject]');
+  const returnBtn = e.target.closest('[data-return]');
   const cancelBtn = e.target.closest('[data-cancel]');
   const miniItem = e.target.closest('.mini-item[data-reqid]');
   const delPlace = e.target.closest('[data-del-place]');
   const delAnni = e.target.closest('[data-del-anni]');
   const openDiary = e.target.closest('[data-open-diary]');
+  const commentSend = e.target.closest('.comment-send-btn');
 
   if (acceptBtn) {
     await updateDoc(doc(db, 'requests', acceptBtn.dataset.accept), { status: '수락' });
     showToast('수락했어요! 💕');
   }
   if (rejectBtn) {
-    await updateDoc(doc(db, 'requests', rejectBtn.dataset.reject), { status: '거절' });
-    showToast('거절했어요');
+    showConfirm('거절할까요?', async () => {
+      await deleteDoc(doc(db, 'requests', rejectBtn.dataset.reject));
+      showToast('거절했어요');
+    });
+  }
+  if (returnBtn) {
+    showConfirm('수락한 신청을 반려할까요?', async () => {
+      await updateDoc(doc(db, 'requests', returnBtn.dataset.return), { status: '반려' });
+      showToast('반려했어요');
+    });
   }
   if (cancelBtn) {
-    if (!confirm('신청을 취소할까요?')) return;
-    await updateDoc(doc(db, 'requests', cancelBtn.dataset.cancel), { status: '취소' });
-    showToast('신청이 취소됐어요');
+    showConfirm('신청을 취소할까요?', async () => {
+      await deleteDoc(doc(db, 'requests', cancelBtn.dataset.cancel));
+      showToast('신청이 취소됐어요');
+    });
   }
   if (miniItem && miniItem.dataset.idx !== undefined) {
     const r = allRequests.find(x => x.id === miniItem.dataset.reqid);
@@ -1350,22 +1449,33 @@ document.addEventListener('click', async e => {
     await updateDoc(doc(db, 'requests', miniItem.dataset.reqid), { checklist: cl });
   }
   if (delPlace) {
-    if (!confirm('장소를 삭제할까요?')) return;
-    await deleteDoc(doc(db, 'places', delPlace.dataset.delPlace));
-    showToast('삭제됐어요');
+    showConfirm('장소를 삭제할까요?', async () => {
+      await deleteDoc(doc(db, 'places', delPlace.dataset.delPlace));
+      showToast('삭제됐어요');
+    });
   }
   if (delAnni) {
-    if (!confirm('기념일을 삭제할까요?')) return;
-    await deleteDoc(doc(db, 'anniversaries', delAnni.dataset.delAnni));
-    showToast('삭제됐어요');
+    showConfirm('기념일을 삭제할까요?', async () => {
+      await deleteDoc(doc(db, 'anniversaries', delAnni.dataset.delAnni));
+      showToast('삭제됐어요');
+    });
   }
   if (openDiary) {
     document.getElementById('d-req-id').value = openDiary.dataset.openDiary;
-    document.getElementById('d-title').value = '';
-    document.getElementById('d-content').value = '';
-    document.getElementById('d-tags').value = '';
+    ['d-title','d-content','d-tags'].forEach(id => document.getElementById(id).value = '');
     diaryStar = 5; updateDiaryStars();
     document.getElementById('modal-diary').classList.add('open');
+  }
+  if (commentSend) {
+    const diaryId = commentSend.dataset.diaryId;
+    const input = document.querySelector('.comment-input[data-diary-id="' + diaryId + '"]');
+    const text = input ? input.value.trim() : '';
+    if (!text) return;
+    await updateDoc(doc(db, 'diaries', diaryId), {
+      comments: arrayUnion({ author: currentNick, text, createdAt: new Date().toISOString() })
+    });
+    input.value = '';
+    showToast('댓글을 달았어요!');
   }
 });
 
@@ -1377,13 +1487,13 @@ function showPage(id) {
   const navBtn = document.querySelector('[data-page="' + id + '"]');
   if (navBtn) navBtn.classList.add('active');
   if (id === 'calendar') renderCalendar();
+  if (id === 'map') { renderMap(); renderPlaces(); }
 }
 
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => showPage(btn.dataset.page));
 });
 
-// 닫기 버튼들
 document.querySelectorAll('.modal-bg').forEach(bg => {
   bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
 });
