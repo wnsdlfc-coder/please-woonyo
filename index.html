@@ -347,11 +347,12 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
   <div class="login-card">
     <div class="login-title">please woonyo</div>
     <div class="login-sub">우뇨야, 데이트를 받아줘<br>우리만의 공간이에요</div>
-    <button class="google-btn" onclick="loginWithGoogle()">
+    <button class="google-btn" id="google-login-btn">
       <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       Google로 로그인
     </button>
-    <div class="login-note">woonyo & old man 전용</div>
+    <div id="login-error" style="font-size:13px;color:#C0392B;margin-top:10px;min-height:18px;"></div>
+    <div class="login-note">커플 전용 데이트 앱</div>
   </div>
 </div>
 
@@ -359,16 +360,11 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
 <div id="nickname-screen" class="nickname-screen">
   <div class="nickname-card">
     <div class="nickname-title">닉네임 설정</div>
-    <div class="nickname-sub">앱에서 사용할 이름을 선택해주세요</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
-      <button class="recipient-chip" id="nick-btn-woonyo" onclick="selectNick('woonyo')" style="padding:16px;">
-        <div class="r-name" style="font-size:17px;">woonyo</div>
-        <div class="r-label">우뇨</div>
-      </button>
-      <button class="recipient-chip" id="nick-btn-oldman" onclick="selectNick('old man')" style="padding:16px;">
-        <div class="r-name" style="font-size:17px;">old man</div>
-        <div class="r-label">올드맨</div>
-      </button>
+    <div class="nickname-sub">앱에서 사용할 이름을 입력해주세요<br>상대방이 신청할 때 이 이름으로 보여요</div>
+    <div class="form-group" style="text-align:left;">
+      <label class="form-label">닉네임</label>
+      <input type="text" id="nickname-input" class="form-input" placeholder="예) 우뇨, 올드맨, 준일..." maxlength="10" onkeydown="if(event.key==='Enter')saveNickname()">
+      <div style="font-size:12px;color:var(--text3);margin-top:5px;">최대 10자, 나중에 변경 불가</div>
     </div>
     <button class="btn btn-rose btn-full" onclick="saveNickname()">시작하기</button>
   </div>
@@ -414,14 +410,8 @@ textarea.form-input { resize: none; min-height: 90px; line-height: 1.6; }
         <!-- 받는 사람 -->
         <div class="form-group">
           <label class="form-label">누구에게 신청할까요?</label>
-          <div class="recipient-grid">
-            <button class="recipient-chip" id="r-woonyo" onclick="selectRecipient('woonyo')">
-              <div class="r-name">woonyo</div><div class="r-label">우뇨</div>
-            </button>
-            <button class="recipient-chip" id="r-oldman" onclick="selectRecipient('old man')">
-              <div class="r-name">old man</div><div class="r-label">올드맨</div>
-            </button>
-          </div>
+          <input type="text" id="a-recipient" class="form-input" placeholder="상대방 닉네임을 입력하세요">
+          <div style="font-size:12px;color:var(--text3);margin-top:5px;">상대방이 앱에서 설정한 닉네임을 입력해주세요</div>
         </div>
 
         <!-- 날짜/시간 -->
@@ -744,11 +734,24 @@ window.selectPlaceRegionOption = (city) => {
 };
 
 // ── AUTH ──
-window.loginWithGoogle = async () => {
+import { getRedirectResult, signInWithRedirect } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+document.getElementById('google-login-btn').addEventListener('click', async () => {
   try {
+    document.getElementById('google-login-btn').textContent = '로그인 중...';
+    document.getElementById('login-error').textContent = '';
     await signInWithPopup(auth, provider);
-  } catch(e) { showToast('로그인 실패: '+e.message, true); }
-};
+  } catch(e) {
+    document.getElementById('google-login-btn').innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Google로 로그인`;
+    if (e.code === 'auth/popup-blocked') {
+      document.getElementById('login-error').textContent = '팝업이 차단됐어요. 팝업 허용 후 다시 시도해주세요.';
+      try { await signInWithRedirect(auth, provider); } catch(e2) {}
+    } else if (e.code !== 'auth/popup-closed-by-user') {
+      document.getElementById('login-error').textContent = '오류: ' + e.message;
+    }
+  }
+});
+
 window.doLogout = async () => {
   await signOut(auth);
   document.getElementById('login-screen').style.display = 'flex';
@@ -757,7 +760,7 @@ window.doLogout = async () => {
   currentUser = null; currentNickname = '';
 };
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (user) {
     currentUser = user;
     const savedNick = localStorage.getItem('nick_'+user.uid);
@@ -771,16 +774,12 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-let selectedNick = '';
-window.selectNick = (nick) => {
-  selectedNick = nick;
-  document.getElementById('nick-btn-woonyo').classList.toggle('selected', nick==='woonyo');
-  document.getElementById('nick-btn-oldman').classList.toggle('selected', nick==='old man');
-};
 window.saveNickname = () => {
-  if (!selectedNick) { showToast('닉네임을 선택해주세요', true); return; }
-  localStorage.setItem('nick_'+currentUser.uid, selectedNick);
-  currentNickname = selectedNick;
+  const nick = document.getElementById('nickname-input').value.trim();
+  if (!nick) { showToast('닉네임을 입력해주세요', true); return; }
+  if (nick.length > 10) { showToast('10자 이내로 입력해주세요', true); return; }
+  localStorage.setItem('nick_'+currentUser.uid, nick);
+  currentNickname = nick;
   document.getElementById('nickname-screen').style.display = 'none';
   enterApp();
 };
@@ -1023,12 +1022,13 @@ window.drawMission = () => {
 window.submitDateRequest = async () => {
   const date = document.getElementById('a-date').value;
   const time = document.getElementById('a-time').value;
-  if (!selectedRecipient) { showToast('받는 사람을 선택해주세요', true); return; }
-  if (selectedRecipient === currentNickname) { showToast('자신에게는 신청할 수 없어요', true); return; }
+  const recipient = document.getElementById('a-recipient').value.trim();
+  if (!recipient) { showToast('받는 사람 닉네임을 입력해주세요', true); return; }
+  if (recipient === currentNickname) { showToast('자신에게는 신청할 수 없어요', true); return; }
   if (!date || !selectedTheme || !selectedRegion) { showToast('날짜, 테마, 지역을 모두 선택해주세요', true); return; }
   await addDoc(collection(db,'requests'), {
     fromUser: currentNickname,
-    toUser: selectedRecipient,
+    toUser: recipient,
     date, time,
     theme: selectedTheme,
     region: selectedRegion,
@@ -1040,9 +1040,10 @@ window.submitDateRequest = async () => {
     createdAt: serverTimestamp()
   });
   showToast('신청을 보냈어요!');
-  checklistItems=[]; renderChecklistItems(); selectedTheme=''; selectedRegion=''; selectedRecipient='';
-  document.querySelectorAll('.theme-chip,.recipient-chip').forEach(c=>c.classList.remove('selected'));
+  checklistItems=[]; renderChecklistItems(); selectedTheme=''; selectedRegion='';
+  document.querySelectorAll('.theme-chip').forEach(c=>c.classList.remove('selected'));
   document.getElementById('region-btn-text').textContent='지역을 선택하세요';
+  document.getElementById('a-recipient').value='';
   document.getElementById('a-subloc').value=''; document.getElementById('a-message').value='';
   document.getElementById('mission-display').innerHTML='';
   showPage('home', document.querySelector('.nav-item'));
