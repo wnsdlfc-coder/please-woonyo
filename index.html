@@ -934,7 +934,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBamsaFwG14Va2PAAUDuZw1qZpF7YzB68U",
@@ -1200,6 +1200,11 @@ async function saveCoupleCode(code, nick, isCreator = false) {
   try {
     const email = currentUser.email || '';
     const photoURL = currentUser.photoURL || '';
+
+    // 디버그: 현재 rooms 문서 구조 확인
+    const existingRoom = await getDoc(doc(db, 'rooms', code));
+    console.log('[DEBUG] rooms/' + code, existingRoom.exists() ? existingRoom.data() : '문서 없음');
+
     // Firestore: UID 기반 (기기 간 동기화 - 메인)
     await setDoc(doc(db, 'users', currentUser.uid), {
       uid: currentUser.uid, nickname: nick, coupleCode: code,
@@ -1209,9 +1214,17 @@ async function saveCoupleCode(code, nick, isCreator = false) {
     await setDoc(doc(db, 'users', nick), {
       uid: currentUser.uid, nickname: nick, coupleCode: code, email, photoURL, kicked: false
     }, { merge: true });
-    // 방 생성자는 ownerId 설정
+    // rooms 문서에 members 배열 + ownerId 기록 (보안 규칙 호환)
     if (isCreator) {
-      await setDoc(doc(db, 'rooms', code), { ownerId: currentUser.uid }, { merge: true });
+      await setDoc(doc(db, 'rooms', code), {
+        ownerId: currentUser.uid,
+        members: [currentUser.uid]
+      }, { merge: true });
+    } else {
+      // 기존 방에 합류 시 본인 uid를 members 배열에 추가
+      await setDoc(doc(db, 'rooms', code), {
+        members: arrayUnion(currentUser.uid)
+      }, { merge: true });
     }
     // localStorage: 캐시 (폴백용)
     localStorage.setItem('nick_' + currentUser.uid, nick);
@@ -1448,6 +1461,10 @@ onAuthStateChanged(auth, async user => {
       setDoc(doc(db, 'users', user.uid), {
         uid: user.uid, nickname: savedNick, coupleCode: savedCouple, updatedAt: serverTimestamp()
       }, { merge: true }).catch(() => {});
+      // rooms.members 배열에 본인 uid 추가 (마이그레이션 대비)
+      setDoc(doc(db, 'rooms', savedCouple), {
+        members: arrayUnion(user.uid)
+      }, { merge: true }).catch(() => {});
       enterApp();
     } else {
       document.getElementById('login-screen').style.display = 'none';
@@ -1503,6 +1520,21 @@ async function loadRoomInfo() {
   // 방 제목 + 방장 정보
   const roomDoc = await getDoc(doc(db, 'rooms', currentCoupleCode));
   const roomData = roomDoc.exists() ? roomDoc.data() : {};
+
+  // 디버그: 실제 rooms 문서 구조 출력
+  console.log('[DEBUG] rooms/' + currentCoupleCode, roomData);
+
+  // 마이그레이션: members/ownerId 필드 없으면 현재 사용자 기준으로 자동 추가
+  if (currentUser && (!roomData.members || !roomData.ownerId)) {
+    const patch = {};
+    if (!roomData.members) patch.members = arrayUnion(currentUser.uid);
+    if (!roomData.ownerId) patch.ownerId = currentUser.uid;
+    console.log('[DEBUG] 마이그레이션 적용:', patch);
+    setDoc(doc(db, 'rooms', currentCoupleCode), patch, { merge: true }).catch(e =>
+      console.warn('[DEBUG] 마이그레이션 실패:', e.message)
+    );
+  }
+
   const title = roomData.title || '우리의 방';
   const roomOwnerId = roomData.ownerId || '';
   document.getElementById('room-title-display').textContent = title;
@@ -1537,7 +1569,11 @@ async function loadRoomInfo() {
 async function kickMember(nick, uid) {
   if (!confirm(`${nick}님을 방에서 내보낼까요?`)) return;
   try {
-    if (uid) await setDoc(doc(db, 'users', uid), { coupleCode: '', kicked: true }, { merge: true });
+    if (uid) {
+      await setDoc(doc(db, 'users', uid), { coupleCode: '', kicked: true }, { merge: true });
+      // rooms.members 배열에서도 제거
+      await updateDoc(doc(db, 'rooms', currentCoupleCode), { members: arrayRemove(uid) });
+    }
     await setDoc(doc(db, 'users', nick), { coupleCode: '', kicked: true }, { merge: true });
     showToast(`${nick}님을 내보냈어요`);
     loadRoomInfo();
