@@ -175,7 +175,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .anni-name{font-weight:700;font-size:14px;}
 .anni-date{font-size:12px;color:var(--text3);}
 .anni-dday{font-size:15px;font-weight:800;color:var(--rose);margin-left:auto;white-space:nowrap;}
-.map-wrap{border-radius:12px;overflow:hidden;background:#F0F4F8;border:1px solid var(--border);margin:0 0 12px;padding:0;position:relative;touch-action:none;scrollbar-width:thin;scrollbar-color:transparent transparent;}
+.map-wrap{border-radius:16px;overflow:hidden;background:#EBF5FB;border:none;margin:0 0 12px;padding:0;position:relative;touch-action:none;scrollbar-width:thin;scrollbar-color:transparent transparent;box-shadow:0 4px 24px rgba(100,180,255,0.13);}
 .map-wrap::-webkit-scrollbar{width:3px;height:3px;}
 .map-wrap::-webkit-scrollbar-thumb{background:transparent;border-radius:3px;}
 .map-wrap::-webkit-scrollbar-track{background:transparent;}
@@ -536,9 +536,14 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         <div class="page-title" style="margin:0;">우리의 장소 🗺️</div>
         <button class="btn btn-rose btn-sm" id="open-place-modal-btn">추가</button>
       </div>
-      <div class="map-view-toggle">
-        <button class="map-view-btn active" id="map-btn-visit">방문 지도</button>
-        <button class="map-view-btn bucket-btn" id="map-btn-bucket">버킷리스트</button>
+      <!-- 지도 통계 뱃지 -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <div style="background:linear-gradient(135deg,#FFE4EC,#FFF0F5);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#E85B8A;display:flex;align-items:center;gap:5px;">
+          📍 다녀온 곳 <span id="map-badge-visited">0</span>곳
+        </div>
+        <div style="background:linear-gradient(135deg,#E3F4FF,#EBF5FB);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#4A90D9;display:flex;align-items:center;gap:5px;">
+          💙 가고싶은 곳 <span id="map-badge-bucket">0</span>곳
+        </div>
       </div>
       <div class="map-wrap">
         <div id="korea-map"></div>
@@ -547,13 +552,12 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#FFD6E7;"></div>1-2</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF8FB1;"></div>3-5</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF6B9D;"></div>6-8</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#C0392B;"></div>10+</div>
-          <div class="map-legend-item" id="legend-bucket" style="display:none;"><div class="map-legend-dot" style="background:#B3E5FC;border:1px solid #81D4FA;"></div>버킷</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10+</div>
+          <div class="map-legend-item"><div class="map-legend-dot" style="background:#87CEEB;border:1px solid #64B5E8;"></div>가고싶은</div>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;border-bottom:1px solid var(--border);padding-bottom:0;">
-        <button class="tab-btn active" id="place-tab-visited">가봤던 곳</button>
+        <button class="tab-btn active" id="place-tab-visited">다녀온 곳</button>
         <button class="tab-btn" id="place-tab-wanna">가고싶은 곳</button>
         <button class="tab-btn" id="place-tab-stats">통계</button>
       </div>
@@ -1012,7 +1016,7 @@ let checkItems = [], selTheme = '', selPlaceRegion = '';
 let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전체', mapPlaceTab = 'visited';
 let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [], allSchedules = [], allBucketlist = [];
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
-let mapViewMode = 'visit';
+let bucketProcessing = false;
 let unsubscribers = [];
 
 function showToast(msg, isErr) {
@@ -1530,9 +1534,10 @@ async function loadRoomInfo() {
     if (!roomData.members) patch.members = arrayUnion(currentUser.uid);
     if (!roomData.ownerId) patch.ownerId = currentUser.uid;
     console.log('[DEBUG] 마이그레이션 적용:', patch);
-    setDoc(doc(db, 'rooms', currentCoupleCode), patch, { merge: true }).catch(e =>
-      console.warn('[DEBUG] 마이그레이션 실패:', e.message)
-    );
+    const needsOwnerReload = !roomData.ownerId;
+    setDoc(doc(db, 'rooms', currentCoupleCode), patch, { merge: true })
+      .then(() => { if (needsOwnerReload) loadRoomInfo(); }) // 방장 표시 재렌더링
+      .catch(e => console.warn('[DEBUG] 마이그레이션 실패:', e.message));
   }
 
   const title = roomData.title || '우리의 방';
@@ -1635,7 +1640,19 @@ function loadAll() {
   });
 
   const u7 = onSnapshot(query(collection(db, 'bucketlist'), where('roomId', '==', currentCoupleCode)), snap => {
-    allBucketlist = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // 중복 데이터 자동 제거 (같은 region 중복 저장된 경우 나중 것 삭제)
+    const seenBucket = new Map();
+    snap.docs.forEach(d => {
+      const key = d.data().regionName || d.data().region || d.id;
+      if (seenBucket.has(key)) {
+        deleteDoc(doc(db, 'bucketlist', d.id)).catch(() => {});
+      } else {
+        seenBucket.set(key, d.id);
+      }
+    });
+    allBucketlist = snap.docs
+      .filter((d, idx, arr) => arr.findIndex(x => (x.data().regionName || x.data().region) === (d.data().regionName || d.data().region)) === idx)
+      .map(d => ({ id: d.id, ...d.data() }));
     if (document.getElementById('page-map').classList.contains('active')) renderMap();
     renderPlaces();
   });
@@ -1824,11 +1841,11 @@ function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates, schedule
   let html = '';
   // 기념일
   (anniDates[dateStr] || []).forEach(a => {
-    html += '<div class="anni-card" style="margin-bottom:8px;border-left:3px solid #FFD6E0;"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
+    html += '<div class="anni-card" style="margin-bottom:8px;background:linear-gradient(135deg,#FFE4EC 0%,white 100%);border:1px solid rgba(255,180,200,0.3);"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
   });
   // 일정
   (scheduleDates && scheduleDates[dateStr] || []).forEach(s => {
-    html += '<div class="card" style="border-left:3px solid #B3E5FC;margin-bottom:8px;">'
+    html += '<div class="card" style="background:linear-gradient(135deg,#E4F0FF 0%,white 100%);border:1px solid rgba(147,210,255,0.3);margin-bottom:8px;">'
       + '<div style="font-weight:700;font-size:15px;">📋 ' + s.title + '</div>'
       + (s.description ? '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + s.description + '</div>' : '')
       + '<div style="font-size:11px;color:var(--text3);margin-top:6px;">' + (s.createdBy || '') + '</div>'
@@ -1853,7 +1870,7 @@ function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates, schedule
         + '</div>'
         + '</div>';
     }
-    html += '<div class="card" style="border-left:3px solid #DCEDC8;margin-bottom:8px;">'
+    html += '<div class="card" style="background:linear-gradient(135deg,#E4FFE4 0%,white 100%);border:1px solid rgba(150,230,150,0.3);margin-bottom:8px;">'
       + '<div style="font-weight:700;font-size:15px;">' + r.time + ' · ' + r.theme + '</div>'
       + '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
       + (diary ? diaryHtml : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
@@ -1861,7 +1878,7 @@ function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates, schedule
   });
   // 대기 중 신청
   allRequests.filter(r => r.date === dateStr && r.status === '대기').forEach(r => {
-    html += '<div class="card" style="border-left:3px solid var(--yellow);margin-bottom:8px;">'
+    html += '<div class="card" style="background:linear-gradient(135deg,#FFF9E4 0%,white 100%);border:1px solid rgba(255,220,50,0.25);margin-bottom:8px;">'
       + '<div style="font-weight:700;">' + r.time + ' · ' + r.theme + '</div>'
       + '<div style="font-size:13px;color:var(--text2);">' + r.fromUser + ' → ' + r.toUser + ' (대기 중)</div>'
       + '</div>';
@@ -2000,9 +2017,10 @@ function renderMap() {
   const { W, H, paths, meshD, jejuPaths, jejuTX, jejuTY, ulData } = PREBUILT_MAP;
   const LABEL_MIN = 400;
 
-  // ── 매칭 유틸: 시/군명 정규화 ──
+  // ── 매칭 유틸: 시/군명 정규화 ('-' 구분자 및 복합 표기 처리 포함) ──
   function normCity(s) {
-    s = (s || '').trim();
+    // '-' 또는 ' · ' 구분자 앞부분만 사용 (예: '울산광역시-언양' → '울산광역시')
+    s = (s || '').trim().split(' · ')[0].split('-')[0].trim();
     const m = s.match(/^(.+?시)[가-힣]+[구동]$/);
     if (m) return m[1].replace(/시$/, '');
     return s.replace(/특별자치도$|특별자치시$|광역시$|특별시$|시$|군$|구$/, '');
@@ -2017,39 +2035,58 @@ function renderMap() {
   }
   const allSVGPaths = [...(paths || []), ...(jejuPaths || [])];
 
+  // 울산 SVG 경로 디버그 출력 (최초 1회)
+  if (!renderMap._ulDebug) {
+    renderMap._ulDebug = true;
+    const ulPaths = allSVGPaths.filter(({n}) => n.includes('울산') || n.includes('언양') || n.includes('울주'));
+    if (ulPaths.length) console.log('[울산 SVG paths]', ulPaths.map(p => p.n));
+  }
+
   // ── 방문 장소: per-path 매칭 ──
   const placeCounts = {};
   const placeMatchedNames = new Set();
   allPlaces.filter(p => p.category === 'visited').forEach(p => {
     const g = getRegionGroup(p.region || '기타');
     placeCounts[g] = (placeCounts[g] || 0) + 1;
-    const parts = (p.region || '').split(' · ');
+    const sep = (p.region || '').includes(' · ') ? ' · ' : '-';
+    const parts = (p.region || '').split(sep);
     if (parts.length >= 2) {
       const subCity = parts[1].trim();
       allSVGPaths.forEach(({ n }) => { if (cityMatchesPath(subCity, n)) placeMatchedNames.add(n); });
     }
   });
 
-  // ── 수락 데이트: per-path 정밀 매칭 ──
-  // sub-city 있으면 sub-city 우선 매칭, 없으면 province 이름으로도 매칭 시도
-  // (울산광역시처럼 province=path name인 경우 커버)
-  const dateMatchedNameCounts = {}; // path.n → 방문 횟수
+  // ── 수락 데이트: per-path 정밀 매칭 (' · ' 및 '-' 구분자 모두 처리) ──
+  const dateMatchedNameCounts = {};
   allRequests
     .filter(r => (r.status === '수락' || r.status === 'accepted') && r.region)
     .forEach(r => {
-      const parts = r.region.split(' · ');
-      const matchTarget = parts.length >= 2 ? parts[1].trim() : parts[0].trim();
+      // 울산 데이터 디버그
+      if (r.region && (r.region.includes('울산') || r.region.includes('언양'))) {
+        console.log('[울산 데이터]', r.region, '/ coupleCode:', r.coupleCode);
+      }
+      const sep = r.region.includes(' · ') ? ' · ' : '-';
+      const parts = r.region.split(sep);
+      const subTarget = parts.length >= 2 ? parts[1].trim() : '';
+      const provTarget = parts[0].trim();
       const matched = [];
       allSVGPaths.forEach(({ n }) => {
-        if (cityMatchesPath(matchTarget, n)) {
+        // sub-city 우선 매칭, 없으면 province로 fallback
+        if (subTarget && cityMatchesPath(subTarget, n)) {
           dateMatchedNameCounts[n] = (dateMatchedNameCounts[n] || 0) + 1;
           matched.push(n);
         }
       });
       if (matched.length === 0) {
-        console.warn('[지도 매칭 실패] region:', r.region, '→ matchTarget:', matchTarget);
-      } else {
-        console.log('[지도 매칭] region:', r.region, '→ matchTarget:', matchTarget, '→', matched);
+        allSVGPaths.forEach(({ n }) => {
+          if (cityMatchesPath(provTarget, n)) {
+            dateMatchedNameCounts[n] = (dateMatchedNameCounts[n] || 0) + 1;
+            matched.push(n);
+          }
+        });
+      }
+      if (matched.length === 0) {
+        console.warn('[지도 매칭 실패] region:', r.region, '→ sub:', subTarget, '/ prov:', provTarget);
       }
     });
 
@@ -2060,14 +2097,34 @@ function renderMap() {
     counts[g] = (counts[g] || 0) + 1;
   });
 
+  // ── 통계 뱃지 업데이트 ──
+  const visitedRegionCount = Object.keys(counts).filter(k => k !== '기타' && counts[k] > 0).length;
+  const badgeV = document.getElementById('map-badge-visited');
+  const badgeB = document.getElementById('map-badge-bucket');
+  if (badgeV) badgeV.textContent = visitedRegionCount;
+  if (badgeB) badgeB.textContent = allBucketlist.length;
+
+  // ── 그라데이션 defs (방문+버킷 동시 해당 지역용) ──
+  let gradDefs = '';
+  let gradIdx = 0;
+  const gradMap = {}; // n → gradId
+
   function pathFill(rk, n) {
     const dateCnt = dateMatchedNameCounts[n] || 0;
     const isPlace = placeMatchedNames.has(n);
-    if (dateCnt > 0 || isPlace) return heatColor(dateCnt + (isPlace ? 1 : 0));
-    // 버킷리스트 색상은 버킷리스트 지도 탭에서만 표시 (방문 지도와 분리)
-    if (mapViewMode === 'bucket') {
-      if (allBucketlist.some(b => (b.regionName ? b.regionName === n : getRegionGroup(b.region) === rk))) return '#B3E5FC';
+    const isVisited = dateCnt > 0 || isPlace;
+    const isBucket = allBucketlist.some(b => (b.regionName ? b.regionName === n : getRegionGroup(b.region) === rk));
+
+    if (isVisited && isBucket) {
+      // 대각선 그라데이션: 방문 색(좌상) + 하늘색(우하)
+      const visitColor = heatColor(dateCnt + (isPlace ? 1 : 0));
+      const gid = 'mg' + (gradIdx++);
+      gradMap[n] = gid;
+      gradDefs += `<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="50%" stop-color="${visitColor}"/><stop offset="50%" stop-color="#87CEEB"/></linearGradient>`;
+      return `url(#${gid})`;
     }
+    if (isVisited) return heatColor(dateCnt + (isPlace ? 1 : 0));
+    if (isBucket) return '#87CEEB';
     return '#E8E8E8';
   }
 
@@ -2076,28 +2133,24 @@ function renderMap() {
       font-size="6" font-weight="500" fill="rgba(0,0,0,0.45)"
       pointer-events="none" style="font-family:sans-serif;">${simplifyRegionName(txt)}</text>`;
 
-  // ── SVG 생성 (viewBox 왼쪽 -25 확장 → 지도 오른쪽으로 이동해 중앙 정렬) ──
-  let svg = `<svg id="map-svg" viewBox="-25 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
-    width="100%" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none;" class="map-anim">`;
-  svg += `<rect width="${W}" height="${H}" fill="#F0F4F8"/>`;
-  svg += `<g id="map-g">`;
-
-  // 울릉도(울릉군)는 별도 그룹으로 분리하여 동해안 본토 옆에 배치
+  // ── SVG 생성 (defs는 pathFill 호출 후 삽입) ──
   const ulleung = paths.find(p => p.n === '울릉군');
 
+  let pathsSvg = '';
   paths.forEach(({ d, rk, n }) => {
-    if (n === '울릉군') return; // 별도 렌더링
-    svg += `<path d="${d}" fill="${pathFill(rk, n)}" stroke="#000000" stroke-width="0.35"
+    if (n === '울릉군') return;
+    pathsSvg += `<path d="${d}" fill="${pathFill(rk, n)}" stroke="#000000" stroke-width="0.35"
       class="map-region" data-rkey="${rk}" data-name="${n}"><title>${simplifyRegionName(n)}</title></path>`;
   });
 
-  if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#000000" stroke-width="0.45" pointer-events="none"/>`;
-
+  let labelsSvg = '';
+  if (meshD) labelsSvg += `<path d="${meshD}" fill="none" stroke="#000000" stroke-width="0.45" pointer-events="none"/>`;
   paths.forEach(({ n, cx, cy, ba }) => {
     if (n === '울릉군') return;
-    if (ba >= LABEL_MIN) svg += lbl(cx, cy, n);
+    if (ba >= LABEL_MIN) labelsSvg += lbl(cx, cy, n);
   });
 
+  let jejuSvg = '';
   if (jejuPaths && jejuPaths.length) {
     let jg = '';
     jejuPaths.forEach(({ d, n, cx, cy, ba }) => {
@@ -2105,34 +2158,42 @@ function renderMap() {
         class="map-region" data-rkey="제주특별자치도" data-name="${n}"><title>${simplifyRegionName(n)}</title></path>`;
       if (ba >= LABEL_MIN) jg += lbl(cx, cy, n);
     });
-    // 제주도: 현재보다 육지에 1/2 더 가깝게 (jejuTY를 20 줄여 더 위로)
-    svg += `<g transform="translate(${jejuTX},${jejuTY + 20})">${jg}</g>`;
+    jejuSvg = `<g transform="translate(${jejuTX},${jejuTY + 20})">${jg}</g>`;
   }
 
-  // 울릉도: 동해안 본토에 1/2 더 가깝게 (기존 -62 → -82로 조정)
+  let ulleungSvg = '';
   if (ulleung) {
-    svg += `<g transform="translate(-82,4)" class="map-region" data-rkey="${ulleung.rk}" data-name="${ulleung.n}">`;
-    svg += `<path d="${ulleung.d}" fill="${pathFill(ulleung.rk, ulleung.n)}" stroke="#000000" stroke-width="0.5"/>`;
-    svg += `<title>${simplifyRegionName(ulleung.n)}</title></g>`;
+    ulleungSvg = `<g transform="translate(-82,4)" class="map-region" data-rkey="${ulleung.rk}" data-name="${ulleung.n}">`;
+    ulleungSvg += `<path d="${ulleung.d}" fill="${pathFill(ulleung.rk, ulleung.n)}" stroke="#000000" stroke-width="0.5"/>`;
+    ulleungSvg += `<title>${simplifyRegionName(ulleung.n)}</title></g>`;
   } else if (ulData) {
-    svg += `<g transform="translate(${Math.round(W * 0.78)},180)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
-    svg += `<path d="${ulData.d}" fill="${pathFill(ulData.rk, ulData.n)}" stroke="#000000" stroke-width="0.5"/>`;
-    svg += `<title>${simplifyRegionName(ulData.n)}</title></g>`;
+    ulleungSvg = `<g transform="translate(${Math.round(W * 0.78)},180)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
+    ulleungSvg += `<path d="${ulData.d}" fill="${pathFill(ulData.rk, ulData.n)}" stroke="#000000" stroke-width="0.5"/>`;
+    ulleungSvg += `<title>${simplifyRegionName(ulData.n)}</title></g>`;
   }
 
-  svg += `</g></svg>`;
+  // gradDefs는 pathFill 호출 완료 후 확정됨
+  const svg = `<svg id="map-svg" viewBox="-25 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+    width="100%" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none;" class="map-anim">
+    <defs>${gradDefs}</defs>
+    <rect width="${W}" height="${H}" fill="#EBF5FB"/>
+    <g id="map-g">${pathsSvg}${labelsSvg}${jejuSvg}${ulleungSvg}</g>
+  </svg>`;
   el.innerHTML = svg;
 
-  // ── 클릭 이벤트: 컨테이너 위임 (iOS 호환) ──
+  // ── 이벤트 리스너 중복 방지: 기존 핸들러 제거 후 재등록 ──
   let touchMoveDistance = 0;
 
-  el.addEventListener('click', e => {
+  ['_mapClick','_mapMouseover','_mapMousemove','_mapMouseleave','_mapTouch'].forEach(k => {
+    if (el[k]) { el.removeEventListener(k === '_mapClick' ? 'click' : k === '_mapMouseover' ? 'mouseover' : k === '_mapMousemove' ? 'mousemove' : k === '_mapMouseleave' ? 'mouseleave' : 'touchstart', el[k]); }
+  });
+
+  el._mapClick = e => {
     if (touchMoveDistance > 8) return;
     const region = e.target.closest('.map-region');
     if (!region) return;
     flashRegion(region);
     if (navigator.vibrate) navigator.vibrate(20);
-    // ripple 효과
     const wrap = el.closest('.map-wrap');
     if (wrap) {
       const rect = wrap.getBoundingClientRect();
@@ -2143,40 +2204,51 @@ function renderMap() {
       wrap.appendChild(rip);
       setTimeout(() => rip.remove(), 600);
     }
-    if (mapViewMode === 'bucket') {
-      toggleBucketlist(region.dataset.rkey, region.dataset.name, e.clientX, e.clientY);
+    const rk = region.dataset.rkey, rname = region.dataset.name;
+    const isVisitedRegion = (dateMatchedNameCounts[rname] || 0) > 0 || placeMatchedNames.has(rname);
+    if (isVisitedRegion) {
+      showRegionDates(rk, rname, counts);
     } else {
-      showRegionDates(region.dataset.rkey, region.dataset.name, counts);
+      toggleBucketlist(rk, rname, e.clientX, e.clientY);
     }
-  });
+  };
+  el.addEventListener('click', el._mapClick);
 
-  // ── 툴팁: hover/touchstart 시 방문 횟수 표시 ──
   const tooltip = document.getElementById('map-tooltip');
-  el.addEventListener('mouseover', e => {
+  el._mapMouseover = e => {
     const region = e.target.closest('.map-region');
     if (!region) { tooltip.style.display = 'none'; return; }
-    const n = counts[region.dataset.rkey] || 0;
-    tooltip.textContent = `방문 ${n}회`;
+    const visitCnt = counts[region.dataset.rkey] || 0;
+    const isBkt = allBucketlist.some(b => (b.regionName ? b.regionName === region.dataset.name : getRegionGroup(b.region) === region.dataset.rkey));
+    const parts = [visitCnt > 0 ? `방문 ${visitCnt}회` : '', isBkt ? '💙 가고싶은 곳' : ''].filter(Boolean);
+    tooltip.textContent = parts.join(' · ') || simplifyRegionName(region.dataset.name);
     tooltip.style.display = 'block';
-  });
-  el.addEventListener('mousemove', e => {
+  };
+  el.addEventListener('mouseover', el._mapMouseover);
+
+  el._mapMousemove = e => {
     if (tooltip.style.display === 'block') {
       tooltip.style.left = (e.clientX + 14) + 'px';
       tooltip.style.top  = (e.clientY - 32) + 'px';
     }
-  });
-  el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-  el.addEventListener('touchstart', e => {
+  };
+  el.addEventListener('mousemove', el._mapMousemove);
+
+  el._mapMouseleave = () => { tooltip.style.display = 'none'; };
+  el.addEventListener('mouseleave', el._mapMouseleave);
+
+  el._mapTouch = e => {
     const region = e.target.closest('.map-region');
     if (!region) { tooltip.style.display = 'none'; return; }
     const n = counts[region.dataset.rkey] || 0;
-    tooltip.textContent = `방문 ${n}회`;
+    tooltip.textContent = n ? `방문 ${n}회` : simplifyRegionName(region.dataset.name);
     const t = e.touches[0];
     tooltip.style.left = (t.clientX + 14) + 'px';
     tooltip.style.top  = (t.clientY - 40) + 'px';
     tooltip.style.display = 'block';
     setTimeout(() => { tooltip.style.display = 'none'; }, 1800);
-  }, { passive: true });
+  };
+  el.addEventListener('touchstart', el._mapTouch, { passive: true });
 
   initMapZoom(el.querySelector('#map-svg'), W, H, d => { touchMoveDistance = d; });
 }
@@ -2333,34 +2405,40 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
 }
 
 async function toggleBucketlist(rkey, rname, clientX, clientY) {
-  const existing = allBucketlist.find(b =>
-    (b.regionName ? b.regionName === rname : getRegionGroup(b.region) === rkey)
-  );
-  if (existing) {
-    await deleteDoc(doc(db, 'bucketlist', existing.id));
-    showToast('버킷리스트에서 제거했어요');
-  } else {
-    await addDoc(collection(db, 'bucketlist'), {
-      roomId: currentCoupleCode,
-      region: rkey,
-      regionName: rname || rkey,
-      createdBy: currentNick,
-      createdAt: serverTimestamp()
-    });
-    showToast('버킷리스트에 추가했어요 💗');
-    if (clientX && clientY) {
-      [-22, 0, 22].forEach((offset, i) => {
-        const star = document.createElement('div');
-        star.className = 'star-pop';
-        star.textContent = '💗';
-        star.style.left = (clientX + offset) + 'px';
-        star.style.top = clientY + 'px';
-        star.style.color = '#FF69B4';
-        star.style.animationDelay = (i * 0.08) + 's';
-        document.body.appendChild(star);
-        setTimeout(() => star.remove(), 950);
+  if (bucketProcessing) return;
+  bucketProcessing = true;
+  try {
+    const existing = allBucketlist.find(b =>
+      (b.regionName ? b.regionName === rname : getRegionGroup(b.region) === rkey)
+    );
+    if (existing) {
+      await deleteDoc(doc(db, 'bucketlist', existing.id));
+      showToast('버킷리스트에서 제거했어요');
+    } else {
+      await addDoc(collection(db, 'bucketlist'), {
+        roomId: currentCoupleCode,
+        region: rkey,
+        regionName: rname || rkey,
+        createdBy: currentNick,
+        createdAt: serverTimestamp()
       });
+      showToast('버킷리스트에 추가했어요 💗');
+      if (clientX && clientY) {
+        [-22, 0, 22].forEach((offset, i) => {
+          const star = document.createElement('div');
+          star.className = 'star-pop';
+          star.textContent = '💗';
+          star.style.left = (clientX + offset) + 'px';
+          star.style.top = clientY + 'px';
+          star.style.color = '#FF69B4';
+          star.style.animationDelay = (i * 0.08) + 's';
+          document.body.appendChild(star);
+          setTimeout(() => star.remove(), 950);
+        });
+      }
     }
+  } finally {
+    bucketProcessing = false;
   }
 }
 
@@ -2562,15 +2640,6 @@ function setMapPlaceTab(tab) {
 document.getElementById('place-tab-visited').addEventListener('click', () => setMapPlaceTab('visited'));
 document.getElementById('place-tab-wanna').addEventListener('click', () => setMapPlaceTab('wanna'));
 document.getElementById('place-tab-stats').addEventListener('click', () => setMapPlaceTab('stats'));
-function setMapViewMode(mode) {
-  mapViewMode = mode;
-  document.getElementById('map-btn-visit').classList.toggle('active', mode === 'visit');
-  document.getElementById('map-btn-bucket').classList.toggle('active', mode === 'bucket');
-  document.getElementById('legend-bucket').style.display = (mode === 'bucket') ? 'flex' : 'none';
-  renderMap();
-}
-document.getElementById('map-btn-visit').addEventListener('click', () => setMapViewMode('visit'));
-document.getElementById('map-btn-bucket').addEventListener('click', () => setMapViewMode('bucket'));
 document.getElementById('open-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.add('open'));
 document.getElementById('close-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.remove('open'));
 document.getElementById('save-place-btn').addEventListener('click', async () => {
