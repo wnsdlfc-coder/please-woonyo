@@ -21,10 +21,11 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .auth-logo{font-size:52px;margin-bottom:16px;display:inline-block;}
 .auth-title{font-size:26px;font-weight:800;color:var(--text);margin-bottom:6px;letter-spacing:-0.5px;}
 .auth-sub{font-size:14px;color:var(--text3);margin-bottom:36px;line-height:1.7;}
-.google-btn{width:100%;padding:13px 20px;border-radius:8px;border:1.5px solid var(--border);background:white;color:var(--text);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;}
-.google-btn:hover{background:#FAFAFA;border-color:#999;}
 .err-msg{font-size:12px;color:var(--rose);margin-top:8px;min-height:18px;}
 .auth-note{font-size:12px;color:var(--text3);margin-top:14px;}
+.auth-tab-row{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.auth-tab{flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;font-size:14px;font-weight:700;cursor:pointer;color:var(--text3);transition:all 0.2s;font-family:inherit;}
+.auth-tab.active{color:var(--rose);border-bottom-color:var(--rose);}
 #app{display:none;}
 .top-nav{background:white;padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
 .app-logo{display:flex;align-items:center;gap:8px;}
@@ -288,10 +289,23 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
     <div class="auth-logo">💕</div>
     <div class="auth-title">Please Woonyo</div>
     <div class="auth-sub">우뇨야, 데이트를 받아줘<br>우리만의 공간이에요 🌸</div>
-    <button class="google-btn" id="google-btn">
-      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      Google로 로그인
-    </button>
+    <!-- 로그인 / 회원가입 탭 -->
+    <div class="auth-tab-row">
+      <button class="auth-tab active" id="tab-login">로그인</button>
+      <button class="auth-tab" id="tab-register">회원가입</button>
+    </div>
+    <!-- 공통 필드 -->
+    <input type="email" id="auth-email" class="form-input" placeholder="이메일" autocomplete="email" style="margin-bottom:10px;">
+    <input type="password" id="auth-password" class="form-input" placeholder="비밀번호" autocomplete="current-password" style="margin-bottom:10px;">
+    <!-- 회원가입 전용 필드 (기본 숨김) -->
+    <input type="password" id="auth-password2" class="form-input" placeholder="비밀번호 확인" autocomplete="new-password" style="margin-bottom:10px;display:none;">
+    <input type="text" id="auth-nick" class="form-input" placeholder="닉네임 (앱에서 사용할 이름)" maxlength="10" style="margin-bottom:10px;display:none;">
+    <!-- 제출 버튼 -->
+    <button class="btn btn-rose btn-full" id="auth-submit-btn" style="margin-bottom:8px;">로그인</button>
+    <!-- 비밀번호 찾기 (로그인 탭에만 표시) -->
+    <div style="text-align:center;" id="forgot-pw-wrap">
+      <button id="forgot-pw-btn" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 0;">비밀번호를 잊으셨나요?</button>
+    </div>
     <div class="err-msg" id="login-err"></div>
     <div class="auth-note">커플 전용 데이트 앱 💌</div>
   </div>
@@ -595,6 +609,21 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           <div style="flex:1;min-width:0;">
             <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:2px;">로그인 계정</div>
             <div id="login-email-display" style="font-size:13px;font-weight:700;color:var(--text);word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          </div>
+        </div>
+        <!-- 닉네임 변경 -->
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;margin-bottom:6px;">닉네임</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="my-nick-display" style="font-size:14px;font-weight:700;flex:1;color:var(--text);"></div>
+            <button class="btn btn-outline btn-xs" id="change-nick-btn">변경</button>
+          </div>
+          <div id="change-nick-form" style="display:none;margin-top:8px;">
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="new-nick-input" class="form-input" placeholder="새 닉네임" maxlength="10" style="flex:1;font-size:14px;padding:8px 12px;">
+              <button class="btn btn-rose btn-sm" id="save-nick-btn" style="white-space:nowrap;">저장</button>
+            </div>
+            <div class="err-msg" id="nick-err" style="margin-top:4px;"></div>
           </div>
         </div>
       </div>
@@ -937,7 +966,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getAuth, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, setDoc, getDoc, getDocs, onSnapshot, query, where, orderBy, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -952,7 +981,6 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
-const provider = new GoogleAuthProvider();
 
 const REGIONS = {
   '서울특별시':['서울','강남','홍대','이태원','종로','한강','성수','마포','잠실','신촌','명동','인사동','북촌','을지로','여의도'],
@@ -1163,21 +1191,146 @@ buildDropdown('place-region-dropdown', city => {
   document.getElementById('place-region-dropdown').querySelectorAll('.region-opt').forEach(o => o.classList.toggle('selected', o.dataset.city === city));
 });
 
-// ── 로그인 ──
-document.getElementById('google-btn').addEventListener('click', async () => {
+// ── 로그인 / 회원가입 ──
+let authMode = 'login';
+const AUTH_ERR = {
+  'auth/email-already-in-use': '이미 사용 중인 이메일이에요',
+  'auth/invalid-email': '이메일 형식이 올바르지 않아요',
+  'auth/weak-password': '비밀번호는 6자 이상이어야 해요',
+  'auth/user-not-found': '등록되지 않은 이메일이에요',
+  'auth/wrong-password': '비밀번호가 틀렸어요',
+  'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않아요',
+  'auth/too-many-requests': '잠시 후 다시 시도해주세요',
+};
+
+document.getElementById('tab-login').addEventListener('click', () => {
+  authMode = 'login';
+  document.getElementById('tab-login').classList.add('active');
+  document.getElementById('tab-register').classList.remove('active');
+  document.getElementById('auth-password2').style.display = 'none';
+  document.getElementById('auth-nick').style.display = 'none';
+  document.getElementById('auth-submit-btn').textContent = '로그인';
+  document.getElementById('forgot-pw-wrap').style.display = '';
   document.getElementById('login-err').textContent = '';
-  document.getElementById('google-btn').textContent = '로그인 중...';
-  try {
-    await signInWithPopup(auth, provider);
-  } catch(e) {
-    document.getElementById('google-btn').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Google로 로그인';
-    if (e.code === 'auth/popup-blocked') {
-      document.getElementById('login-err').textContent = '팝업이 차단됐어요.';
-      await signInWithRedirect(auth, provider);
-    } else if (e.code !== 'auth/popup-closed-by-user') {
-      document.getElementById('login-err').textContent = '오류: ' + e.code;
-    }
+  document.getElementById('login-err').style.color = '';
+});
+
+document.getElementById('tab-register').addEventListener('click', () => {
+  authMode = 'register';
+  document.getElementById('tab-register').classList.add('active');
+  document.getElementById('tab-login').classList.remove('active');
+  document.getElementById('auth-password2').style.display = '';
+  document.getElementById('auth-nick').style.display = '';
+  document.getElementById('auth-submit-btn').textContent = '회원가입';
+  document.getElementById('forgot-pw-wrap').style.display = 'none';
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('login-err').style.color = '';
+});
+
+document.getElementById('auth-submit-btn').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const password2 = document.getElementById('auth-password2').value;
+  const nick = document.getElementById('auth-nick').value.trim();
+  const errEl = document.getElementById('login-err');
+  errEl.style.color = '';
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = '이메일과 비밀번호를 입력해주세요'; return; }
+  if (authMode === 'register') {
+    if (!nick) { errEl.textContent = '닉네임을 입력해주세요'; return; }
+    if (password !== password2) { errEl.textContent = '비밀번호가 일치하지 않아요'; return; }
+    if (password.length < 6) { errEl.textContent = '비밀번호는 6자 이상이어야 해요'; return; }
   }
+  const btn = document.getElementById('auth-submit-btn');
+  const origText = btn.textContent;
+  btn.textContent = '처리 중...'; btn.disabled = true;
+  try {
+    if (authMode === 'register') {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: nick });
+      await setDoc(doc(db, 'users', cred.user.uid), {
+        uid: cred.user.uid, nickname: nick, email, coupleCode: '', kicked: false,
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+      }, { merge: true });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch(e) {
+    errEl.textContent = AUTH_ERR[e.code] || '오류: ' + e.message;
+    btn.textContent = origText; btn.disabled = false;
+  }
+});
+
+// 비밀번호 찾기
+document.getElementById('forgot-pw-btn').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const errEl = document.getElementById('login-err');
+  errEl.style.color = '';
+  if (!email) { errEl.textContent = '위에 이메일을 먼저 입력해주세요'; return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    errEl.style.color = '#27ae60';
+    errEl.textContent = '재설정 링크를 이메일로 보냈어요 ✓';
+  } catch(e) {
+    errEl.textContent = AUTH_ERR[e.code] || '이메일을 확인해주세요';
+  }
+});
+
+
+// ── 닉네임 변경 (마이페이지) ──
+document.getElementById('change-nick-btn').addEventListener('click', () => {
+  const form = document.getElementById('change-nick-form');
+  const isOpen = form.style.display !== 'none';
+  form.style.display = isOpen ? 'none' : '';
+  document.getElementById('nick-err').textContent = '';
+  if (!isOpen) {
+    const inp = document.getElementById('new-nick-input');
+    inp.value = currentNick;
+    inp.focus();
+  }
+});
+
+document.getElementById('save-nick-btn').addEventListener('click', async () => {
+  const newNick = document.getElementById('new-nick-input').value.trim();
+  const errEl = document.getElementById('nick-err');
+  errEl.textContent = '';
+  if (!newNick) { errEl.textContent = '닉네임을 입력해주세요'; return; }
+  if (newNick === currentNick) { document.getElementById('change-nick-form').style.display = 'none'; return; }
+  const btn = document.getElementById('save-nick-btn');
+  btn.textContent = '저장 중...'; btn.disabled = true;
+  try {
+    // Firebase Auth displayName 업데이트
+    await updateProfile(currentUser, { displayName: newNick });
+    // Firestore UID 문서 업데이트
+    await setDoc(doc(db, 'users', currentUser.uid), {
+      nickname: newNick, updatedAt: serverTimestamp()
+    }, { merge: true });
+    // Firestore 새 닉네임 문서 생성
+    await setDoc(doc(db, 'users', newNick), {
+      uid: currentUser.uid, nickname: newNick,
+      coupleCode: currentCoupleCode, email: currentUser.email || '', kicked: false
+    }, { merge: true });
+    // 이전 닉네임 문서의 coupleCode 제거 (선택적)
+    if (currentNick && currentNick !== newNick) {
+      setDoc(doc(db, 'users', currentNick), { coupleCode: '', nickname: newNick }, { merge: true }).catch(() => {});
+    }
+    // localStorage 업데이트
+    localStorage.setItem('nick_' + currentUser.uid, newNick);
+    currentNick = newNick;
+    document.getElementById('user-name-display').textContent = newNick;
+    document.getElementById('my-nick-display').textContent = newNick;
+    document.getElementById('change-nick-form').style.display = 'none';
+    showToast('닉네임이 변경됐어요 ✓');
+    loadRoomInfo();
+  } catch(e) {
+    errEl.textContent = '변경 실패: ' + e.message;
+  } finally {
+    btn.textContent = '저장'; btn.disabled = false;
+  }
+});
+
+document.getElementById('new-nick-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('save-nick-btn').click();
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -1473,11 +1626,15 @@ onAuthStateChanged(auth, async user => {
     } else {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('couple-screen').style.display = 'flex';
+      // 회원가입 시 입력한 닉네임(displayName)으로 커플 코드 화면 닉네임 입력 pre-fill
+      if (user.displayName) {
+        const createNickEl = document.getElementById('create-nick-input');
+        if (createNickEl && !createNickEl.value) createNickEl.value = user.displayName;
+      }
     }
   }
 });
 
-getRedirectResult(auth).catch(() => {});
 
 let kickListener = null;
 function enterApp() {
@@ -1485,6 +1642,9 @@ function enterApp() {
   document.getElementById('couple-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-name-display').textContent = currentNick;
+  // 마이페이지 닉네임 표시 업데이트
+  const myNickEl = document.getElementById('my-nick-display');
+  if (myNickEl) myNickEl.textContent = currentNick;
   // 실시간 강퇴 감지
   if (currentUser && !kickListener) {
     kickListener = onSnapshot(doc(db, 'users', currentUser.uid), snap => {
