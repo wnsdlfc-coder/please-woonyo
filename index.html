@@ -176,12 +176,12 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .anni-name{font-weight:700;font-size:14px;}
 .anni-date{font-size:12px;color:var(--text3);}
 .anni-dday{font-size:15px;font-weight:800;color:var(--rose);margin-left:auto;white-space:nowrap;}
-.map-wrap{border-radius:16px;overflow:hidden;background:#EBF5FB;border:none;margin:0 0 12px;padding:0;position:relative;touch-action:none;scrollbar-width:thin;scrollbar-color:transparent transparent;box-shadow:0 4px 24px rgba(100,180,255,0.13);}
+.map-wrap{border-radius:16px;overflow:hidden;background:#EBF5FB;border:none;margin:0 0 0;padding:0;position:relative;scrollbar-width:thin;scrollbar-color:transparent transparent;box-shadow:0 4px 24px rgba(100,180,255,0.13);}
 .map-wrap::-webkit-scrollbar{width:3px;height:3px;}
 .map-wrap::-webkit-scrollbar-thumb{background:transparent;border-radius:3px;}
 .map-wrap::-webkit-scrollbar-track{background:transparent;}
 .map-wrap svg{width:100%;height:auto;display:block;}
-#korea-map{touch-action:none;}
+#korea-map{}
 .map-region{transition:filter 0.2s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
 .map-region:hover{filter:brightness(0.82);}
 #korea-map{width:100%;}
@@ -233,6 +233,23 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .map-view-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
 .map-view-btn.bucket-btn.active{background:var(--yellow);color:var(--text);border-color:var(--yellow);}
 .stats-section{margin-top:4px;}
+#map-progress-wrap{margin-bottom:10px;background:white;border-radius:12px;padding:10px 14px;border:1px solid var(--border);}
+#map-float-dash{position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--rose);box-shadow:0 2px 12px rgba(100,150,255,0.2);pointer-events:none;z-index:10;line-height:1.8;min-width:72px;}
+.map-float-label{font-size:10px;font-weight:600;color:var(--text3);line-height:1.4;}
+#map-dice-btn{position:absolute;bottom:10px;left:10px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);font-size:22px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.14);z-index:10;display:flex;align-items:center;justify-content:center;transition:transform 0.15s;padding:0;line-height:1;}
+#map-dice-btn:active{transform:scale(0.86) rotate(-20deg);}
+#map-control-toggle{position:absolute;bottom:10px;right:10px;padding:5px 12px;border-radius:16px;border:1.5px solid #FFB6CC;background:rgba(255,255,255,0.92);font-size:11px;font-weight:700;color:var(--rose);cursor:pointer;z-index:10;font-family:inherit;box-shadow:0 1px 8px rgba(232,69,106,0.14);transition:all 0.2s;}
+#map-control-toggle.active{background:var(--rose);color:white;border-color:var(--rose);}
+.map-legend-wrap{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0 12px;}
+.bucket-card{background:white;border-radius:14px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--border);border-left:3px solid #FFB6CC;box-shadow:0 1px 8px rgba(255,150,180,0.07);}
+.bucket-card-top{display:flex;align-items:flex-start;gap:8px;}
+.bucket-card-name{font-size:14px;font-weight:700;color:var(--text);}
+.bucket-card-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.bucket-card-memo{width:100%;box-sizing:border-box;margin-top:8px;border:none;border-bottom:1px dashed #FFD1DC;font-size:12px;color:var(--text2);font-family:inherit;background:transparent;outline:none;padding:4px 0;transition:border-color 0.2s;}
+.bucket-card-memo:focus{border-bottom-color:var(--rose);}
+.bucket-poke-btn{font-size:18px;border:none;background:none;cursor:pointer;padding:2px 4px;line-height:1;transition:transform 0.15s;flex-shrink:0;}
+.bucket-poke-btn:active{transform:scale(1.35);}
+@keyframes spinDice{0%{transform:rotate(0deg)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
 .stats-top3{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 16px;}
 .stats-top3-tag{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;}
 .stats-top3-tag:nth-child(1){background:linear-gradient(135deg,#FFD700,#FFA500);color:white;}
@@ -550,8 +567,18 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
         <div class="page-title" style="margin:0;">우리의 장소 🗺️</div>
         <button class="btn btn-rose btn-sm" id="open-place-modal-btn">추가</button>
       </div>
+      <!-- 전국 정복 진행률 바 -->
+      <div id="map-progress-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:700;color:var(--text2);">전국 정복률</span>
+          <span id="map-progress-pct" style="font-size:12px;font-weight:800;color:var(--rose);">0%</span>
+        </div>
+        <div style="height:7px;background:#FFE4EC;border-radius:99px;overflow:hidden;">
+          <div id="map-progress-bar" style="height:100%;background:linear-gradient(90deg,#FF8FB1,#E8456A);border-radius:99px;width:0%;transition:width 0.7s ease;"></div>
+        </div>
+      </div>
       <!-- 지도 통계 뱃지 -->
-      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap;">
         <div style="background:linear-gradient(135deg,#FFE4EC,#FFF0F5);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#E85B8A;display:flex;align-items:center;gap:5px;">
           📍 다녀온 곳 <span id="map-badge-visited">0</span>곳
         </div>
@@ -561,14 +588,25 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
       </div>
       <div class="map-wrap">
         <div id="korea-map"></div>
-        <div class="map-legend">
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8E8E8;border:1px solid #ccc;"></div>0회</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FFD6E7;"></div>1-2</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF8FB1;"></div>3-5</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF6B9D;"></div>6-8</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10+</div>
-          <div class="map-legend-item"><div class="map-legend-dot" style="background:#87CEEB;border:1px solid #64B5E8;"></div>가고싶은</div>
+        <!-- 플로팅 대시보드 (바다 영역 좌상단) -->
+        <div id="map-float-dash">
+          <div class="map-float-label">전국 정복</div>
+          <div><span id="map-conquest">0</span>/<span id="map-total-regions">229</span> 지역</div>
+          <div id="map-dday-row" style="color:var(--text2);font-size:11px;margin-top:2px;display:none;">D+<span id="map-dday">0</span></div>
         </div>
+        <!-- 주사위 랜덤 추천 -->
+        <button id="map-dice-btn" title="랜덤 추천">🎲</button>
+        <!-- 지도 조작 토글 -->
+        <button id="map-control-toggle">지도 조작</button>
+      </div>
+      <!-- 범례 -->
+      <div class="map-legend-wrap">
+        <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8E8E8;border:1px solid #ccc;"></div>0회</div>
+        <div class="map-legend-item"><div class="map-legend-dot" style="background:#FFD6E7;"></div>1-2</div>
+        <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF8FB1;"></div>3-5</div>
+        <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF6B9D;"></div>6-8</div>
+        <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10+</div>
+        <div class="map-legend-item"><div class="map-legend-dot" style="background:#87CEEB;border:1px solid #64B5E8;"></div>가고싶은</div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;border-bottom:1px solid var(--border);padding-bottom:0;">
         <button class="tab-btn active" id="place-tab-visited">다녀온 곳</button>
@@ -1045,6 +1083,7 @@ let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전�
 let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [], allSchedules = [], allBucketlist = [];
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
 let bucketProcessing = false;
+let mapControlActive = false;
 let unsubscribers = [];
 
 function showToast(msg, isErr) {
@@ -2329,13 +2368,24 @@ function renderMap() {
   }
 
   // gradDefs는 pathFill 호출 완료 후 확정됨
+  const shadowFilter = `<filter id="mapShadow" x="-8%" y="-8%" width="116%" height="116%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="rgba(80,120,180,0.25)"/></filter>`;
+  const ptrEvt = mapControlActive ? 'all' : 'none';
+  const tAct   = mapControlActive ? 'none' : 'auto';
   const svg = `<svg id="map-svg" viewBox="-25 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
-    width="100%" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none;" class="map-anim">
-    <defs>${gradDefs}</defs>
+    width="100%" style="display:block;pointer-events:${ptrEvt};touch-action:${tAct};user-select:none;-webkit-user-select:none;" class="map-anim">
+    <defs>${gradDefs}${shadowFilter}</defs>
     <rect width="${W}" height="${H}" fill="#EBF5FB"/>
-    <g id="map-g">${pathsSvg}${labelsSvg}${jejuSvg}${ulleungSvg}</g>
+    <g id="map-g" filter="url(#mapShadow)">${pathsSvg}${labelsSvg}${jejuSvg}${ulleungSvg}</g>
   </svg>`;
   el.innerHTML = svg;
+
+  // 진행률 바 + 플로팅 대시보드 업데이트
+  const visitedPathCount = allSVGPaths.filter(({n}) => (dateMatchedNameCounts[n]||0)>0 || placeMatchedNames.has(n)).length;
+  updateMapDashboard(visitedPathCount, allSVGPaths.length);
+
+  // 토글 버튼 시각 상태 복원 (renderMap 재호출 후에도 유지)
+  const mapToggleBtn = document.getElementById('map-control-toggle');
+  if (mapToggleBtn) mapToggleBtn.classList.toggle('active', mapControlActive);
 
   // ── 이벤트 리스너 중복 방지: 기존 핸들러 제거 후 재등록 ──
   let touchMoveDistance = 0;
@@ -2504,8 +2554,8 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
   }, { passive: true });
 
   svgEl.addEventListener('touchmove', e => {
-    e.preventDefault(); // iOS 스크롤 방지 (CSS touch-action:none 보완)
     if (e.touches.length === 2) {
+      e.preventDefault(); // 핀치줌 시에만 스크롤 차단
       const dist = Math.hypot(
         e.touches[1].clientX - e.touches[0].clientX,
         e.touches[1].clientY - e.touches[0].clientY
@@ -2515,27 +2565,12 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
       const cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top)  * H / rect.height;
       if (ptDist > 0) zoom(cx, cy, dist / ptDist);
       ptDist = dist;
-    } else if (e.touches.length === 1 && touchDrag) {
-      // 확대 상태에서만 1손가락 팬 허용
-      if (sc <= 1) {
-        if (touchStartPos && onTouchMove) {
-          onTouchMove(Math.hypot(
-            e.touches[0].clientX - touchStartPos.x,
-            e.touches[0].clientY - touchStartPos.y
-          ));
-        }
-        return;
-      }
-      const rect = svgEl.getBoundingClientRect();
-      tx = touchDrag.tx + (e.touches[0].clientX - touchDrag.x) * W / rect.width;
-      ty = touchDrag.ty + (e.touches[0].clientY - touchDrag.y) * H / rect.height;
-      apply();
-      if (touchStartPos && onTouchMove) {
-        onTouchMove(Math.hypot(
-          e.touches[0].clientX - touchStartPos.x,
-          e.touches[0].clientY - touchStartPos.y
-        ));
-      }
+    } else if (e.touches.length === 1 && touchStartPos && onTouchMove) {
+      // 한 손가락은 클릭 여부 판단용 거리만 추적 (팬 없음)
+      onTouchMove(Math.hypot(
+        e.touches[0].clientX - touchStartPos.x,
+        e.touches[0].clientY - touchStartPos.y
+      ));
     }
   }, { passive: false });
 
@@ -2558,6 +2593,54 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
 
   // ── 더블클릭 리셋 ──
   svgEl.addEventListener('dblclick', () => { sc = 1; tx = 0; ty = 0; apply(); });
+}
+
+function updateMapDashboard(visitedCount, totalCount) {
+  const pct = totalCount > 0 ? Math.round(visitedCount / totalCount * 100) : 0;
+  const pctEl  = document.getElementById('map-progress-pct');
+  const barEl  = document.getElementById('map-progress-bar');
+  const conqEl = document.getElementById('map-conquest');
+  const totEl  = document.getElementById('map-total-regions');
+  if (pctEl)  pctEl.textContent  = pct + '%';
+  if (barEl)  barEl.style.width  = pct + '%';
+  if (conqEl) conqEl.textContent = visitedCount;
+  if (totEl)  totEl.textContent  = totalCount;
+
+  // 연애 일수 D+N (가장 이른 기념일 기준)
+  const ddayEl  = document.getElementById('map-dday');
+  const ddayRow = document.getElementById('map-dday-row');
+  if (allAnniversaries.length > 0 && ddayEl && ddayRow) {
+    const sorted = [...allAnniversaries].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const earliest = sorted[0];
+    if (earliest && earliest.date) {
+      const start = new Date(earliest.date);
+      const today = new Date();
+      start.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      const days = Math.floor((today - start) / 86400000) + 1;
+      if (days >= 1) {
+        ddayEl.textContent = days;
+        ddayRow.style.display = '';
+      }
+    }
+  }
+}
+
+function showDiceResult(name) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:800;display:flex;align-items:center;justify-content:center;';
+  const card = document.createElement('div');
+  card.style.cssText = 'background:white;border-radius:20px;padding:28px 32px;text-align:center;max-width:280px;width:88%;animation:slideUp 0.3s ease;';
+  card.innerHTML = `
+    <div style="font-size:52px;margin-bottom:12px;animation:spinDice 0.5s ease-out;">🎲</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-weight:600;">오늘의 추천 버킷리스트</div>
+    <div style="font-size:22px;font-weight:800;color:var(--rose);margin-bottom:22px;">${name}</div>
+    <button id="dice-close-btn" style="padding:10px 28px;background:var(--rose);color:white;border:none;border-radius:20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">확인</button>
+  `;
+  overlay.appendChild(card);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  card.querySelector('#dice-close-btn').addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
 }
 
 async function toggleBucketlist(rkey, rname, clientX, clientY) {
@@ -2733,15 +2816,26 @@ function renderPlaces() {
         + '<button class="btn btn-outline btn-xs" id="bucket-del-all-btn" style="color:var(--rose);">전체 삭제</button>'
         + '</div>'
       : '';
-    const bucketItems = allBucketlist.map(b =>
-      '<div class="bucket-item">'
-      + '<input type="checkbox" class="bucket-chk" data-bucket-id="' + b.id + '" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--rose);">'
-      + '<span style="font-size:16px;flex-shrink:0;">💗</span>'
-      + '<div style="flex:1;"><div class="bucket-item-name">' + (b.regionName || b.region) + '</div>'
-      + '<div class="bucket-item-sub">' + (b.region !== b.regionName ? b.region + ' · ' : '') + (b.createdBy || '') + '</div></div>'
-      + '<button class="btn btn-outline btn-xs" data-del-bucket="' + b.id + '">삭제</button>'
-      + '</div>'
-    ).join('');
+    const bucketItems = allBucketlist.map(b => {
+      const name = b.regionName || b.region;
+      const dateStr = b.createdAt
+        ? (() => { const d = b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt.seconds*1000); return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0'); })()
+        : '';
+      const meta = [b.createdBy, dateStr].filter(Boolean).join(' · ');
+      return '<div class="bucket-card">'
+        + '<div class="bucket-card-top">'
+        + '<input type="checkbox" class="bucket-chk" data-bucket-id="' + b.id + '" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--rose);margin-top:2px;">'
+        + '<span style="font-size:18px;flex-shrink:0;">💗</span>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div class="bucket-card-name">' + name + '</div>'
+        + (meta ? '<div class="bucket-card-meta">' + meta + '</div>' : '')
+        + '</div>'
+        + '<button class="bucket-poke-btn" data-poke-id="' + b.id + '" data-poke-name="' + name + '" title="콕 찌르기">❤️</button>'
+        + '<button class="btn btn-outline btn-xs" data-del-bucket="' + b.id + '">삭제</button>'
+        + '</div>'
+        + '<input class="bucket-card-memo" type="text" placeholder="기대평을 적어봐요... ✏️" value="' + (b.memo || '').replace(/"/g,'&quot;') + '" data-memo-id="' + b.id + '">'
+        + '</div>';
+    }).join('');
     const combined = placeItems + bucketHeader + bucketItems;
     el.innerHTML = combined || '<div class="empty-state">가고 싶은 곳을 추가해보세요</div>';
     // 일괄 삭제 버튼 이벤트
@@ -2780,6 +2874,34 @@ function renderPlaces() {
           });
         });
       }
+      // ❤️ 콕 찌르기
+      document.querySelectorAll('.bucket-poke-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const regionName = btn.dataset.pokeName;
+          btn.style.transform = 'scale(1.4)';
+          setTimeout(() => { btn.style.transform = ''; }, 300);
+          try {
+            await addDoc(collection(db, 'notifications'), {
+              roomId: currentCoupleCode,
+              type: 'poke',
+              from: currentNick,
+              regionName,
+              createdAt: serverTimestamp()
+            });
+            showToast('콕 찔렀어요 ❤️');
+          } catch(e) {
+            showToast('전송 실패', true);
+          }
+        });
+      });
+      // 기대평 blur 저장
+      document.querySelectorAll('.bucket-card-memo').forEach(inp => {
+        inp.addEventListener('blur', async () => {
+          const id = inp.dataset.memoId;
+          if (!id) return;
+          try { await updateDoc(doc(db, 'bucketlist', id), { memo: inp.value }); } catch(_) {}
+        });
+      });
     }, 0);
   }
 }
@@ -2797,6 +2919,25 @@ document.getElementById('place-tab-visited').addEventListener('click', () => set
 document.getElementById('place-tab-wanna').addEventListener('click', () => setMapPlaceTab('wanna'));
 document.getElementById('place-tab-stats').addEventListener('click', () => setMapPlaceTab('stats'));
 document.getElementById('open-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.add('open'));
+
+document.getElementById('map-dice-btn').addEventListener('click', () => {
+  if (allBucketlist.length === 0) {
+    showToast('가고싶은 곳을 먼저 추가해줘요! 💙');
+    return;
+  }
+  const pick = allBucketlist[Math.floor(Math.random() * allBucketlist.length)];
+  showDiceResult(pick.regionName || pick.region);
+});
+
+document.getElementById('map-control-toggle').addEventListener('click', () => {
+  mapControlActive = !mapControlActive;
+  document.getElementById('map-control-toggle').classList.toggle('active', mapControlActive);
+  const svg = document.getElementById('map-svg');
+  if (svg) {
+    svg.style.pointerEvents = mapControlActive ? 'all' : 'none';
+    svg.style.touchAction   = mapControlActive ? 'none' : 'auto';
+  }
+});
 document.getElementById('close-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.remove('open'));
 document.getElementById('save-place-btn').addEventListener('click', async () => {
   const name = document.getElementById('p-name').value.trim();
