@@ -902,6 +902,21 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
   </div>
 </div>
 
+<!-- 일기 날짜 선택 모달 -->
+<div class="modal-bg" id="modal-diary-shortcut">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title">일기 쓸 날짜 선택 📔</div>
+    <div id="diary-shortcut-date-list" style="max-height:280px;overflow-y:auto;margin-bottom:12px;"></div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:10px;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:8px;">날짜 직접 선택</div>
+      <input type="date" id="diary-shortcut-custom-date" class="form-input" style="margin-bottom:10px;">
+      <button class="btn btn-rose btn-full" id="diary-shortcut-custom-btn">이 날짜로 일기 쓰기</button>
+    </div>
+    <button class="btn btn-outline btn-full" id="close-diary-shortcut-btn">취소</button>
+  </div>
+</div>
+
 <!-- 커스텀 확인 모달 -->
 <div class="modal-bg" id="modal-confirm">
   <div class="modal modal-center" style="padding:28px 24px 28px;">
@@ -1181,19 +1196,23 @@ function showCoupleSection(id) {
   });
 }
 
-async function saveCoupleCode(code, nick) {
+async function saveCoupleCode(code, nick, isCreator = false) {
   try {
     const email = currentUser.email || '';
     const photoURL = currentUser.photoURL || '';
     // Firestore: UID 기반 (기기 간 동기화 - 메인)
     await setDoc(doc(db, 'users', currentUser.uid), {
       uid: currentUser.uid, nickname: nick, coupleCode: code,
-      email, photoURL, updatedAt: serverTimestamp()
+      email, photoURL, updatedAt: serverTimestamp(), kicked: false
     }, { merge: true });
     // Firestore: 닉네임 기반 (방 멤버 조회 호환)
     await setDoc(doc(db, 'users', nick), {
-      uid: currentUser.uid, nickname: nick, coupleCode: code, email, photoURL
+      uid: currentUser.uid, nickname: nick, coupleCode: code, email, photoURL, kicked: false
     }, { merge: true });
+    // 방 생성자는 ownerId 설정
+    if (isCreator) {
+      await setDoc(doc(db, 'rooms', code), { ownerId: currentUser.uid }, { merge: true });
+    }
     // localStorage: 캐시 (폴백용)
     localStorage.setItem('nick_' + currentUser.uid, nick);
     localStorage.setItem('couple_' + currentUser.uid, code);
@@ -1261,7 +1280,7 @@ document.getElementById('room-title-input').addEventListener('keydown', e => {
 document.getElementById('enter-create-btn').addEventListener('click', () => {
   const nick = document.getElementById('create-nick-input').value.trim();
   if (!nick) { showToast('이름을 입력해주세요', true); return; }
-  saveCoupleCode(pendingCoupleCode, nick);
+  saveCoupleCode(pendingCoupleCode, nick, true);
 });
 
 document.getElementById('join-member-dropdown').addEventListener('change', () => {
@@ -1348,7 +1367,7 @@ document.getElementById('confirm-create-new-btn').addEventListener('click', asyn
   const nick = document.getElementById('new-room-nick-input').value.trim();
   if (!nick) { showToast('닉네임을 입력해주세요', true); return; }
   document.getElementById('modal-create-new').classList.remove('open');
-  await saveCoupleCode(newRoomPendingCode, nick);
+  await saveCoupleCode(newRoomPendingCode, nick, true);
 });
 
 document.getElementById('enter-join-btn').addEventListener('click', async () => {
@@ -1400,6 +1419,15 @@ onAuthStateChanged(auth, async user => {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (userDoc.exists()) {
         const data = userDoc.data();
+        if (data.kicked) {
+          // 강퇴된 유저 → 커플 코드 선택 화면으로
+          localStorage.removeItem('nick_' + user.uid);
+          localStorage.removeItem('couple_' + user.uid);
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('couple-screen').style.display = 'flex';
+          showToast('방에서 내보내졌어요', true);
+          return;
+        }
         if (data.coupleCode && data.nickname) {
           currentNick = data.nickname;
           currentCoupleCode = data.coupleCode;
@@ -1430,11 +1458,25 @@ onAuthStateChanged(auth, async user => {
 
 getRedirectResult(auth).catch(() => {});
 
+let kickListener = null;
 function enterApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('couple-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-name-display').textContent = currentNick;
+  // 실시간 강퇴 감지
+  if (currentUser && !kickListener) {
+    kickListener = onSnapshot(doc(db, 'users', currentUser.uid), snap => {
+      if (snap.exists() && snap.data().kicked) {
+        unsubscribers.forEach(u => u());
+        unsubscribers = [];
+        if (kickListener) { kickListener(); kickListener = null; }
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('couple-screen').style.display = 'flex';
+        showToast('방에서 내보내졌어요', true);
+      }
+    });
+  }
   document.getElementById('my-couple-code').textContent = currentCoupleCode;
   document.getElementById('hero-name').textContent = currentNick + '님';
   document.getElementById('hero-greeting').textContent = getGreeting();
@@ -1458,9 +1500,11 @@ function enterApp() {
 }
 
 async function loadRoomInfo() {
-  // 방 제목
+  // 방 제목 + 방장 정보
   const roomDoc = await getDoc(doc(db, 'rooms', currentCoupleCode));
-  const title = roomDoc.exists() ? (roomDoc.data().title || '우리의 방') : '우리의 방';
+  const roomData = roomDoc.exists() ? roomDoc.data() : {};
+  const title = roomData.title || '우리의 방';
+  const roomOwnerId = roomData.ownerId || '';
   document.getElementById('room-title-display').textContent = title;
   document.getElementById('room-title-input').value = title;
 
@@ -1468,19 +1512,38 @@ async function loadRoomInfo() {
   const membersSnap = await getDocs(query(collection(db, 'users'), where('coupleCode', '==', currentCoupleCode)));
   const seen = new Set();
   const members = membersSnap.docs
-    .map(d => ({ nick: d.data().nickname || d.id, email: d.data().email || '' }))
+    .map(d => ({ nick: d.data().nickname || d.id, email: d.data().email || '', uid: d.data().uid || '' }))
     .filter(m => { if (seen.has(m.nick)) return false; seen.add(m.nick); return true; });
+
+  const isOwner = roomOwnerId && currentUser && roomOwnerId === currentUser.uid;
+
   document.getElementById('room-members').innerHTML = members.length
-    ? members.map(m => `<div style="background:var(--rose4);border-radius:12px;padding:8px 12px;flex:1;min-width:120px;">
-        <div style="font-weight:800;font-size:14px;color:var(--rose);">${m.nick}</div>
-        ${m.email ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;word-break:break-all;">${m.email}</div>` : ''}
-      </div>`).join('')
+    ? members.map(m => {
+        const isThisOwner = roomOwnerId && m.uid && m.uid === roomOwnerId;
+        return `<div style="background:var(--rose4);border-radius:12px;padding:8px 12px;flex:1;min-width:120px;">
+          <div style="font-weight:800;font-size:14px;color:var(--rose);">${isThisOwner ? '👑 ' : ''}${m.nick}</div>
+          ${m.email ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;word-break:break-all;">${m.email}</div>` : ''}
+          ${isOwner && m.nick !== currentNick ? `<button class="btn btn-outline btn-xs" style="margin-top:6px;font-size:11px;color:#e74c3c;border-color:#e74c3c;" onclick="kickMember('${m.nick.replace(/'/g,"\\'")}','${m.uid}')">강퇴</button>` : ''}
+        </div>`;
+      }).join('')
     : '<div style="color:var(--text3);font-size:13px;">아직 멤버가 없어요</div>';
 
   // 신청 대상 드롭다운 업데이트 (본인 제외)
   const sel = document.getElementById('a-recipient');
   sel.innerHTML = '<option value="">상대방 선택</option>' +
     members.filter(m => m.nick !== currentNick).map(m => `<option value="${m.nick}">${m.nick}</option>`).join('');
+}
+
+async function kickMember(nick, uid) {
+  if (!confirm(`${nick}님을 방에서 내보낼까요?`)) return;
+  try {
+    if (uid) await setDoc(doc(db, 'users', uid), { coupleCode: '', kicked: true }, { merge: true });
+    await setDoc(doc(db, 'users', nick), { coupleCode: '', kicked: true }, { merge: true });
+    showToast(`${nick}님을 내보냈어요`);
+    loadRoomInfo();
+  } catch(e) {
+    showToast('강퇴 실패: ' + e.message, true);
+  }
 }
 
 function updateRoomStats() {
@@ -1526,6 +1589,7 @@ function loadAll() {
     allNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     if (myTab === 'notes') renderMyContent();
+    renderHome();
   });
 
   const u6 = onSnapshot(query(collection(db, 'schedules'), where('roomId', '==', currentCoupleCode)), snap => {
@@ -1537,6 +1601,7 @@ function loadAll() {
   const u7 = onSnapshot(query(collection(db, 'bucketlist'), where('roomId', '==', currentCoupleCode)), snap => {
     allBucketlist = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (document.getElementById('page-map').classList.contains('active')) renderMap();
+    renderPlaces();
   });
 
   unsubscribers = [u1, u2, u3, u4, u5, u6, u7];
@@ -1685,14 +1750,16 @@ function renderCalendar() {
     // 일기 미작성: 과거 수락 데이트인데 일기 없음
     const pastAccepted = hasAccepted && dateStr < todayStr;
     const hasNoDiary = pastAccepted && !allDiaries.some(d => d.date === dateStr);
-    // 날짜 셀 배경색: 기념일+일정 → 대각선, 기념일만 → 연보라, 일정만 → 연노랑
+    // 날짜 셀 배경색: 3색 체계 - 기념일=핑크, 일정=하늘, 수락데이트=라임
     let bgStyle = '';
-    if (hasAnni && hasSched) {
-      bgStyle = 'background:linear-gradient(135deg,#F3E8FF 50%,#FFF8E1 50%);';
-    } else if (hasAnni) {
-      bgStyle = 'background:#F3E8FF;';
-    } else if (hasSched) {
-      bgStyle = 'background:#FFF8E1;';
+    const anniColor = '#FFD6E0', schedColor = '#B3E5FC', dateColor = '#DCEDC8';
+    const colorsOn = [hasAnni && anniColor, hasSched && schedColor, hasAccepted && dateColor].filter(Boolean);
+    if (colorsOn.length === 3) {
+      bgStyle = `background:conic-gradient(${anniColor} 0deg 120deg,${schedColor} 120deg 240deg,${dateColor} 240deg 360deg);`;
+    } else if (colorsOn.length === 2) {
+      bgStyle = `background:linear-gradient(135deg,${colorsOn[0]} 50%,${colorsOn[1]} 50%);`;
+    } else if (colorsOn.length === 1) {
+      bgStyle = `background:${colorsOn[0]};`;
     }
     let cls = 'cal-cell'
       + (isToday ? ' today' : '')
@@ -1721,11 +1788,11 @@ function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates, schedule
   let html = '';
   // 기념일
   (anniDates[dateStr] || []).forEach(a => {
-    html += '<div class="anni-card" style="margin-bottom:8px;"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
+    html += '<div class="anni-card" style="margin-bottom:8px;border-left:3px solid #FFD6E0;"><div class="anni-icon">' + a.emoji + '</div><div><div class="anni-name">' + a.name + '</div></div></div>';
   });
   // 일정
   (scheduleDates && scheduleDates[dateStr] || []).forEach(s => {
-    html += '<div class="card" style="border-left:3px solid var(--yellow);margin-bottom:8px;">'
+    html += '<div class="card" style="border-left:3px solid #B3E5FC;margin-bottom:8px;">'
       + '<div style="font-weight:700;font-size:15px;">📋 ' + s.title + '</div>'
       + (s.description ? '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + s.description + '</div>' : '')
       + '<div style="font-size:11px;color:var(--text3);margin-top:6px;">' + (s.createdBy || '') + '</div>'
@@ -1750,7 +1817,7 @@ function showCalDetail(dateStr, acceptedDates, pendingDates, anniDates, schedule
         + '</div>'
         + '</div>';
     }
-    html += '<div class="card" style="margin-bottom:8px;">'
+    html += '<div class="card" style="border-left:3px solid #DCEDC8;margin-bottom:8px;">'
       + '<div style="font-weight:700;font-size:15px;">' + r.time + ' · ' + r.theme + '</div>'
       + '<div style="font-size:13px;color:var(--text2);margin-top:4px;">' + r.region + (r.subLocation ? ' / ' + r.subLocation : '') + '</div>'
       + (diary ? diaryHtml : '<button class="btn btn-outline btn-sm btn-full" data-open-diary="' + r.id + '" style="margin-top:8px;">일기 쓰기 📔</button>')
@@ -1935,13 +2002,19 @@ function renderMap() {
     .filter(r => (r.status === '수락' || r.status === 'accepted') && r.region)
     .forEach(r => {
       const parts = r.region.split(' · ');
-      // sub-city가 있으면 sub-city로, 없으면 province(광역시도)로 매칭
       const matchTarget = parts.length >= 2 ? parts[1].trim() : parts[0].trim();
+      const matched = [];
       allSVGPaths.forEach(({ n }) => {
         if (cityMatchesPath(matchTarget, n)) {
           dateMatchedNameCounts[n] = (dateMatchedNameCounts[n] || 0) + 1;
+          matched.push(n);
         }
       });
+      if (matched.length === 0) {
+        console.warn('[지도 매칭 실패] region:', r.region, '→ matchTarget:', matchTarget);
+      } else {
+        console.log('[지도 매칭] region:', r.region, '→ matchTarget:', matchTarget, '→', matched);
+      }
     });
 
   // 모달 표시용 통합 카운트 (장소+데이트, province 단위)
@@ -2239,22 +2312,30 @@ async function toggleBucketlist(rkey, rname, clientX, clientY) {
       createdAt: serverTimestamp()
     });
     showToast('버킷리스트에 추가했어요 💗');
-    // 💗 하트 튀어오르는 애니메이션
     if (clientX && clientY) {
-      const star = document.createElement('div');
-      star.className = 'star-pop';
-      star.textContent = '💗';
-      star.style.left = clientX + 'px';
-      star.style.top  = clientY + 'px';
-      star.style.color = '#FF69B4';
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 750);
+      [-22, 0, 22].forEach((offset, i) => {
+        const star = document.createElement('div');
+        star.className = 'star-pop';
+        star.textContent = '💗';
+        star.style.left = (clientX + offset) + 'px';
+        star.style.top = clientY + 'px';
+        star.style.color = '#FF69B4';
+        star.style.animationDelay = (i * 0.08) + 's';
+        document.body.appendChild(star);
+        setTimeout(() => star.remove(), 950);
+      });
     }
   }
 }
 
 function renderStats() {
-  const accepted = allRequests.filter(r => r.status === '수락' || r.status === 'accepted');
+  const seenIds = new Set();
+  const accepted = allRequests.filter(r => {
+    if ((r.status === '수락' || r.status === 'accepted') && !seenIds.has(r.id)) {
+      seenIds.add(r.id); return true;
+    }
+    return false;
+  });
   document.getElementById('stat-total-dates').textContent = accepted.length;
 
   // 방문 지역 수 (히트맵 기준 - counts 사용)
@@ -2725,12 +2806,54 @@ document.getElementById('diary-stars').addEventListener('click', e => {
 });
 
 document.getElementById('close-diary-modal-btn').addEventListener('click', () => document.getElementById('modal-diary').classList.remove('open'));
-// 홈 일기 쓰기 단축 버튼
-document.getElementById('home-diary-shortcut-btn').addEventListener('click', () => {
-  document.getElementById('d-req-id').value = '';
+
+function openDiaryFor(reqId, reqDate) {
+  document.getElementById('d-req-id').value = reqId || '';
   ['d-title','d-content','d-tags'].forEach(id => document.getElementById(id).value = '');
   diaryStar = 5; updateDiaryStars();
   document.getElementById('modal-diary').classList.add('open');
+}
+
+// 홈 일기 쓰기 단축 버튼 → 날짜 선택 팝업
+document.getElementById('home-diary-shortcut-btn').addEventListener('click', () => {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const pastAccepted = allRequests
+    .filter(r => (r.status === '수락' || r.status === 'accepted') && r.date <= todayStr)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  const noDiary = pastAccepted.filter(r => !allDiaries.some(d => d.reqId === r.id || d.date === r.date));
+  const hasDiaryList = pastAccepted.filter(r => allDiaries.some(d => d.reqId === r.id || d.date === r.date));
+  const items = [...noDiary, ...hasDiaryList];
+  document.getElementById('diary-shortcut-date-list').innerHTML = items.length
+    ? items.map(r => {
+        const written = allDiaries.some(d => d.reqId === r.id || d.date === r.date);
+        return `<div class="card" style="margin-bottom:8px;cursor:pointer;border-left:3px solid ${written ? '#DCEDC8' : 'var(--rose)'};"
+          data-ds-req="${r.id}" data-ds-date="${r.date}">
+          <div style="font-weight:700;font-size:14px;">${r.date} · ${r.region}</div>
+          <div style="font-size:13px;color:var(--text2);">${r.theme}</div>
+          <div style="font-size:12px;margin-top:4px;${written ? 'color:#8BC34A;' : 'color:var(--rose);'}">${written ? '✓ 일기 있음' : '📔 일기 없음'}</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-state">과거 데이트 기록이 없어요</div>';
+  document.getElementById('diary-shortcut-custom-date').value = todayStr;
+  document.getElementById('modal-diary-shortcut').classList.add('open');
+});
+
+document.getElementById('diary-shortcut-date-list').addEventListener('click', e => {
+  const card = e.target.closest('[data-ds-req]');
+  if (!card) return;
+  document.getElementById('modal-diary-shortcut').classList.remove('open');
+  openDiaryFor(card.dataset.dsReq, card.dataset.dsDate);
+});
+
+document.getElementById('diary-shortcut-custom-btn').addEventListener('click', () => {
+  const date = document.getElementById('diary-shortcut-custom-date').value;
+  const req = allRequests.find(r => r.date === date && (r.status === '수락' || r.status === 'accepted'));
+  document.getElementById('modal-diary-shortcut').classList.remove('open');
+  openDiaryFor(req ? req.id : '', date);
+});
+
+document.getElementById('close-diary-shortcut-btn').addEventListener('click', () => {
+  document.getElementById('modal-diary-shortcut').classList.remove('open');
 });
 document.getElementById('save-diary-btn').addEventListener('click', async () => {
   const title = document.getElementById('d-title').value.trim();
