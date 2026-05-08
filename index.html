@@ -206,6 +206,20 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .filter-row{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
 .filter-btn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit;}
 .filter-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
+@keyframes mapFadeIn{from{opacity:0;transform:scale(0.97)}to{opacity:1;transform:scale(1)}}
+@keyframes rippleMap{from{transform:scale(0) translate(-50%,-50%);opacity:0.55}to{transform:scale(3.5) translate(-50%,-50%);opacity:0}}
+@keyframes starPop{0%{transform:translateY(0) scale(1);opacity:1}80%{opacity:1}100%{transform:translateY(-70px) scale(1.6);opacity:0}}
+.map-anim{animation:mapFadeIn 0.35s ease-out;}
+.map-ripple{position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,107,157,0.45);pointer-events:none;transform-origin:top left;animation:rippleMap 0.55s ease-out forwards;}
+.star-pop{position:fixed;pointer-events:none;z-index:1000;font-size:22px;animation:starPop 0.7s ease-out forwards;}
+.bucket-item{background:white;border-radius:12px;padding:12px 16px;margin-bottom:8px;border:1px solid var(--border);border-left:3px solid var(--yellow);display:flex;align-items:center;gap:10px;transition:all 0.2s;}
+.bucket-item:hover{box-shadow:var(--shadow2);}
+.bucket-item-name{flex:1;font-size:14px;font-weight:700;}
+.bucket-item-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.visited-date-item{background:white;border-radius:12px;padding:12px 16px;margin-bottom:8px;border:1px solid var(--border);display:flex;align-items:center;gap:10px;transition:all 0.2s;}
+.visited-date-item:hover{box-shadow:var(--shadow2);}
+.recent-date-card{background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;border:1px solid var(--border);border-left:3px solid var(--rose);transition:all 0.2s;}
+.recent-date-card:hover{box-shadow:var(--shadow2);}
 .map-tooltip{position:fixed;background:rgba(26,26,26,0.82);color:white;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;pointer-events:none;z-index:500;display:none;white-space:nowrap;}
 .map-view-toggle{display:flex;gap:6px;margin-bottom:10px;}
 .map-view-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:inherit;color:var(--text2);}
@@ -391,6 +405,11 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
       <div id="home-incoming"></div>
       <div class="section-label">다가오는 데이트</div>
       <div id="home-upcoming"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;">
+        <div class="section-label" style="margin:0;">최근 다녀온 곳</div>
+        <button class="btn btn-outline btn-xs" id="home-diary-shortcut-btn">일기 쓰기 📔</button>
+      </div>
+      <div id="home-recent-dates" style="margin-top:10px;"></div>
     </div>
 
     <div id="page-apply" class="page">
@@ -532,7 +551,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
       </div>
       <div id="places-list"></div>
       <div id="stats-section" class="stats-section" style="display:none;">
-        <div class="stats-num-grid">
+        <div class="stats-num-grid" style="grid-template-columns:1fr 1fr 1fr;">
           <div class="stats-num-card">
             <div class="stats-num-val" id="stat-total-dates">0</div>
             <div class="stats-num-lbl">총 데이트</div>
@@ -540,6 +559,10 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           <div class="stats-num-card" style="background:var(--yellow2);">
             <div class="stats-num-val" id="stat-total-regions" style="color:#E0A800;">0</div>
             <div class="stats-num-lbl">방문 지역</div>
+          </div>
+          <div class="stats-num-card" style="background:#FFF8E1;">
+            <div class="stats-num-val" id="stat-bucket-count" style="color:#E0A800;">0</div>
+            <div class="stats-num-lbl">버킷리스트</div>
           </div>
         </div>
         <div class="section-label" style="margin-top:0;">TOP 3 지역</div>
@@ -1527,6 +1550,25 @@ function renderHome() {
   document.getElementById('home-upcoming').innerHTML = upcoming.length
     ? upcoming.map(r => dateCardHTML(r)).join('')
     : '<div class="empty-state">예정된 데이트가 없어요 🌸</div>';
+
+  // 최근 다녀온 곳 (수락된 데이트 중 과거 최대 5개)
+  const recentDates = accepted
+    .filter(r => r.date < today && r.region)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 5);
+  document.getElementById('home-recent-dates').innerHTML = recentDates.length
+    ? recentDates.map(r => {
+        const diary = allDiaries.find(d => d.reqId === r.id || d.date === r.date);
+        return '<div class="recent-date-card">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+          + '<div style="font-size:15px;font-weight:800;">' + r.region + '</div>'
+          + '<span style="font-size:12px;color:var(--text3);">' + r.date + '</span>'
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--text2);">' + r.theme + (r.subLocation ? ' · ' + r.subLocation : '') + '</div>'
+          + (diary ? '<div style="font-size:12px;color:var(--rose);margin-top:6px;">📔 ' + diary.title + '</div>' : '')
+          + '</div>';
+      }).join('')
+    : '<div class="empty-state" style="padding:20px 0;">아직 다녀온 데이트가 없어요 🌸</div>';
 }
 
 function statusBadge(status) {
@@ -1813,53 +1855,54 @@ function renderMap() {
   const { W, H, paths, meshD, jejuPaths, jejuTX, jejuTY, ulData } = PREBUILT_MAP;
   const LABEL_MIN = 400;
 
-  // ── 방문 장소: 광역시도 단위 heat 카운트 ──
-  const placeCounts = {};
-  allPlaces.filter(p => p.category === 'visited').forEach(p => {
-    const g = getRegionGroup(p.region || '기타');
-    placeCounts[g] = (placeCounts[g] || 0) + 1;
-  });
-
-  // ── 수락 데이트: 시/군 path 단위 정밀 매칭 ──
-  // 수원시장안구 → 수원 / 남양주시 → 남양주 / 마산합포구 → 그대로 후 prefix 비교
+  // ── 매칭 유틸: 시/군명 정규화 ──
   function normCity(s) {
     s = (s || '').trim();
-    const m = s.match(/^(.+?시)[가-힣]+[구동]$/); // 포항시남구 → 포항시 → 포항
+    const m = s.match(/^(.+?시)[가-힣]+[구동]$/);
     if (m) return m[1].replace(/시$/, '');
     return s.replace(/특별자치도$|특별자치시$|광역시$|특별시$|시$|군$|구$/, '');
   }
-
   function cityMatchesPath(dateCity, pathName) {
     if (!dateCity || !pathName) return false;
     const dc = normCity(dateCity);
     const np = normCity(pathName);
-    // 정확 매칭 (남양주 ↔ 남양주시)
     if (dc === np) return true;
-    // 접두어 매칭 (마산 ↔ 마산합포구)
     if (pathName.startsWith(dc) || np.startsWith(dc)) return true;
     return false;
   }
+  const allSVGPaths = [...(paths || []), ...(jejuPaths || [])];
 
-  const dateMatchedNames = new Set(); // 매칭된 path.n
-  const dateMatchedRks   = new Set(); // 시/군 매칭 실패 시 광역시도 폴백
+  // ── 방문 장소: per-path 매칭 ──
+  const placeCounts = {};
+  const placeMatchedNames = new Set();
+  allPlaces.filter(p => p.category === 'visited').forEach(p => {
+    const g = getRegionGroup(p.region || '기타');
+    placeCounts[g] = (placeCounts[g] || 0) + 1;
+    const parts = (p.region || '').split(' · ');
+    if (parts.length >= 2) {
+      const subCity = parts[1].trim();
+      allSVGPaths.forEach(({ n }) => { if (cityMatchesPath(subCity, n)) placeMatchedNames.add(n); });
+    }
+  });
 
+  // ── 수락 데이트: per-path 정밀 매칭 (province fallback 제거 → 전체 칠림 버그 수정) ──
+  const dateMatchedNameCounts = {}; // path.n → 방문 횟수
   allRequests
     .filter(r => (r.status === '수락' || r.status === 'accepted') && r.region)
     .forEach(r => {
       const parts = r.region.split(' · ');
       if (parts.length >= 2) {
         const subCity = parts[1].trim();
-        let matched = false;
-        [...(paths || []), ...(jejuPaths || [])].forEach(({ n }) => {
-          if (cityMatchesPath(subCity, n)) { dateMatchedNames.add(n); matched = true; }
+        allSVGPaths.forEach(({ n }) => {
+          if (cityMatchesPath(subCity, n)) {
+            dateMatchedNameCounts[n] = (dateMatchedNameCounts[n] || 0) + 1;
+          }
         });
-        if (!matched) dateMatchedRks.add(getRegionGroup(r.region));
-      } else {
-        dateMatchedRks.add(getRegionGroup(r.region));
       }
+      // province-only 기록은 counts(모달)에만 반영, 지도 색칠은 하지 않음
     });
 
-  // 모달 표시용 통합 카운트 (장소+데이트)
+  // 모달 표시용 통합 카운트 (장소+데이트, province 단위)
   const counts = { ...placeCounts };
   allRequests.filter(r => (r.status === '수락' || r.status === 'accepted') && r.region).forEach(r => {
     const g = getRegionGroup(r.region);
@@ -1867,11 +1910,11 @@ function renderMap() {
   });
 
   function pathFill(rk, n) {
-    const visitCnt = counts[rk] || 0;
-    if (dateMatchedNames.has(n) || dateMatchedRks.has(rk) || visitCnt > 0) {
-      return heatColor(Math.max(visitCnt, 1));
-    }
-    if (allBucketlist.some(b => getRegionGroup(b.region) === rk)) return '#FFD93D';
+    const dateCnt = dateMatchedNameCounts[n] || 0;
+    const isPlace = placeMatchedNames.has(n);
+    if (dateCnt > 0 || isPlace) return heatColor(dateCnt + (isPlace ? 1 : 0));
+    // 버킷리스트: regionName(특정 path) 또는 region(province) 기준
+    if (allBucketlist.some(b => (b.regionName ? b.regionName === n : getRegionGroup(b.region) === rk))) return '#FFD93D';
     return '#E8E8E8';
   }
 
@@ -1880,9 +1923,9 @@ function renderMap() {
       font-size="6" font-weight="500" fill="rgba(0,0,0,0.45)"
       pointer-events="none" style="font-family:sans-serif;">${simplifyRegionName(txt)}</text>`;
 
-  // ── SVG 생성 ──
-  let svg = `<svg id="map-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
-    width="100%" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none;">`;
+  // ── SVG 생성 (viewBox 왼쪽 -25 확장 → 지도 오른쪽으로 이동해 중앙 정렬) ──
+  let svg = `<svg id="map-svg" viewBox="-25 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"
+    width="100%" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none;" class="map-anim">`;
   svg += `<rect width="${W}" height="${H}" fill="#F0F4F8"/>`;
   svg += `<g id="map-g">`;
 
@@ -1909,16 +1952,17 @@ function renderMap() {
         class="map-region" data-rkey="제주특별자치도" data-name="${n}"><title>${simplifyRegionName(n)}</title></path>`;
       if (ba >= LABEL_MIN) jg += lbl(cx, cy, n);
     });
-    svg += `<g transform="translate(${jejuTX},${jejuTY})">${jg}</g>`;
+    // 제주도: 현재보다 육지에 1/2 더 가깝게 (jejuTY를 20 줄여 더 위로)
+    svg += `<g transform="translate(${jejuTX},${jejuTY + 20})">${jg}</g>`;
   }
 
-  // 울릉도: 동해안 본토 바로 옆으로 translate 이동 (기존 좌표 ~450,280 → ~390,280)
+  // 울릉도: 동해안 본토에 1/2 더 가깝게 (기존 -62 → -82로 조정)
   if (ulleung) {
-    svg += `<g transform="translate(-62,4)" class="map-region" data-rkey="${ulleung.rk}" data-name="${ulleung.n}">`;
+    svg += `<g transform="translate(-82,4)" class="map-region" data-rkey="${ulleung.rk}" data-name="${ulleung.n}">`;
     svg += `<path d="${ulleung.d}" fill="${pathFill(ulleung.rk, ulleung.n)}" stroke="#000000" stroke-width="0.5"/>`;
     svg += `<title>${simplifyRegionName(ulleung.n)}</title></g>`;
   } else if (ulData) {
-    svg += `<g transform="translate(${Math.round(W * 0.82)},180)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
+    svg += `<g transform="translate(${Math.round(W * 0.78)},180)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
     svg += `<path d="${ulData.d}" fill="${pathFill(ulData.rk, ulData.n)}" stroke="#000000" stroke-width="0.5"/>`;
     svg += `<title>${simplifyRegionName(ulData.n)}</title></g>`;
   }
@@ -1935,8 +1979,19 @@ function renderMap() {
     if (!region) return;
     flashRegion(region);
     if (navigator.vibrate) navigator.vibrate(20);
+    // ripple 효과
+    const wrap = el.closest('.map-wrap');
+    if (wrap) {
+      const rect = wrap.getBoundingClientRect();
+      const rip = document.createElement('div');
+      rip.className = 'map-ripple';
+      rip.style.left = (e.clientX - rect.left) + 'px';
+      rip.style.top  = (e.clientY - rect.top) + 'px';
+      wrap.appendChild(rip);
+      setTimeout(() => rip.remove(), 600);
+    }
     if (mapViewMode === 'bucket') {
-      toggleBucketlist(region.dataset.rkey);
+      toggleBucketlist(region.dataset.rkey, region.dataset.name, e.clientX, e.clientY);
     } else {
       showRegionDates(region.dataset.rkey, region.dataset.name, counts);
     }
@@ -2117,8 +2172,10 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
   svgEl.addEventListener('dblclick', () => { sc = 1; tx = 0; ty = 0; apply(); });
 }
 
-async function toggleBucketlist(rkey) {
-  const existing = allBucketlist.find(b => getRegionGroup(b.region) === rkey);
+async function toggleBucketlist(rkey, rname, clientX, clientY) {
+  const existing = allBucketlist.find(b =>
+    (b.regionName ? b.regionName === rname : getRegionGroup(b.region) === rkey)
+  );
   if (existing) {
     await deleteDoc(doc(db, 'bucketlist', existing.id));
     showToast('버킷리스트에서 제거했어요');
@@ -2126,10 +2183,22 @@ async function toggleBucketlist(rkey) {
     await addDoc(collection(db, 'bucketlist'), {
       roomId: currentCoupleCode,
       region: rkey,
+      regionName: rname || rkey,
       createdBy: currentNick,
       createdAt: serverTimestamp()
     });
     showToast('버킷리스트에 추가했어요 ⭐');
+    // ★ 별 튀어오르는 애니메이션
+    if (clientX && clientY) {
+      const star = document.createElement('div');
+      star.className = 'star-pop';
+      star.textContent = '★';
+      star.style.left = clientX + 'px';
+      star.style.top  = clientY + 'px';
+      star.style.color = 'var(--yellow)';
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), 750);
+    }
   }
 }
 
@@ -2151,6 +2220,7 @@ function renderStats() {
   });
   const visitedRegions = Object.keys(regionCounts).filter(k => k !== '기타' && regionCounts[k] > 0);
   document.getElementById('stat-total-regions').textContent = visitedRegions.length;
+  document.getElementById('stat-bucket-count').textContent = allBucketlist.length;
 
   // TOP 3 지역
   const sorted = Object.entries(regionCounts)
@@ -2218,17 +2288,52 @@ function renderFallbackMap(el, counts) {
 
 // ── 장소 ──
 function renderPlaces() {
-  const filtered = allPlaces.filter(p => p.category === placeFilter);
-  document.getElementById('places-list').innerHTML = filtered.length
-    ? filtered.map(p =>
+  const el = document.getElementById('places-list');
+  if (placeFilter === 'visited') {
+    // 저장 장소 (visited)
+    const placeItems = allPlaces.filter(p => p.category === 'visited').map(p =>
       '<div class="place-item">'
       + '<div class="place-dot"></div>'
       + '<div style="flex:1;"><div class="place-name-big">' + p.name + '</div>'
       + '<div class="place-region-lbl">' + p.region + (p.memo ? ' · ' + p.memo : '') + '</div></div>'
       + '<button class="btn btn-outline btn-xs" data-del-place="' + p.id + '">삭제</button>'
       + '</div>'
-    ).join('')
-    : '<div class="empty-state">저장된 장소가 없어요</div>';
+    ).join('');
+    // 수락된 데이트 목록
+    const dateItems = allRequests
+      .filter(r => (r.status === '수락' || r.status === 'accepted') && r.region)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map(r =>
+        '<div class="visited-date-item">'
+        + '<div style="width:8px;height:8px;border-radius:50%;background:var(--rose);flex-shrink:0;"></div>'
+        + '<div style="flex:1;"><div class="place-name-big">' + r.region + '</div>'
+        + '<div class="place-region-lbl">' + r.date + ' · ' + r.theme + '</div></div>'
+        + '</div>'
+      ).join('');
+    const combined = placeItems + dateItems;
+    el.innerHTML = combined || '<div class="empty-state">가본 곳 기록이 없어요</div>';
+  } else if (placeFilter === 'wanna') {
+    // 저장 장소 (wanna)
+    const placeItems = allPlaces.filter(p => p.category === 'wanna').map(p =>
+      '<div class="place-item">'
+      + '<div class="place-dot" style="background:var(--yellow);"></div>'
+      + '<div style="flex:1;"><div class="place-name-big">' + p.name + '</div>'
+      + '<div class="place-region-lbl">' + p.region + (p.memo ? ' · ' + p.memo : '') + '</div></div>'
+      + '<button class="btn btn-outline btn-xs" data-del-place="' + p.id + '">삭제</button>'
+      + '</div>'
+    ).join('');
+    // 버킷리스트 (지도에서 추가한 지역)
+    const bucketItems = allBucketlist.map(b =>
+      '<div class="bucket-item">'
+      + '<span style="font-size:18px;flex-shrink:0;">⭐</span>'
+      + '<div style="flex:1;"><div class="bucket-item-name">' + (b.regionName || b.region) + '</div>'
+      + '<div class="bucket-item-sub">' + (b.region !== b.regionName ? b.region + ' · ' : '') + (b.createdBy || '') + '</div></div>'
+      + '<button class="btn btn-outline btn-xs" data-del-bucket="' + b.id + '">삭제</button>'
+      + '</div>'
+    ).join('');
+    const combined = placeItems + bucketItems;
+    el.innerHTML = combined || '<div class="empty-state">가고 싶은 곳을 추가해보세요</div>';
+  }
 }
 
 function setMapPlaceTab(tab) {
@@ -2347,8 +2452,15 @@ function diaryCardHTML(d) {
   const comments = (d.comments || []).map(c =>
     '<div class="comment-item"><span class="comment-author">' + c.author + '</span><span class="comment-text">' + c.text + '</span></div>'
   ).join('');
+  // 연결된 데이트 장소 조회 (reqId 또는 날짜 매칭)
+  const relReq = allRequests.find(r =>
+    (r.id === d.reqId || (r.date === d.date && (r.status === '수락' || r.status === 'accepted')))
+  );
+  const regionTag = relReq && relReq.region
+    ? '<span style="display:inline-block;background:var(--rose4);color:var(--rose);border-radius:12px;padding:2px 9px;font-size:11px;font-weight:700;margin-left:6px;">📍' + relReq.region + '</span>'
+    : '';
   return '<div class="diary-card">'
-    + '<div class="diary-date-lbl">' + d.date + ' · ' + (d.author || '') + '</div>'
+    + '<div class="diary-date-lbl">' + d.date + ' · ' + (d.author || '') + regionTag + '</div>'
     + '<div class="diary-title">' + d.title + '</div>'
     + '<div class="diary-body">' + d.content + '</div>'
     + '<div class="diary-stars">' + '★'.repeat(d.star || 5) + '☆'.repeat(5 - (d.star || 5)) + '</div>'
@@ -2516,6 +2628,13 @@ document.getElementById('diary-stars').addEventListener('click', e => {
 });
 
 document.getElementById('close-diary-modal-btn').addEventListener('click', () => document.getElementById('modal-diary').classList.remove('open'));
+// 홈 일기 쓰기 단축 버튼
+document.getElementById('home-diary-shortcut-btn').addEventListener('click', () => {
+  document.getElementById('d-req-id').value = '';
+  ['d-title','d-content','d-tags'].forEach(id => document.getElementById(id).value = '');
+  diaryStar = 5; updateDiaryStars();
+  document.getElementById('modal-diary').classList.add('open');
+});
 document.getElementById('save-diary-btn').addEventListener('click', async () => {
   const title = document.getElementById('d-title').value.trim();
   const content = document.getElementById('d-content').value.trim();
@@ -2601,6 +2720,13 @@ document.addEventListener('click', async e => {
   if (delPlace) {
     showConfirm('장소를 삭제할까요?', async () => {
       await deleteDoc(doc(db, 'places', delPlace.dataset.delPlace));
+      showToast('삭제됐어요');
+    });
+  }
+  const delBucket = e.target.closest('[data-del-bucket]');
+  if (delBucket) {
+    showConfirm('버킷리스트에서 삭제할까요?', async () => {
+      await deleteDoc(doc(db, 'bucketlist', delBucket.dataset.delBucket));
       showToast('삭제됐어요');
     });
   }
