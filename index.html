@@ -206,6 +206,26 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .filter-row{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
 .filter-btn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;font-family:inherit;}
 .filter-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
+.map-tooltip{position:fixed;background:rgba(26,26,26,0.82);color:white;font-size:12px;font-weight:700;padding:5px 10px;border-radius:7px;pointer-events:none;z-index:500;display:none;white-space:nowrap;}
+.map-view-toggle{display:flex;gap:6px;margin-bottom:10px;}
+.map-view-btn{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:inherit;color:var(--text2);}
+.map-view-btn.active{background:var(--rose);color:white;border-color:var(--rose);}
+.map-view-btn.bucket-btn.active{background:var(--yellow);color:var(--text);border-color:var(--yellow);}
+.stats-section{margin-top:4px;}
+.stats-top3{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 16px;}
+.stats-top3-tag{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;}
+.stats-top3-tag:nth-child(1){background:linear-gradient(135deg,#FFD700,#FFA500);color:white;}
+.stats-top3-tag:nth-child(2){background:linear-gradient(135deg,#C0C0C0,#A8A8A8);color:white;}
+.stats-top3-tag:nth-child(3){background:linear-gradient(135deg,#CD7F32,#A05A2C);color:white;}
+.stats-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.stats-bar-label{font-size:12px;color:var(--text2);width:32px;text-align:right;flex-shrink:0;}
+.stats-bar-track{flex:1;height:9px;background:#F0F0F0;border-radius:5px;overflow:hidden;}
+.stats-bar-fill{height:100%;background:var(--rose);border-radius:5px;transition:width 0.5s ease;}
+.stats-bar-cnt{font-size:11px;color:var(--text3);width:24px;flex-shrink:0;}
+.stats-num-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stats-num-card{background:var(--rose4);border-radius:12px;padding:14px;text-align:center;}
+.stats-num-val{font-size:26px;font-weight:800;color:var(--rose);}
+.stats-num-lbl{font-size:11px;color:var(--text3);margin-top:3px;}
 /* 커플코드 선택 카드 */
 .couple-choice-btn{display:none;}
 .couple-choice-card{width:100%;display:flex;align-items:center;gap:16px;padding:20px;border-radius:16px;cursor:pointer;transition:all 0.22s;font-family:inherit;text-align:left;margin-bottom:12px;}
@@ -485,9 +505,13 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
     </div>
 
     <div id="page-map" class="page">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <div class="page-title" style="margin:0;">우리의 장소 🗺️</div>
         <button class="btn btn-rose btn-sm" id="open-place-modal-btn">추가</button>
+      </div>
+      <div class="map-view-toggle">
+        <button class="map-view-btn active" id="map-btn-visit">방문 지도</button>
+        <button class="map-view-btn bucket-btn" id="map-btn-bucket">버킷리스트</button>
       </div>
       <div class="map-wrap">
         <div id="korea-map"></div>
@@ -498,13 +522,31 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF6B9D;"></div>6-8</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#C0392B;"></div>10+</div>
+          <div class="map-legend-item" id="legend-bucket" style="display:none;"><div class="map-legend-dot" style="background:#FFD93D;border:1px solid #e5c200;"></div>버킷</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;border-bottom:1px solid var(--border);padding-bottom:0;">
         <button class="tab-btn active" id="place-tab-visited">가봤던 곳</button>
         <button class="tab-btn" id="place-tab-wanna">가고싶은 곳</button>
+        <button class="tab-btn" id="place-tab-stats">통계</button>
       </div>
       <div id="places-list"></div>
+      <div id="stats-section" class="stats-section" style="display:none;">
+        <div class="stats-num-grid">
+          <div class="stats-num-card">
+            <div class="stats-num-val" id="stat-total-dates">0</div>
+            <div class="stats-num-lbl">총 데이트</div>
+          </div>
+          <div class="stats-num-card" style="background:var(--yellow2);">
+            <div class="stats-num-val" id="stat-total-regions" style="color:#E0A800;">0</div>
+            <div class="stats-num-lbl">방문 지역</div>
+          </div>
+        </div>
+        <div class="section-label" style="margin-top:0;">TOP 3 지역</div>
+        <div id="stats-top3" class="stats-top3"></div>
+        <div class="section-label">월별 데이트</div>
+        <div id="stats-monthly-chart" style="margin-bottom:8px;"></div>
+      </div>
     </div>
 
     <div id="page-my" class="page">
@@ -840,6 +882,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="map-tooltip" id="map-tooltip"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
@@ -919,9 +962,10 @@ function getRegionGroup(region) {
 
 let currentUser = null, currentNick = '', currentCoupleCode = '';
 let checkItems = [], selTheme = '', selPlaceRegion = '';
-let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전체';
-let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [], allSchedules = [];
+let diaryStar = 5, placeFilter = 'visited', myTab = 'received', myFilter = '전체', mapPlaceTab = 'visited';
+let allRequests = [], allPlaces = [], allDiaries = [], allAnniversaries = [], allNotes = [], allSchedules = [], allBucketlist = [];
 let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+let mapViewMode = 'visit';
 let unsubscribers = [];
 
 function showToast(msg, isErr) {
@@ -1458,7 +1502,12 @@ function loadAll() {
     renderCalendar();
   });
 
-  unsubscribers = [u1, u2, u3, u4, u5, u6];
+  const u7 = onSnapshot(query(collection(db, 'bucketlist'), where('roomId', '==', currentCoupleCode)), snap => {
+    allBucketlist = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (document.getElementById('page-map').classList.contains('active')) renderMap();
+  });
+
+  unsubscribers = [u1, u2, u3, u4, u5, u6, u7];
 }
 
 // ── 홈 ──
@@ -1659,7 +1708,8 @@ function showRegionDates(rkey, rname, counts) {
   let html = '';
   if (regionDates.length) {
     regionDates.forEach(r => {
-      const diary = allDiaries.find(d => d.reqId === r.id);
+      const diary = allDiaries.find(d => d.reqId === r.id)
+        || allDiaries.find(d => d.date === r.date && getRegionGroup(d.region || '') === rkey);
       html += '<div class="date-card" style="margin-bottom:10px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
         + '<div class="date-card-date">' + r.date + ' ' + r.time + '</div>'
@@ -1817,8 +1867,12 @@ function renderMap() {
   });
 
   function pathFill(rk, n) {
-    if (dateMatchedNames.has(n) || dateMatchedRks.has(rk)) return '#FF6B9D';
-    return heatColor(placeCounts[rk] || 0);
+    const visitCnt = counts[rk] || 0;
+    if (dateMatchedNames.has(n) || dateMatchedRks.has(rk) || visitCnt > 0) {
+      return heatColor(Math.max(visitCnt, 1));
+    }
+    if (allBucketlist.some(b => getRegionGroup(b.region) === rk)) return '#FFD93D';
+    return '#E8E8E8';
   }
 
   const lbl = (x, y, txt) =>
@@ -1832,7 +1886,11 @@ function renderMap() {
   svg += `<rect width="${W}" height="${H}" fill="#F0F4F8"/>`;
   svg += `<g id="map-g">`;
 
+  // 울릉도(울릉군)는 별도 그룹으로 분리하여 동해안 본토 옆에 배치
+  const ulleung = paths.find(p => p.n === '울릉군');
+
   paths.forEach(({ d, rk, n }) => {
+    if (n === '울릉군') return; // 별도 렌더링
     svg += `<path d="${d}" fill="${pathFill(rk, n)}" stroke="#000000" stroke-width="0.35"
       class="map-region" data-rkey="${rk}" data-name="${n}"><title>${simplifyRegionName(n)}</title></path>`;
   });
@@ -1840,6 +1898,7 @@ function renderMap() {
   if (meshD) svg += `<path d="${meshD}" fill="none" stroke="#000000" stroke-width="0.45" pointer-events="none"/>`;
 
   paths.forEach(({ n, cx, cy, ba }) => {
+    if (n === '울릉군') return;
     if (ba >= LABEL_MIN) svg += lbl(cx, cy, n);
   });
 
@@ -1853,8 +1912,13 @@ function renderMap() {
     svg += `<g transform="translate(${jejuTX},${jejuTY})">${jg}</g>`;
   }
 
-  if (ulData) {
-    svg += `<g transform="translate(${W - 42},110)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
+  // 울릉도: 동해안 본토 바로 옆으로 translate 이동 (기존 좌표 ~450,280 → ~390,280)
+  if (ulleung) {
+    svg += `<g transform="translate(-62,4)" class="map-region" data-rkey="${ulleung.rk}" data-name="${ulleung.n}">`;
+    svg += `<path d="${ulleung.d}" fill="${pathFill(ulleung.rk, ulleung.n)}" stroke="#000000" stroke-width="0.5"/>`;
+    svg += `<title>${simplifyRegionName(ulleung.n)}</title></g>`;
+  } else if (ulData) {
+    svg += `<g transform="translate(${Math.round(W * 0.82)},180)" class="map-region" data-rkey="${ulData.rk}" data-name="${ulData.n}">`;
     svg += `<path d="${ulData.d}" fill="${pathFill(ulData.rk, ulData.n)}" stroke="#000000" stroke-width="0.5"/>`;
     svg += `<title>${simplifyRegionName(ulData.n)}</title></g>`;
   }
@@ -1863,17 +1927,48 @@ function renderMap() {
   el.innerHTML = svg;
 
   // ── 클릭 이벤트: 컨테이너 위임 (iOS 호환) ──
-  // touchMoveDistance: 터치 이동 거리 추적 (드래그 vs 탭 구분)
   let touchMoveDistance = 0;
 
   el.addEventListener('click', e => {
-    if (touchMoveDistance > 8) return; // 드래그였으면 클릭 무시
+    if (touchMoveDistance > 8) return;
     const region = e.target.closest('.map-region');
     if (!region) return;
     flashRegion(region);
     if (navigator.vibrate) navigator.vibrate(20);
-    showRegionDates(region.dataset.rkey, region.dataset.name, counts);
+    if (mapViewMode === 'bucket') {
+      toggleBucketlist(region.dataset.rkey);
+    } else {
+      showRegionDates(region.dataset.rkey, region.dataset.name, counts);
+    }
   });
+
+  // ── 툴팁: hover/touchstart 시 방문 횟수 표시 ──
+  const tooltip = document.getElementById('map-tooltip');
+  el.addEventListener('mouseover', e => {
+    const region = e.target.closest('.map-region');
+    if (!region) { tooltip.style.display = 'none'; return; }
+    const n = counts[region.dataset.rkey] || 0;
+    tooltip.textContent = `방문 ${n}회`;
+    tooltip.style.display = 'block';
+  });
+  el.addEventListener('mousemove', e => {
+    if (tooltip.style.display === 'block') {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top  = (e.clientY - 32) + 'px';
+    }
+  });
+  el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+  el.addEventListener('touchstart', e => {
+    const region = e.target.closest('.map-region');
+    if (!region) { tooltip.style.display = 'none'; return; }
+    const n = counts[region.dataset.rkey] || 0;
+    tooltip.textContent = `방문 ${n}회`;
+    const t = e.touches[0];
+    tooltip.style.left = (t.clientX + 14) + 'px';
+    tooltip.style.top  = (t.clientY - 40) + 'px';
+    tooltip.style.display = 'block';
+    setTimeout(() => { tooltip.style.display = 'none'; }, 1800);
+  }, { passive: true });
 
   initMapZoom(el.querySelector('#map-svg'), W, H, d => { touchMoveDistance = d; });
 }
@@ -1927,10 +2022,11 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
     );
   }, { passive: false });
 
-  // ── 마우스 드래그 ──
+  // ── 마우스 드래그 (확대 상태에서만 활성화) ──
   let mouseDrag = null;
-  svgEl.style.cursor = 'grab';
+  svgEl.style.cursor = 'default';
   svgEl.addEventListener('mousedown', e => {
+    if (sc <= 1) return;
     mouseDrag = { x: e.clientX, y: e.clientY, tx, ty };
     svgEl.style.cursor = 'grabbing';
     e.preventDefault();
@@ -1942,8 +2038,8 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
     ty = mouseDrag.ty + (e.clientY - mouseDrag.y) * H / rect.height;
     apply();
   });
-  svgEl.addEventListener('mouseup',    () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
-  svgEl.addEventListener('mouseleave', () => { mouseDrag = null; svgEl.style.cursor = 'grab'; });
+  svgEl.addEventListener('mouseup',    () => { mouseDrag = null; svgEl.style.cursor = sc > 1 ? 'grab' : 'default'; });
+  svgEl.addEventListener('mouseleave', () => { mouseDrag = null; svgEl.style.cursor = sc > 1 ? 'grab' : 'default'; });
 
   // ── 터치 (핀치줌 + 드래그) ──
   // touch-action:none (CSS) 이 스크롤을 차단하므로 touchstart는 passive 유지 가능
@@ -1977,6 +2073,16 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
       if (ptDist > 0) zoom(cx, cy, dist / ptDist);
       ptDist = dist;
     } else if (e.touches.length === 1 && touchDrag) {
+      // 확대 상태에서만 1손가락 팬 허용
+      if (sc <= 1) {
+        if (touchStartPos && onTouchMove) {
+          onTouchMove(Math.hypot(
+            e.touches[0].clientX - touchStartPos.x,
+            e.touches[0].clientY - touchStartPos.y
+          ));
+        }
+        return;
+      }
       const rect = svgEl.getBoundingClientRect();
       tx = touchDrag.tx + (e.touches[0].clientX - touchDrag.x) * W / rect.width;
       ty = touchDrag.ty + (e.touches[0].clientY - touchDrag.y) * H / rect.height;
@@ -1990,21 +2096,99 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
     }
   }, { passive: false });
 
-  // ── touchend: 중복 핸들러 없이 하나로 통합 ──
+  // ── touchend: 핀치 종료와 더블탭 리셋을 구분 ──
   let lastTap = 0;
   svgEl.addEventListener('touchend', e => {
+    const wasPinch = (ptDist > 0);
     if (e.touches.length < 2) ptDist = 0;
     if (e.touches.length === 0) { touchDrag = null; touchStartPos = null; }
-    // 더블탭 → 리셋
-    const now = Date.now();
-    if (now - lastTap < 300) { sc = 1; tx = 0; ty = 0; apply(); }
-    lastTap = now;
-    // 드래그 거리 초기화 (click 이벤트 발생 후 리셋)
+    // 핀치 종료 시에는 더블탭 리셋 트리거하지 않음
+    if (!wasPinch && e.touches.length === 0) {
+      const now = Date.now();
+      if (now - lastTap < 300) { sc = 1; tx = 0; ty = 0; apply(); svgEl.style.cursor = 'default'; }
+      lastTap = now;
+    }
+    // 확대 후 커서 업데이트
+    svgEl.style.cursor = sc > 1 ? 'grab' : 'default';
     if (onTouchMove) setTimeout(() => onTouchMove(0), 80);
   });
 
   // ── 더블클릭 리셋 ──
   svgEl.addEventListener('dblclick', () => { sc = 1; tx = 0; ty = 0; apply(); });
+}
+
+async function toggleBucketlist(rkey) {
+  const existing = allBucketlist.find(b => getRegionGroup(b.region) === rkey);
+  if (existing) {
+    await deleteDoc(doc(db, 'bucketlist', existing.id));
+    showToast('버킷리스트에서 제거했어요');
+  } else {
+    await addDoc(collection(db, 'bucketlist'), {
+      roomId: currentCoupleCode,
+      region: rkey,
+      createdBy: currentNick,
+      createdAt: serverTimestamp()
+    });
+    showToast('버킷리스트에 추가했어요 ⭐');
+  }
+}
+
+function renderStats() {
+  const accepted = allRequests.filter(r => r.status === '수락' || r.status === 'accepted');
+  document.getElementById('stat-total-dates').textContent = accepted.length;
+
+  // 방문 지역 수 (히트맵 기준 - counts 사용)
+  const regionCounts = {};
+  accepted.forEach(r => {
+    if (r.region) {
+      const g = getRegionGroup(r.region);
+      regionCounts[g] = (regionCounts[g] || 0) + 1;
+    }
+  });
+  allPlaces.filter(p => p.category === 'visited').forEach(p => {
+    const g = getRegionGroup(p.region || '기타');
+    regionCounts[g] = (regionCounts[g] || 0) + 1;
+  });
+  const visitedRegions = Object.keys(regionCounts).filter(k => k !== '기타' && regionCounts[k] > 0);
+  document.getElementById('stat-total-regions').textContent = visitedRegions.length;
+
+  // TOP 3 지역
+  const sorted = Object.entries(regionCounts)
+    .filter(([k]) => k !== '기타')
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  const medals = ['🥇', '🥈', '🥉'];
+  const top3El = document.getElementById('stats-top3');
+  top3El.innerHTML = sorted.length
+    ? sorted.map(([k, v], i) =>
+        `<div class="stats-top3-tag">${medals[i]} ${k} <span style="font-size:11px;opacity:0.85;">${v}회</span></div>`
+      ).join('')
+    : '<div style="color:var(--text3);font-size:13px;">아직 데이트 기록이 없어요</div>';
+
+  // 월별 데이트 바 차트 (최근 6개월)
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ y: d.getFullYear(), m: d.getMonth() + 1, cnt: 0 });
+  }
+  accepted.forEach(r => {
+    if (!r.date) return;
+    const [ry, rm] = r.date.split('-').map(Number);
+    const slot = months.find(s => s.y === ry && s.m === rm);
+    if (slot) slot.cnt++;
+  });
+  const maxCnt = Math.max(...months.map(s => s.cnt), 1);
+  const chartEl = document.getElementById('stats-monthly-chart');
+  chartEl.innerHTML = months.map(s => {
+    const pct = Math.round((s.cnt / maxCnt) * 100);
+    const lbl = `${s.m}월`;
+    return `<div class="stats-bar-row">
+      <div class="stats-bar-label">${lbl}</div>
+      <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%"></div></div>
+      <div class="stats-bar-cnt">${s.cnt}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderFallbackMap(el, counts) {
@@ -2047,18 +2231,27 @@ function renderPlaces() {
     : '<div class="empty-state">저장된 장소가 없어요</div>';
 }
 
-document.getElementById('place-tab-visited').addEventListener('click', () => {
-  placeFilter = 'visited';
-  document.getElementById('place-tab-visited').classList.add('active');
-  document.getElementById('place-tab-wanna').classList.remove('active');
-  renderPlaces();
-});
-document.getElementById('place-tab-wanna').addEventListener('click', () => {
-  placeFilter = 'wanna';
-  document.getElementById('place-tab-wanna').classList.add('active');
-  document.getElementById('place-tab-visited').classList.remove('active');
-  renderPlaces();
-});
+function setMapPlaceTab(tab) {
+  mapPlaceTab = tab;
+  document.getElementById('place-tab-visited').classList.toggle('active', tab === 'visited');
+  document.getElementById('place-tab-wanna').classList.toggle('active', tab === 'wanna');
+  document.getElementById('place-tab-stats').classList.toggle('active', tab === 'stats');
+  document.getElementById('places-list').style.display = (tab === 'stats') ? 'none' : '';
+  document.getElementById('stats-section').style.display = (tab === 'stats') ? '' : 'none';
+  if (tab === 'stats') { renderStats(); } else { placeFilter = tab; renderPlaces(); }
+}
+document.getElementById('place-tab-visited').addEventListener('click', () => setMapPlaceTab('visited'));
+document.getElementById('place-tab-wanna').addEventListener('click', () => setMapPlaceTab('wanna'));
+document.getElementById('place-tab-stats').addEventListener('click', () => setMapPlaceTab('stats'));
+function setMapViewMode(mode) {
+  mapViewMode = mode;
+  document.getElementById('map-btn-visit').classList.toggle('active', mode === 'visit');
+  document.getElementById('map-btn-bucket').classList.toggle('active', mode === 'bucket');
+  document.getElementById('legend-bucket').style.display = (mode === 'bucket') ? 'flex' : 'none';
+  renderMap();
+}
+document.getElementById('map-btn-visit').addEventListener('click', () => setMapViewMode('visit'));
+document.getElementById('map-btn-bucket').addEventListener('click', () => setMapViewMode('bucket'));
 document.getElementById('open-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.add('open'));
 document.getElementById('close-place-modal-btn').addEventListener('click', () => document.getElementById('modal-place').classList.remove('open'));
 document.getElementById('save-place-btn').addEventListener('click', async () => {
