@@ -42,6 +42,7 @@ body{font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;back
 .nav-label{font-size:10px;font-weight:700;color:var(--text3);transition:color 0.2s;}
 .nav-item.active .nav-label{color:var(--rose);}
 .nav-dot{display:none;}
+.nav-badge{position:absolute;top:2px;right:6px;background:var(--rose);color:white;font-size:9px;font-weight:800;border-radius:8px;padding:1px 4px;min-width:14px;text-align:center;line-height:14px;}
 main{max-width:480px;margin:0 auto;padding:16px 16px 80px;}
 .page{display:none;animation:fadeUp 0.2s ease;}
 .page.active{display:block;}
@@ -163,6 +164,8 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .cal-dot-date{background:var(--rose);}
 .cal-dot-pending{background:var(--yellow);}
 .cal-dot-anniversary{background:#A855F7;}
+.cal-dot-no-diary{background:#FF9A7B;}
+.no-diary-cell{outline:1.5px dashed #FF9A7B!important;outline-offset:-2px;}
 .cal-legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;}
 .cal-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
 .cal-legend-dot{width:8px;height:8px;border-radius:50%;}
@@ -172,7 +175,10 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
 .anni-name{font-weight:700;font-size:14px;}
 .anni-date{font-size:12px;color:var(--text3);}
 .anni-dday{font-size:15px;font-weight:800;color:var(--rose);margin-left:auto;white-space:nowrap;}
-.map-wrap{border-radius:12px;overflow:hidden;background:#F0F4F8;border:1px solid var(--border);margin:0 0 12px;padding:0;position:relative;touch-action:none;}
+.map-wrap{border-radius:12px;overflow:hidden;background:#F0F4F8;border:1px solid var(--border);margin:0 0 12px;padding:0;position:relative;touch-action:none;scrollbar-width:thin;scrollbar-color:transparent transparent;}
+.map-wrap::-webkit-scrollbar{width:3px;height:3px;}
+.map-wrap::-webkit-scrollbar-thumb{background:transparent;border-radius:3px;}
+.map-wrap::-webkit-scrollbar-track{background:transparent;}
 .map-wrap svg{width:100%;height:auto;display:block;}
 #korea-map{touch-action:none;}
 .map-region{transition:filter 0.2s ease-out;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
@@ -401,6 +407,8 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           <div><div class="h-val" id="stat-diary">0</div><div class="h-label">일기</div></div>
         </div>
       </div>
+      <div id="home-nodiary-banner" style="display:none;background:linear-gradient(135deg,#FF9A7B,#FF6B9D);border-radius:10px;padding:10px 14px;margin-bottom:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;"></div>
+      <div id="home-unread-note-banner" style="display:none;background:var(--rose4);border-radius:10px;padding:10px 14px;margin-bottom:12px;color:var(--rose);font-size:13px;font-weight:700;cursor:pointer;"></div>
       <div class="section-label">받은 신청</div>
       <div id="home-incoming"></div>
       <div class="section-label">다가오는 데이트</div>
@@ -541,7 +549,7 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#FF6B9D;"></div>6-8</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#E8456A;"></div>9-10</div>
           <div class="map-legend-item"><div class="map-legend-dot" style="background:#C0392B;"></div>10+</div>
-          <div class="map-legend-item" id="legend-bucket" style="display:none;"><div class="map-legend-dot" style="background:#FFD93D;border:1px solid #e5c200;"></div>버킷</div>
+          <div class="map-legend-item" id="legend-bucket" style="display:none;"><div class="map-legend-dot" style="background:#B3E5FC;border:1px solid #81D4FA;"></div>버킷</div>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;border-bottom:1px solid var(--border);padding-bottom:0;">
@@ -679,11 +687,12 @@ textarea.form-input{resize:none;min-height:90px;line-height:1.6;}
       </svg>
       <span class="nav-label">지도</span>
     </button>
-    <button class="nav-item" data-page="my">
+    <button class="nav-item" data-page="my" style="position:relative;">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
       </svg>
       <span class="nav-label">마이</span>
+      <span class="nav-badge" id="nav-note-badge" style="display:none;"></span>
     </button>
   </div>
 </div>
@@ -1551,6 +1560,27 @@ function renderHome() {
     ? upcoming.map(r => dateCardHTML(r)).join('')
     : '<div class="empty-state">예정된 데이트가 없어요 🌸</div>';
 
+  // 읽지 않은 쪽지 뱃지
+  const unreadNotes = allNotes.filter(n => n.toUser === currentNick && !n.read).length;
+  const noteBadge = document.getElementById('nav-note-badge');
+  const notesBanner = document.getElementById('home-unread-note-banner');
+  if (noteBadge) { noteBadge.textContent = unreadNotes; noteBadge.style.display = unreadNotes > 0 ? 'block' : 'none'; }
+  if (notesBanner) {
+    notesBanner.style.display = unreadNotes > 0 ? 'block' : 'none';
+    notesBanner.textContent = `💌 읽지 않은 쪽지 ${unreadNotes}개가 있어요`;
+    notesBanner.onclick = () => { showPage('my'); setTimeout(() => { document.querySelector('[data-mytab="notes"]')?.click(); }, 100); };
+  }
+
+  // 일기 미작성 날 카운트
+  const todayStr = new Date().toISOString().split('T')[0];
+  const noDiaryCount = accepted.filter(r => r.date < todayStr && !allDiaries.some(d => d.reqId === r.id || d.date === r.date)).length;
+  const noDiaryBanner = document.getElementById('home-nodiary-banner');
+  if (noDiaryBanner) {
+    noDiaryBanner.style.display = noDiaryCount > 0 ? 'block' : 'none';
+    noDiaryBanner.textContent = `📔 아직 일기를 안 쓴 날이 ${noDiaryCount}일 있어요`;
+    noDiaryBanner.onclick = () => { showPage('my'); setTimeout(() => { document.querySelector('[data-mytab="dates"]')?.click(); }, 100); };
+  }
+
   // 최근 다녀온 곳 (수락된 데이트 중 과거 최대 5개)
   const recentDates = accepted
     .filter(r => r.date < today && r.region)
@@ -1621,6 +1651,7 @@ function renderCalendar() {
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
   const acceptedDates = new Set(allRequests.filter(r => r.status === '수락').map(r => r.date));
   const pendingDates = new Set(allRequests.filter(r => r.status === '대기').map(r => r.date));
   const anniDates = {};
@@ -1631,7 +1662,6 @@ function renderCalendar() {
     if (!anniDates[key]) anniDates[key] = [];
     anniDates[key].push(a);
   });
-  const diaryDates = new Set(allDiaries.map(d => d.date));
   const scheduleDates = {};
   allSchedules.forEach(s => {
     if (!scheduleDates[s.date]) scheduleDates[s.date] = [];
@@ -1649,20 +1679,32 @@ function renderCalendar() {
     const dow = cellDate.getDay();
     const isToday = cellDate.getTime() === today.getTime();
     const hasAnni = !!anniDates[dateStr];
-    const hasDiary = diaryDates.has(dateStr);
     const hasSched = !!scheduleDates[dateStr];
     const hasAccepted = acceptedDates.has(dateStr);
     const hasPending = pendingDates.has(dateStr);
+    // 일기 미작성: 과거 수락 데이트인데 일기 없음
+    const pastAccepted = hasAccepted && dateStr < todayStr;
+    const hasNoDiary = pastAccepted && !allDiaries.some(d => d.date === dateStr);
+    // 날짜 셀 배경색: 기념일+일정 → 대각선, 기념일만 → 연보라, 일정만 → 연노랑
+    let bgStyle = '';
+    if (hasAnni && hasSched) {
+      bgStyle = 'background:linear-gradient(135deg,#F3E8FF 50%,#FFF8E1 50%);';
+    } else if (hasAnni) {
+      bgStyle = 'background:#F3E8FF;';
+    } else if (hasSched) {
+      bgStyle = 'background:#FFF8E1;';
+    }
     let cls = 'cal-cell'
       + (isToday ? ' today' : '')
       + (dow === 0 ? ' sunday' : '') + (dow === 6 ? ' saturday' : '')
-      + (hasAnni ? ' has-anni' : '')
-      + (hasDiary ? ' has-diary' : '')
-      + (hasSched ? ' has-schedule' : '');
+      + (hasNoDiary ? ' no-diary-cell' : '');
     let indicators = '';
     if (hasAccepted) indicators += '<div class="cal-dot cal-dot-date"></div>';
     if (hasPending) indicators += '<div class="cal-dot cal-dot-pending"></div>';
-    html += '<button class="' + cls + '" data-caldate="' + dateStr + '">'
+    if (hasAnni) indicators += '<div class="cal-dot cal-dot-anniversary"></div>';
+    if (hasSched) indicators += '<div class="cal-dot" style="background:var(--yellow);"></div>';
+    if (hasNoDiary) indicators += '<div class="cal-dot cal-dot-no-diary"></div>';
+    html += '<button class="' + cls + '" data-caldate="' + dateStr + '" style="' + bgStyle + '">'
       + '<span class="cal-num">' + d + '</span>'
       + (indicators ? '<div class="cal-dots">' + indicators + '</div>' : '')
       + '</button>';
@@ -1885,21 +1927,21 @@ function renderMap() {
     }
   });
 
-  // ── 수락 데이트: per-path 정밀 매칭 (province fallback 제거 → 전체 칠림 버그 수정) ──
+  // ── 수락 데이트: per-path 정밀 매칭 ──
+  // sub-city 있으면 sub-city 우선 매칭, 없으면 province 이름으로도 매칭 시도
+  // (울산광역시처럼 province=path name인 경우 커버)
   const dateMatchedNameCounts = {}; // path.n → 방문 횟수
   allRequests
     .filter(r => (r.status === '수락' || r.status === 'accepted') && r.region)
     .forEach(r => {
       const parts = r.region.split(' · ');
-      if (parts.length >= 2) {
-        const subCity = parts[1].trim();
-        allSVGPaths.forEach(({ n }) => {
-          if (cityMatchesPath(subCity, n)) {
-            dateMatchedNameCounts[n] = (dateMatchedNameCounts[n] || 0) + 1;
-          }
-        });
-      }
-      // province-only 기록은 counts(모달)에만 반영, 지도 색칠은 하지 않음
+      // sub-city가 있으면 sub-city로, 없으면 province(광역시도)로 매칭
+      const matchTarget = parts.length >= 2 ? parts[1].trim() : parts[0].trim();
+      allSVGPaths.forEach(({ n }) => {
+        if (cityMatchesPath(matchTarget, n)) {
+          dateMatchedNameCounts[n] = (dateMatchedNameCounts[n] || 0) + 1;
+        }
+      });
     });
 
   // 모달 표시용 통합 카운트 (장소+데이트, province 단위)
@@ -1913,8 +1955,10 @@ function renderMap() {
     const dateCnt = dateMatchedNameCounts[n] || 0;
     const isPlace = placeMatchedNames.has(n);
     if (dateCnt > 0 || isPlace) return heatColor(dateCnt + (isPlace ? 1 : 0));
-    // 버킷리스트: regionName(특정 path) 또는 region(province) 기준
-    if (allBucketlist.some(b => (b.regionName ? b.regionName === n : getRegionGroup(b.region) === rk))) return '#FFD93D';
+    // 버킷리스트 색상은 버킷리스트 지도 탭에서만 표시 (방문 지도와 분리)
+    if (mapViewMode === 'bucket') {
+      if (allBucketlist.some(b => (b.regionName ? b.regionName === n : getRegionGroup(b.region) === rk))) return '#B3E5FC';
+    }
     return '#E8E8E8';
   }
 
@@ -2044,7 +2088,11 @@ function flashRegion(el) {
 function initMapZoom(svgEl, W, H, onTouchMove) {
   if (!svgEl) return;
   const g = svgEl.querySelector('#map-g');
-  let sc = 1, tx = 0, ty = 0;
+  // PC 기준 스크롤 1회 확대한 크기(1.18)로 기본 세팅, 지도 중앙 기준 줌
+  const IS_PC = !('ontouchstart' in window);
+  let sc = IS_PC ? 1.18 : 1;
+  let tx = IS_PC ? W / 2 * (1 - 1.18) : 0;   // ≈ -41
+  let ty = IS_PC ? H / 2 * (1 - 1.18) : 0;   // ≈ -65
 
   function clamp() {
     const maxTx = Math.max(0, (sc - 1) * W * 0.5 + W * 0.15);
@@ -2066,6 +2114,9 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
     apply();
   }
 
+  // PC일 때 초기 배율 적용
+  if (IS_PC) { apply(); svgEl.style.cursor = 'grab'; }
+
   // ── 마우스 휠 ──
   svgEl.addEventListener('wheel', e => {
     e.preventDefault();
@@ -2081,7 +2132,7 @@ function initMapZoom(svgEl, W, H, onTouchMove) {
   let mouseDrag = null;
   svgEl.style.cursor = 'default';
   svgEl.addEventListener('mousedown', e => {
-    if (sc <= 1) return;
+    if (sc <= 1.01) return;
     mouseDrag = { x: e.clientX, y: e.clientY, tx, ty };
     svgEl.style.cursor = 'grabbing';
     e.preventDefault();
@@ -2187,15 +2238,15 @@ async function toggleBucketlist(rkey, rname, clientX, clientY) {
       createdBy: currentNick,
       createdAt: serverTimestamp()
     });
-    showToast('버킷리스트에 추가했어요 ⭐');
-    // ★ 별 튀어오르는 애니메이션
+    showToast('버킷리스트에 추가했어요 💗');
+    // 💗 하트 튀어오르는 애니메이션
     if (clientX && clientY) {
       const star = document.createElement('div');
       star.className = 'star-pop';
-      star.textContent = '★';
+      star.textContent = '💗';
       star.style.left = clientX + 'px';
       star.style.top  = clientY + 'px';
-      star.style.color = 'var(--yellow)';
+      star.style.color = '#FF69B4';
       document.body.appendChild(star);
       setTimeout(() => star.remove(), 750);
     }
@@ -2322,17 +2373,63 @@ function renderPlaces() {
       + '<button class="btn btn-outline btn-xs" data-del-place="' + p.id + '">삭제</button>'
       + '</div>'
     ).join('');
-    // 버킷리스트 (지도에서 추가한 지역)
+    // 버킷리스트 (지도에서 추가한 지역) + 일괄 삭제 컨트롤
+    const bucketHeader = allBucketlist.length > 0
+      ? '<div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">'
+        + '<span style="flex:1;font-size:12px;font-weight:700;color:var(--text3);">버킷리스트 ' + allBucketlist.length + '개</span>'
+        + '<button class="btn btn-outline btn-xs" id="bucket-select-all-btn">전체 선택</button>'
+        + '<button class="btn btn-outline btn-xs" id="bucket-del-sel-btn" style="display:none;">선택 삭제</button>'
+        + '<button class="btn btn-outline btn-xs" id="bucket-del-all-btn" style="color:var(--rose);">전체 삭제</button>'
+        + '</div>'
+      : '';
     const bucketItems = allBucketlist.map(b =>
       '<div class="bucket-item">'
-      + '<span style="font-size:18px;flex-shrink:0;">⭐</span>'
+      + '<input type="checkbox" class="bucket-chk" data-bucket-id="' + b.id + '" style="width:16px;height:16px;flex-shrink:0;cursor:pointer;accent-color:var(--rose);">'
+      + '<span style="font-size:16px;flex-shrink:0;">💗</span>'
       + '<div style="flex:1;"><div class="bucket-item-name">' + (b.regionName || b.region) + '</div>'
       + '<div class="bucket-item-sub">' + (b.region !== b.regionName ? b.region + ' · ' : '') + (b.createdBy || '') + '</div></div>'
       + '<button class="btn btn-outline btn-xs" data-del-bucket="' + b.id + '">삭제</button>'
       + '</div>'
     ).join('');
-    const combined = placeItems + bucketItems;
+    const combined = placeItems + bucketHeader + bucketItems;
     el.innerHTML = combined || '<div class="empty-state">가고 싶은 곳을 추가해보세요</div>';
+    // 일괄 삭제 버튼 이벤트
+    setTimeout(() => {
+      const selAllBtn = document.getElementById('bucket-select-all-btn');
+      const delSelBtn = document.getElementById('bucket-del-sel-btn');
+      const delAllBtn = document.getElementById('bucket-del-all-btn');
+      if (selAllBtn) {
+        selAllBtn.addEventListener('click', () => {
+          const chks = document.querySelectorAll('.bucket-chk');
+          const allChecked = [...chks].every(c => c.checked);
+          chks.forEach(c => { c.checked = !allChecked; });
+          if (delSelBtn) delSelBtn.style.display = !allChecked ? 'inline-block' : 'none';
+        });
+      }
+      document.querySelectorAll('.bucket-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const anyChecked = [...document.querySelectorAll('.bucket-chk')].some(c => c.checked);
+          if (delSelBtn) delSelBtn.style.display = anyChecked ? 'inline-block' : 'none';
+        });
+      });
+      if (delSelBtn) {
+        delSelBtn.addEventListener('click', () => {
+          const ids = [...document.querySelectorAll('.bucket-chk:checked')].map(c => c.dataset.bucketId);
+          showConfirm('선택한 항목을 삭제할까요?', async () => {
+            await Promise.all(ids.map(id => deleteDoc(doc(db, 'bucketlist', id))));
+            showToast('삭제됐어요');
+          });
+        });
+      }
+      if (delAllBtn) {
+        delAllBtn.addEventListener('click', () => {
+          showConfirm('버킷리스트를 전체 삭제할까요?', async () => {
+            await Promise.all(allBucketlist.map(b => deleteDoc(doc(db, 'bucketlist', b.id))));
+            showToast('전체 삭제됐어요');
+          });
+        });
+      }
+    }, 0);
   }
 }
 
