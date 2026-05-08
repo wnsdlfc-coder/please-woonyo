@@ -1358,10 +1358,6 @@ async function saveCoupleCode(code, nick, isCreator = false) {
     const email = currentUser.email || '';
     const photoURL = currentUser.photoURL || '';
 
-    // 디버그: 현재 rooms 문서 구조 확인
-    const existingRoom = await getDoc(doc(db, 'rooms', code));
-    console.log('[DEBUG] rooms/' + code, existingRoom.exists() ? existingRoom.data() : '문서 없음');
-
     // Firestore: UID 기반 (기기 간 동기화 - 메인)
     await setDoc(doc(db, 'users', currentUser.uid), {
       uid: currentUser.uid, nickname: nick, coupleCode: code,
